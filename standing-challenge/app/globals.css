@@ -1,26 +1,56 @@
 @import "tailwindcss";
 
+/* Stå på! palette — see docs/superpowers/specs/2026-09-11-sta-pa-design.md */
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --bg: #221a3a;
+  --bg-deep: #1b1530;
+  --panel: #2e2450;
+  --panel-hi: #3d3170;
+  --text: #fff3dc;
+  --muted: #b8a8e6;
+  --pink: #ff6fa8;
+  --yellow: #ffd166;
+  --green: #7cf0a6;
+  --outline: #120d22;
 }
 
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --font-sans: var(--font-body);
+  --font-heading: var(--font-display);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+html,
+body {
+  background: var(--bg);
+  color: var(--text);
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  margin: 0;
+  min-height: 100dvh;
+  font-family: var(--font-body), system-ui, sans-serif;
+}
+
+button {
+  font: inherit;
+  cursor: pointer;
+}
+
+button:disabled {
+  cursor: default;
+  opacity: 0.6;
+}
+
+:focus-visible {
+  outline: 2px solid var(--yellow);
+  outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation: none !important;
+    transition: none !important;
+  }
 }

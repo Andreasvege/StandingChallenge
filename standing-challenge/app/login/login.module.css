@@ -1,0 +1,12 @@
+.page { position: relative; min-height: 100dvh; display: grid; place-items: center; padding: 16px; overflow: hidden; }
+.backdrop { position: absolute; inset: 0; display: flex; align-items: center; filter: blur(5px) brightness(0.7); transform: scale(1.05); pointer-events: none; }
+.backdrop > * { width: 100%; }
+.card { position: relative; width: min(400px, 100%); text-align: center; background: var(--bg); border-radius: 20px; padding: 28px; box-shadow: 0 0 0 4px var(--outline), 0 24px 60px #0009; }
+.logo { margin: 0 0 6px; font-family: var(--font-display), system-ui, sans-serif; font-weight: 800; font-size: 44px; letter-spacing: -0.02em; }
+.logo span { color: var(--pink); }
+.lead { margin: 0 0 20px; color: var(--muted); }
+.error { margin: 0 0 16px; padding: 8px 12px; border-radius: 10px; background: #ff6fa822; color: var(--pink); font-size: 14px; }
+.google { width: 100%; font-weight: 700; font-size: 16px; background: var(--yellow); color: var(--bg); border: 0; border-radius: 12px; padding: 12px 16px; box-shadow: 0 3px 0 #b8902e; }
+.dev { display: flex; gap: 8px; margin-top: 16px; }
+.dev input { flex: 1; min-width: 0; background: var(--panel); color: var(--text); border: 0; border-radius: 10px; padding: 8px 10px; }
+.dev button { background: var(--panel-hi); color: var(--text); border: 0; border-radius: 10px; padding: 8px 12px; }

@@ -1,0 +1,53 @@
+.app { min-height: 100dvh; background: var(--bg); }
+
+/* Header */
+.header { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 18px; padding: 22px 28px; }
+.brand { display: flex; align-items: center; gap: 14px; }
+.avatar { background: #3a2e68; border-radius: 14px; padding: 4px 6px; box-sizing: content-box; }
+.logo { margin: 0; font-family: var(--font-display), system-ui, sans-serif; font-weight: 800; font-size: 38px; line-height: 1; letter-spacing: -0.02em; }
+.logo span { color: var(--pink); }
+.sub { margin: 5px 0 0; font-size: 14px; color: var(--muted); }
+.sub b { color: var(--green); }
+.offline { color: var(--yellow); }
+.nav { display: flex; gap: 14px; margin-top: 8px; font-size: 13px; }
+.nav a,
+.navButton { color: var(--muted); background: none; border: 0; padding: 0; text-decoration: underline; text-underline-offset: 3px; }
+
+/* My status */
+.status { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; background: var(--panel); padding: 10px 10px 10px 16px; border-radius: 16px; }
+.statusLabel { font-size: 14px; color: #d9cff7; }
+.statusLabel b { color: var(--text); font-variant-numeric: tabular-nums; }
+.pills { display: flex; gap: 8px; }
+.pill { font-weight: 600; font-size: 14px; background: var(--panel-hi); color: var(--text); border: 0; border-radius: 11px; padding: 9px 14px; box-shadow: 0 3px 0 #1a1430; }
+.pill:active:not(:disabled) { transform: translateY(2px); box-shadow: 0 1px 0 #1a1430; }
+.go { background: var(--yellow); color: var(--bg); box-shadow: 0 3px 0 #b8902e; }
+.progress { width: 140px; height: 8px; background: var(--bg-deep); border-radius: 99px; overflow: hidden; }
+.progress i { display: block; height: 100%; background: linear-gradient(90deg, var(--green), var(--yellow)); }
+.error { width: 100%; color: var(--pink); font-size: 13px; }
+
+/* Leaderboards */
+.board { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 16px; padding: 20px 28px 26px; background: var(--bg-deep); }
+.board h2 { margin: 0 0 10px; font-family: var(--font-display), system-ui, sans-serif; font-size: 18px; font-weight: 700; color: var(--yellow); }
+.board ol { margin: 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 6px; }
+.board li { display: flex; align-items: center; gap: 10px; font-size: 14px; background: #262040; border-radius: 10px; padding: 5px 12px 5px 6px; }
+.rank { width: 20px; text-align: center; font-weight: 700; color: var(--muted); }
+.headBox { background: #3a2e68; border-radius: 8px; padding: 2px 4px; box-sizing: content-box; }
+.time { margin-left: auto; font-weight: 700; color: var(--green); font-variant-numeric: tabular-nums; }
+.meRow { outline: 2px solid var(--pink); }
+.empty { margin: 0; color: var(--muted); font-size: 14px; }
+
+/* «Står du fortsatt?» */
+.backdrop { position: fixed; inset: 0; z-index: 50; display: grid; place-items: center; padding: 16px; background: #120d22b3; }
+.dialog { width: min(380px, 100%); text-align: center; background: var(--bg); border-radius: 20px; padding: 24px; box-shadow: 0 0 0 4px var(--outline), 0 20px 60px #0008; }
+.dialog h2 { margin: 8px 0 4px; font-family: var(--font-display), system-ui, sans-serif; font-size: 28px; font-weight: 800; }
+.dialog p { margin: 4px 0; color: var(--muted); }
+.figure { display: flex; justify-content: center; }
+.countdown { font-variant-numeric: tabular-nums; }
+.dialogActions { display: flex; flex-direction: column; gap: 10px; margin-top: 16px; }
+
+@media (max-width: 700px) {
+  .header { padding: 18px 16px; }
+  .logo { font-size: 30px; }
+  .status { width: 100%; justify-content: space-between; }
+  .board { padding: 16px; }
+}
