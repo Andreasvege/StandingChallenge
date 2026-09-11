@@ -1,0 +1,353 @@
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500..800&family=DM+Sans:opsz,wght@9..40,400..700&display=swap" rel="stylesheet">
+
+<style>
+  .dirs { display: flex; flex-direction: column; gap: 2rem; }
+  .dirs .card { cursor: pointer; }
+  .dirs .card:hover { transform: translateY(-2px); }
+  .dir-label { display: flex; gap: .75rem; align-items: baseline; padding: 1rem 1.25rem .25rem; }
+  .dir-label .ltr { font-weight: 700; color: var(--accent); }
+  .dir-label h3 { margin: 0; }
+  .dir-desc { padding: 0 1.25rem 1rem; color: var(--text-secondary); font-size: .9rem; max-width: 76ch; }
+  .shot { margin: 0 1rem 1rem; border-radius: 14px; overflow: hidden; }
+
+  @keyframes pxbob { 0%,100% { transform: translateY(0) } 50% { transform: translateY(-3px) } }
+  @keyframes blink { 0%,100% { opacity: 1 } 50% { opacity: .45 } }
+  @keyframes walk { 0% { left: 2%; transform: scaleX(1) } 48% { left: 90%; transform: scaleX(1) } 50% { left: 90%; transform: scaleX(-1) } 98% { left: 2%; transform: scaleX(-1) } 100% { left: 2%; transform: scaleX(1) } }
+  @keyframes trot { 0%,100% { margin-bottom: 0 } 50% { margin-bottom: 2px } }
+
+  /* ---------- felles app-UI (ikke pikselert) ---------- */
+  .app { background: #221a3a; color: #FFF3DC; font-family: 'DM Sans', system-ui, sans-serif; }
+  .ui-top { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 18px; padding: 22px 28px; }
+  .appbrand { display: flex; align-items: center; gap: 14px; }
+  .appbrand svg { width: 52px; height: 52px; background: #3a2e68; border-radius: 14px; padding: 4px; }
+  .logo { font-family: 'Bricolage Grotesque', system-ui, sans-serif; font-weight: 800; font-size: 38px; line-height: 1; letter-spacing: -.02em; }
+  .logo span { color: #FF6FA8; }
+  .sub { font-size: 14px; color: #B8A8E6; margin-top: 5px; }
+  .sub b { color: #7CF0A6; font-weight: 700; }
+  .me { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; background: #2e2450; padding: 10px 10px 10px 16px; border-radius: 16px; }
+  .me-l { font-size: 14px; color: #d9cff7; }
+  .pill { font: 600 14px 'DM Sans', sans-serif; background: #3d3170; color: #FFF3DC; border-radius: 11px; padding: 9px 14px; box-shadow: 0 3px 0 #1a1430; }
+  .pill.go { background: #FFD166; color: #221a3a; box-shadow: 0 3px 0 #b8902e; }
+
+  .bub { font: 600 12px 'DM Sans', sans-serif; background: #FFF3DC; color: #221a3a; padding: 2px 8px 3px; position: relative; z-index: 3; white-space: nowrap;
+         box-shadow: 0 -3px 0 0 #120d22, 0 3px 0 0 #120d22, -3px 0 0 0 #120d22, 3px 0 0 0 #120d22;
+         transform: translateX(calc(var(--s) * -5px)); margin-bottom: calc(var(--s) * 1px); }
+  .bub b { font-weight: 700; color: #5b3fb0; }
+  .bub.z { background: #4d4180; color: #cfc4f2; }
+  .bub.lead { background: #FFD166; }
+  .bub.lead b { color: #8a4b00; }
+  .cell { display: flex; flex-direction: column; align-items: center; }
+  .cell svg { display: block; }
+  .cell.sit .bub { margin-bottom: calc(var(--s) * -5px); }
+  .cell.up svg { animation: pxbob 1s steps(2) infinite; }
+  .dog { position: absolute; bottom: 6px; z-index: 5; width: 51px; height: 36px; animation: walk 36s linear infinite; }
+  .dog svg { width: 100%; height: 100%; animation: trot .5s steps(2) infinite; }
+
+  .board { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 16px; padding: 20px 28px 26px; background: #1b1530; }
+  .board h4 { margin: 0 0 10px; font-family: 'Bricolage Grotesque', sans-serif; font-size: 18px; font-weight: 700; color: #FFD166; }
+  .board ol { margin: 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 6px; }
+  .board li { display: flex; align-items: center; gap: 10px; font-size: 14px; background: #262040; border-radius: 10px; padding: 5px 12px 5px 6px; }
+  .board li .rk { width: 20px; text-align: center; font-weight: 700; color: #B8A8E6; }
+  .board li svg { width: 28px; height: 28px; background: #3a2e68; border-radius: 8px; }
+  .board li .t { margin-left: auto; font-weight: 700; color: #7CF0A6; font-variant-numeric: tabular-nums; }
+  .board li.me { outline: 2px solid #FF6FA8; }
+
+  /* ---------- A: ett rom, to rader ---------- */
+  .room { position: relative; height: 440px; overflow: hidden;
+    background: linear-gradient(#34295e 0 20%, #3a2e68 20% 40%, #413472 40% 60%, #463879 60% 100%); }
+  .lights { position: absolute; top: 12px; left: 0; right: 0; height: 12px;
+    background:
+      repeating-linear-gradient(90deg, transparent 0 20px, #FFD166 20px 28px, transparent 28px 60px, #FF8FB1 60px 68px, transparent 68px 100px, #8FE3FF 100px 108px, transparent 108px 120px) 0 4px / 100% 8px no-repeat,
+      linear-gradient(#120d22, #120d22) 0 2px / 100% 2px no-repeat;
+    animation: blink 1.4s steps(2) infinite; }
+  .win { position: absolute; top: 36px; width: 256px; height: 144px; }
+  .clock { position: absolute; top: 44px; width: 54px; height: 54px; }
+  .room .floorArea { position: absolute; left: 0; right: 0; bottom: 0; height: 176px; border-top: 4px solid #120d22;
+    background: repeating-linear-gradient(#7a5140 0 40px, #5e3c30 40px 44px); }
+  .room .floorArea::after { content: ''; position: absolute; inset: 0; background: repeating-linear-gradient(90deg, transparent 0 116px, #5e3c3099 116px 120px); }
+  .row { position: absolute; display: grid; grid-template-columns: repeat(8, 1fr); justify-items: center; }
+  .row.back { left: 8%; right: 2%; bottom: 148px; filter: brightness(.86) saturate(.9); }
+  .row.front { left: 0; right: 0; bottom: 14px; z-index: 2; }
+
+  /* ---------- B: kontorbygget ---------- */
+  .bld { position: relative; padding: 26px 36px 0; overflow: hidden;
+    background: linear-gradient(#6b5bb5 0 18%, #9a6cc2 18% 34%, #e889b6 34% 52%, #ffab8a 52% 72%, #ffd39c 72%); }
+  .roof { position: relative; display: flex; justify-content: center; align-items: flex-end; height: 92px; }
+  .sign { font-family: 'Bricolage Grotesque', sans-serif; font-weight: 800; font-size: 32px; color: #FFF3DC; background: #221a3a; padding: 6px 26px 8px; border: 6px dotted #FFD166; border-radius: 6px; margin-bottom: 10px; letter-spacing: -.01em; }
+  .sign span { color: #FF6FA8; }
+  .roof .legs { position: absolute; bottom: 0; left: 50%; width: 150px; transform: translateX(-50%); height: 12px; background: repeating-linear-gradient(90deg, #120d22 0 6px, transparent 6px 36px); }
+  .antenna { position: absolute; bottom: 0; left: 14%; width: 30px; height: 70px; }
+  .tank { position: absolute; bottom: 0; right: 12%; width: 60px; height: 62px; }
+  .parapet { height: 14px; background: #120d22; margin: 0 -8px; border-radius: 2px; }
+  .storey { position: relative; border-left: 18px solid #b0583f; border-right: 18px solid #b0583f; height: 232px;
+    border-image: repeating-linear-gradient(#b0583f 0 10px, #8d4230 10px 12px) 18; }
+  .storey.s2 { background: repeating-linear-gradient(90deg, #443878 0 28px, #4a3d80 28px 56px); }
+  .storey.s1 { background: repeating-linear-gradient(90deg, #2f4a6e 0 28px, #34507a 28px 56px); }
+  .storey .lamps { position: absolute; top: 0; left: 0; right: 0; height: 26px; }
+  .storey .tag { position: absolute; top: 8px; left: 10px; font: 700 11px 'DM Sans', sans-serif; color: #FFF3DC; background: #120d2288; padding: 2px 8px; border-radius: 99px; letter-spacing: .04em; z-index: 4; }
+  .storey .flr { position: absolute; left: 0; right: 0; bottom: 0; height: 14px; background: #7a5140; border-top: 3px solid #120d22; }
+  .storey .row { left: 0; right: 0; bottom: 11px; }
+  .slab { height: 12px; background: #120d22; margin: 0 -8px; }
+  .ground { position: relative; height: 54px; background: linear-gradient(#5fae62 0 10px, #4a9150 10px 14px, #8b88a3 14px 36px, #6f6c88 36px 40px, #5fae62 40px); margin: 0 -36px; }
+  .bush { position: absolute; bottom: 30px; width: 48px; height: 24px; }
+
+  /* ---------- mobil ---------- */
+  .mob-wrap { display: flex; gap: 32px; align-items: flex-start; flex-wrap: wrap; padding: 8px 1.25rem 1.25rem; }
+  .phone { width: 375px; max-width: 100%; border: 10px solid #0d0b14; border-radius: 40px; overflow: hidden; flex-shrink: 0; box-shadow: 0 20px 50px #0006; }
+  .phone .ui-top { padding: 34px 18px 14px; gap: 12px; }
+  .phone .logo { font-size: 30px; }
+  .phone .appbrand svg { width: 42px; height: 42px; }
+  .phone .me { width: 100%; justify-content: space-between; }
+  .phone .pill { padding: 8px 12px; font-size: 13px; }
+  .phone .bld { padding: 12px 14px 0; }
+  .phone .roof { height: 66px; }
+  .phone .sign { font-size: 20px; padding: 4px 16px 6px; border-width: 4px; }
+  .phone .storey { height: 146px; border-left-width: 10px; border-right-width: 10px; border-image-width: 10px; }
+  .phone .storey .row { grid-template-columns: repeat(4, 1fr); }
+  .phone .bub { font-size: 10px; padding: 1px 5px 2px; }
+  .phone .ground { margin: 0 -14px; height: 44px; }
+  .phone .board { padding: 16px 14px 22px; }
+  .mob-note { flex: 1; min-width: 240px; color: var(--text-secondary); font-size: .92rem; line-height: 1.6; }
+  .mob-note h3 { color: var(--text-primary); }
+</style>
+
+<h2>Plass til alle 16</h2>
+<p class="subtitle">Pikselstilen er beholdt, men tekst og knapper er nå vanlig skrift. Navnet og status står i boblen over hvert hode. Bortsett fra Mina, Emma, Aslak, Vilde og Even er navnene oppdiktet. Følg med på gulvet, der går det en kontorhund.</p>
+
+<div class="dirs">
+
+  <!-- ===================== A ===================== -->
+  <div class="card" data-choice="rom" onclick="toggleSelect(this)">
+    <div class="dir-label"><span class="ltr">A</span><h3>Ett stort rom, to rader</h3></div>
+    <p class="dir-desc">Hele kontoret som ett landskap. Åtte pulter foran og åtte bak, med bakerste rad litt forskjøvet så alle synes. Føles mest som «vi sitter sammen», men blir litt tett.</p>
+    <div class="shot app">
+      <div class="ui-top" data-top></div>
+      <div class="room">
+        <div class="lights"></div>
+        <div class="win" style="left:10%" data-win></div>
+        <div class="win" style="left:58%" data-win></div>
+        <div class="clock" style="left:44%" data-clock></div>
+        <div class="floorArea"></div>
+        <div class="row back" data-row="8-16" data-scale="2.5"></div>
+        <div class="row front" data-row="0-8" data-scale="3"></div>
+        <div class="dog" data-dog></div>
+      </div>
+      <div class="board" data-board></div>
+    </div>
+  </div>
+
+  <!-- ===================== B ===================== -->
+  <div class="card" data-choice="bygg" onclick="toggleSelect(this)">
+    <div class="dir-label"><span class="ltr">B</span><h3>Kontorbygget</h3></div>
+    <p class="dir-desc">Et gjennomskåret bygg, litt som et dukkehus eller spillet Tiny Tower. Åtte personer per etasje på PC. Mer luft rundt hver person, og byggformen passer fint til mobil, der det blir fire etasjer med fire personer (se under).</p>
+    <div class="shot app">
+      <div class="ui-top" data-top></div>
+      <div class="bld">
+        <div class="roof">
+          <svg class="antenna" viewBox="0 0 10 24" shape-rendering="crispEdges"><rect x="4" y="2" width="2" height="22" fill="#120d22"/><rect x="1" y="6" width="8" height="2" fill="#120d22"/><rect x="2" y="12" width="6" height="2" fill="#120d22"/><rect x="4" y="0" width="2" height="2" fill="#FF6FA8"/></svg>
+          <div class="sign">Stå på<span>!</span></div>
+          <div class="legs"></div>
+          <svg class="tank" viewBox="0 0 20 20" shape-rendering="crispEdges"><rect x="3" y="2" width="14" height="12" fill="#120d22"/><rect x="4" y="3" width="12" height="10" fill="#8b88a3"/><rect x="4" y="5" width="12" height="1" fill="#6f6c88"/><rect x="4" y="9" width="12" height="1" fill="#6f6c88"/><rect x="5" y="14" width="2" height="6" fill="#120d22"/><rect x="13" y="14" width="2" height="6" fill="#120d22"/><rect x="7" y="0" width="6" height="2" fill="#120d22"/></svg>
+        </div>
+        <div class="parapet"></div>
+        <div class="storey s2"><div class="lamps" data-lamps></div><div class="tag">2. ETG</div><div class="row" data-row="8-16" data-scale="3"></div><div class="flr"></div></div>
+        <div class="slab"></div>
+        <div class="storey s1"><div class="lamps" data-lamps></div><div class="tag">1. ETG</div><div class="row" data-row="0-8" data-scale="3"></div><div class="flr"></div></div>
+        <div class="ground">
+          <svg class="bush" style="left:4%" viewBox="0 0 16 8" shape-rendering="crispEdges"><rect x="2" y="2" width="12" height="6" fill="#120d22"/><rect x="0" y="4" width="16" height="4" fill="#120d22"/><rect x="3" y="3" width="10" height="5" fill="#3f8a48"/><rect x="1" y="5" width="14" height="3" fill="#3f8a48"/><rect x="5" y="3" width="3" height="1" fill="#7dcf76"/></svg>
+          <svg class="bush" style="right:4%" viewBox="0 0 16 8" shape-rendering="crispEdges"><rect x="2" y="2" width="12" height="6" fill="#120d22"/><rect x="0" y="4" width="16" height="4" fill="#120d22"/><rect x="3" y="3" width="10" height="5" fill="#3f8a48"/><rect x="1" y="5" width="14" height="3" fill="#3f8a48"/><rect x="9" y="3" width="3" height="1" fill="#7dcf76"/></svg>
+          <div class="dog" data-dog style="bottom:20px"></div>
+        </div>
+      </div>
+      <div class="board" data-board></div>
+    </div>
+
+    <div class="mob-wrap">
+      <div class="phone app">
+        <div class="ui-top" data-top="mobile"></div>
+        <div class="bld">
+          <div class="roof"><div class="sign">Stå på<span>!</span></div><div class="legs" style="width:90px"></div></div>
+          <div class="parapet"></div>
+          <div class="storey s2"><div class="lamps" data-lamps></div><div class="row" data-row="12-16" data-scale="2" data-short="1"></div><div class="flr"></div></div>
+          <div class="slab"></div>
+          <div class="storey s1"><div class="lamps" data-lamps></div><div class="row" data-row="8-12" data-scale="2" data-short="1"></div><div class="flr"></div></div>
+          <div class="slab"></div>
+          <div class="storey s2"><div class="lamps" data-lamps></div><div class="row" data-row="4-8" data-scale="2" data-short="1"></div><div class="flr"></div></div>
+          <div class="slab"></div>
+          <div class="storey s1"><div class="lamps" data-lamps></div><div class="row" data-row="0-4" data-scale="2" data-short="1"></div><div class="flr"></div></div>
+          <div class="ground"><div class="dog" data-dog style="bottom:14px;width:38px;height:27px"></div></div>
+        </div>
+      </div>
+      <div class="mob-note">
+        <h3>Samme bygg på mobil</h3>
+        <p>På telefonen blir bygget smalere og høyere: fire etasjer med fire personer i hver. Du scroller nedover etasjene, og knappen for å starte en ståøkt ligger alltid øverst.</p>
+        <p>Rom-varianten (A) kan også krympes til mobil, men da blir figurene veldig små, eller så må man scrolle sidelengs.</p>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+(function () {
+  var K = '#120d22';
+  var P = [
+    { n: 'Mina',    st: 0,    hair: '#2b2140', style: 'long',  skin: '#f6c7a1', shirt: '#8fb8ff', item: 'mug' },
+    { n: 'Emma',    st: 1920, hair: '#e7b04a', style: 'bun',   skin: '#f6c7a1', shirt: '#ff9f6b', item: 'plant' },
+    { n: 'Aslak',   st: 0,    hair: '#7a4a2a', style: 'short', skin: '#e8b48c', shirt: '#7fd49a', item: 'mug', beard: true },
+    { n: 'Vilde',   st: 3660, hair: '#c2452d', style: 'long',  skin: '#f6d0b0', shirt: '#c7a4ff', item: 'plant' },
+    { n: 'Even',    st: 7250, hair: '#4a2e1c', style: 'short', skin: '#c98e62', shirt: '#ff7ab0', item: 'mug', crown: true },
+    { n: 'Andreas', st: 540,  hair: '#6b4a2e', style: 'short', skin: '#f6c7a1', shirt: '#ffd166', item: 'plant', glasses: true },
+    { n: 'Sofie',   st: 0,    hair: '#1f1a2e', style: 'curly', skin: '#8d5a3b', shirt: '#ff8fa3', item: 'mug' },
+    { n: 'Jonas',   st: 0,    hair: '#d9a24a', style: 'short', skin: '#f6d0b0', shirt: '#6fd3d0', item: 'mug', glasses: true },
+    { n: 'Ingrid',  st: 2700, hair: '#f0d58a', style: 'long',  skin: '#f6d0b0', shirt: '#9ad17a', item: 'plant' },
+    { n: 'Magnus',  st: 0,    hair: '#3a2a1e', style: 'curly', skin: '#c98e62', shirt: '#a3b4ff', item: 'mug' },
+    { n: 'Thea',    st: 1260, hair: '#8a3b2a', style: 'bun',   skin: '#e8b48c', shirt: '#ffb86b', item: 'mug', glasses: true },
+    { n: 'Henrik',  st: 0,    hair: '#bfa27a', style: 'short', skin: '#f6c7a1', shirt: '#8fd694', item: 'plant', beard: true },
+    { n: 'Nora',    st: 0,    hair: '#2b2140', style: 'bun',   skin: '#f6d0b0', shirt: '#d9a4ff', item: 'mug' },
+    { n: 'Sander',  st: 4800, hair: '#1f1a2e', style: 'short', skin: '#8d5a3b', shirt: '#6fb8ff', item: 'plant' },
+    { n: 'Ida',     st: 0,    hair: '#e6c07a', style: 'long',  skin: '#f6c7a1', shirt: '#ff9fc4', item: 'plant' },
+    { n: 'Kasper',  st: 0,    hair: '#5a3a22', style: 'curly', skin: '#f6d0b0', shirt: '#ffa26b', item: 'mug' }
+  ];
+  function byName(n) { return P.filter(function (p) { return p.n === n; })[0]; }
+
+  function shade(hex) {
+    var n = parseInt(hex.slice(1), 16), f = .8;
+    var r = Math.round((n >> 16) * f), g = Math.round((n >> 8 & 255) * f), b = Math.round((n & 255) * f);
+    return '#' + ((1 << 24) + (r << 16) + (g << 8) + b).toString(16).slice(1);
+  }
+
+  function rects(p, forceUp) {
+    var R = [];
+    function r(x, y, w, h, c) { R.push('<rect x="' + x + '" y="' + y + '" width="' + w + '" height="' + h + '" fill="' + c + '"/>'); }
+    function o(x, y, w, h, c) { r(x - 1, y - 1, w + 2, h + 2, K); r(x, y, w, h, c); }
+    var up = forceUp || p.st > 0;
+    var metal = '#8b88a3', pants = '#3d3a5c', chair = '#6f5ca8', s2 = shade(p.shirt);
+    var dt = up ? 26 : 34;
+
+    r(22, dt + 3, 2, 46 - (dt + 3), metal); r(34, dt + 3, 2, 46 - (dt + 3), metal);
+    r(21, 46, 4, 1, K); r(33, 46, 4, 1, K);
+    o(20, dt, 18, 2, '#d49a64'); r(20, dt + 1, 18, 1, '#a86f42');
+    r(23, dt - 2, 8, 1, '#cfcbe0'); r(30, dt - 8, 1, 6, '#cfcbe0'); r(29, dt - 7, 1, 4, '#8fe3ff');
+    if (p.item === 'plant') { r(34, dt - 3, 3, 2, '#e08a5b'); r(35, dt - 6, 1, 3, '#5fae62'); r(34, dt - 5, 1, 2, '#7dcf76'); r(36, dt - 5, 1, 2, '#7dcf76'); }
+    else { o(34, dt - 3, 3, 2, '#fff7ea'); }
+
+    function head(x, y) {
+      if (p.style === 'long') o(x - 1, y + 2, 4, 14, p.hair);
+      if (p.style === 'bun') o(x + 1, y - 3, 5, 4, p.hair);
+      if (p.style === 'curly') o(x - 1, y - 2, 15, 6, p.hair);
+      o(x, y, 13, 13, p.skin);
+      if (p.style === 'curly') { r(x - 1, y - 2, 15, 5, p.hair); r(x - 1, y + 3, 4, 6, p.hair); }
+      else { r(x, y, 13, 3, p.hair); r(x, y + 3, 4, 5, p.hair); r(x + 4, y + 3, 3, 1, p.hair); }
+      if (up) { r(x + 9, y + 5, 2, 2, K); r(x + 9, y + 5, 1, 1, '#ffffff'); }
+      else { r(x + 8, y + 6, 3, 1, K); }
+      if (p.glasses) { r(x + 8, y + 4, 4, 1, K); r(x + 8, y + 7, 4, 1, K); r(x + 8, y + 5, 1, 2, K); r(x + 11, y + 5, 1, 2, K); r(x + 4, y + 5, 4, 1, K); }
+      if (p.beard) { r(x + 6, y + 9, 7, 4, p.hair); }
+      else { r(x + 7, y + 8, 2, 1, '#ff8fa3'); r(x + 11, y + 9, 1, 1, K); }
+      if (p.crown) { r(x + 3, y - 3, 7, 2, '#ffd166'); r(x + 3, y - 5, 1, 2, '#ffd166'); r(x + 6, y - 5, 1, 2, '#ffd166'); r(x + 9, y - 5, 1, 2, '#ffd166'); }
+    }
+
+    if (up) {
+      o(11, 34, 2, 12, pants); o(15, 34, 2, 12, pants);
+      r(11, 46, 3, 1, K); r(15, 46, 3, 1, K);
+      o(9, 25, 9, 9, p.shirt);
+      r(15, 27, 4, 2, s2); r(19, 25, 2, 2, s2); r(21, 24, 2, 2, p.skin);
+      head(7, 11);
+    } else {
+      o(5, 27, 2, 11, chair);
+      o(6, 38, 12, 2, chair);
+      r(11, 41, 2, 4, metal); r(7, 45, 10, 1, metal); r(7, 46, 2, 1, K); r(15, 46, 2, 1, K);
+      o(18, 38, 3, 8, pants); r(18, 46, 4, 1, K);
+      o(9, 30, 8, 8, p.shirt);
+      o(12, 36, 8, 2, pants);
+      r(16, 32, 5, 2, s2); r(21, 32, 2, 2, p.skin);
+      head(7, 17);
+    }
+    return R.join('');
+  }
+  function avatar(p) { return '<svg viewBox="3 4 20 21" shape-rendering="crispEdges">' + rects(p, true) + '</svg>'; }
+
+  function cell(p, s, short) {
+    var up = p.st > 0;
+    var lbl = up
+      ? (p.crown ? '👑 ' : '') + p.n + ' · <b data-tick="' + p.st + '" data-fmt="' + (short ? 's' : 'l') + '"></b>'
+      : p.n + ' 💤';
+    var cls = up ? (p.crown ? 'lead' : '') : 'z';
+    return '<div class="cell ' + (up ? 'up' : 'sit') + '" style="--s:' + s + '">' +
+      '<div class="bub ' + cls + '">' + lbl + '</div>' +
+      '<svg viewBox="0 0 40 48" width="' + (40 * s) + '" height="' + (48 * s) + '" shape-rendering="crispEdges">' + rects(p) + '</svg></div>';
+  }
+
+  document.querySelectorAll('[data-row]').forEach(function (el) {
+    var ab = el.dataset.row.split('-'), s = +el.dataset.scale, short = !!el.dataset.short;
+    el.innerHTML = P.slice(+ab[0], +ab[1]).map(function (p, i) {
+      return cell(p, s, short);
+    }).join('');
+    el.querySelectorAll('.cell.up svg').forEach(function (sv, i) { sv.style.animationDelay = (-i * .37) + 's'; });
+  });
+
+  var standing = P.filter(function (p) { return p.st > 0; }).length;
+  document.querySelectorAll('[data-top]').forEach(function (el) {
+    var mob = el.dataset.top === 'mobile';
+    el.innerHTML =
+      '<div class="appbrand">' + avatar(byName('Even')) +
+        '<div><div class="logo">Stå på<span>!</span></div>' +
+        '<div class="sub"><b>' + standing + ' av 16</b> står akkurat nå' + (mob ? '' : ' · Sammen har vi stått <b>23 t 40 min</b> i dag') + '</div></div></div>' +
+      '<div class="me"><span class="me-l">Du sitter nå. Klar for en runde?</span>' +
+        '<span style="display:flex;gap:8px"><span class="pill">30</span><span class="pill go">Stå 60 min</span><span class="pill">90</span></span></div>';
+  });
+
+  var today = [['Even', '3 t 10 min'], ['Sander', '2 t 05 min'], ['Vilde', '1 t 50 min'], ['Ingrid', '1 t 30 min'], ['Emma', '1 t 12 min']];
+  var week  = [['Even', '11 t 20 min'], ['Vilde', '8 t 45 min'], ['Sander', '7 t 30 min'], ['Emma', '6 t 10 min'], ['Andreas', '5 t 05 min']];
+  function list(title, rows) {
+    return '<div><h4>' + title + '</h4><ol>' + rows.map(function (r, i) {
+      return '<li class="' + (r[0] === 'Andreas' ? 'me' : '') + '"><span class="rk">' + (i + 1) + '</span>' + avatar(byName(r[0])) + r[0] + '<span class="t">' + r[1] + '</span></li>';
+    }).join('') + '</ol></div>';
+  }
+  document.querySelectorAll('[data-board]').forEach(function (el) { el.innerHTML = list('I dag', today) + list('Denne uka', week); });
+  document.querySelectorAll('.phone .board').forEach(function (el) { el.innerHTML = list('Denne uka', week); });
+
+  var win = '<svg viewBox="0 0 64 36" width="100%" height="100%" shape-rendering="crispEdges">' +
+    '<rect width="64" height="36" fill="#120d22"/><rect x="2" y="2" width="60" height="7" fill="#6b5bb5"/><rect x="2" y="9" width="60" height="6" fill="#9a6cc2"/>' +
+    '<rect x="2" y="15" width="60" height="6" fill="#e889b6"/><rect x="2" y="21" width="60" height="6" fill="#ffab8a"/><rect x="2" y="27" width="60" height="7" fill="#ffd39c"/>' +
+    '<rect x="42" y="18" width="8" height="8" fill="#fff1b8"/><rect x="41" y="19" width="10" height="6" fill="#fff1b8"/>' +
+    '<rect x="8" y="7" width="10" height="2" fill="#f6d2ec"/><rect x="10" y="5" width="5" height="2" fill="#f6d2ec"/>' +
+    '<g fill="#4b3f7a"><rect x="2" y="27" width="5" height="7"/><rect x="7" y="24" width="4" height="10"/><rect x="11" y="29" width="6" height="5"/><rect x="17" y="25" width="5" height="9"/><rect x="22" y="28" width="7" height="6"/><rect x="34" y="27" width="5" height="7"/><rect x="39" y="29" width="4" height="5"/><rect x="43" y="23" width="5" height="11"/><rect x="48" y="28" width="6" height="6"/><rect x="54" y="25" width="8" height="9"/></g>' +
+    '<g fill="#ffd166"><rect x="8" y="26" width="1" height="1"/><rect x="18" y="27" width="1" height="1"/><rect x="44" y="25" width="1" height="1"/><rect x="56" y="27" width="1" height="1"/></g>' +
+    '<rect x="31" y="2" width="2" height="32" fill="#120d22"/></svg>';
+  document.querySelectorAll('[data-win]').forEach(function (el) { el.innerHTML = win; });
+
+  var clock = '<svg viewBox="0 0 18 18" width="100%" height="100%" shape-rendering="crispEdges">' +
+    '<rect x="4" y="1" width="10" height="16" fill="#120d22"/><rect x="1" y="4" width="16" height="10" fill="#120d22"/><rect x="2" y="2" width="14" height="14" fill="#120d22"/>' +
+    '<rect x="5" y="2" width="8" height="14" fill="#FFF3DC"/><rect x="2" y="5" width="14" height="8" fill="#FFF3DC"/><rect x="3" y="3" width="12" height="12" fill="#FFF3DC"/>' +
+    '<rect x="8" y="4" width="2" height="6" fill="#221a3a"/><rect x="9" y="8" width="4" height="2" fill="#FF6FA8"/></svg>';
+  document.querySelectorAll('[data-clock]').forEach(function (el) { el.innerHTML = clock; });
+
+  var lamps = '<svg width="100%" height="100%" shape-rendering="crispEdges"><defs><pattern id="lp" width="132" height="26" patternUnits="userSpaceOnUse">' +
+    '<rect x="64" y="0" width="3" height="10" fill="#120d22"/><rect x="56" y="10" width="19" height="3" fill="#120d22"/><rect x="58" y="13" width="15" height="4" fill="#FFD166"/><rect x="60" y="17" width="11" height="2" fill="#fff1b8"/>' +
+    '</pattern></defs><rect width="100%" height="100%" fill="url(#lp)"/></svg>';
+  document.querySelectorAll('[data-lamps]').forEach(function (el) { el.innerHTML = lamps; });
+
+  var dog = '<svg viewBox="0 0 17 12" shape-rendering="crispEdges">' +
+    '<rect x="0" y="2" width="3" height="2" fill="#120d22"/><rect x="2" y="3" width="12" height="7" fill="#120d22"/><rect x="10" y="0" width="7" height="7" fill="#120d22"/>' +
+    '<rect x="3" y="4" width="10" height="5" fill="#d49a64"/><rect x="11" y="1" width="5" height="5" fill="#d49a64"/><rect x="1" y="3" width="2" height="1" fill="#d49a64"/>' +
+    '<rect x="11" y="1" width="2" height="3" fill="#8a5a36"/><rect x="14" y="3" width="1" height="1" fill="#120d22"/><rect x="16" y="4" width="1" height="1" fill="#120d22"/>' +
+    '<rect x="4" y="7" width="6" height="2" fill="#f3d6a6"/>' +
+    '<rect x="3" y="10" width="2" height="2" fill="#120d22"/><rect x="11" y="10" width="2" height="2" fill="#120d22"/>' +
+    '<rect x="8" y="4" width="2" height="1" fill="#FF6FA8"/></svg>';
+  document.querySelectorAll('[data-dog]').forEach(function (el, i) { el.innerHTML = dog; el.style.animationDelay = (-i * 9) + 's'; });
+
+  var t0 = Date.now();
+  function fmt(s, f) {
+    var h = Math.floor(s / 3600), m = Math.floor(s % 3600 / 60);
+    if (f === 's') return h ? h + 't' + String(m).padStart(2, '0') : m + 'm';
+    return h ? h + ' t ' + m + ' min' : m + ' min';
+  }
+  function tick() {
+    var d = Math.floor((Date.now() - t0) / 1000);
+    document.querySelectorAll('[data-tick]').forEach(function (el) { el.textContent = fmt(+el.dataset.tick + d, el.dataset.fmt); });
+  }
+  tick(); setInterval(tick, 1000);
+})();
+</script>
