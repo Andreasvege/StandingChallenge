@@ -1,0 +1,8 @@
+# macOS
+.DS_Store
+
+# brainstorm mockups (local only)
+.superpowers/
+
+# browser-automation logs
+.playwright-mcp/
