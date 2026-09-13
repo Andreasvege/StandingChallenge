@@ -1,10 +1,13 @@
 'use client'
 
 import { useMemo, useState, useTransition } from 'react'
+import { sendCheer } from '@/app/actions/cheer'
 import { extendStanding, startStanding, stopStanding } from '@/app/actions/stand'
 import { requestNotificationPermission, warmUpAudio } from '@/lib/alerts'
+import { activeCheers, cheerMessage } from '@/lib/cheers'
 import type { RoundMinutes } from '@/lib/sessions'
 import { liveEmployee, type OfficeSnapshot } from '@/lib/snapshot'
+import { CheerToasts } from './CheerToasts'
 import { Leaderboard } from './Leaderboard'
 import { MyStatus } from './MyStatus'
 import { OfficeHeader } from './OfficeHeader'
@@ -31,6 +34,10 @@ export function OfficeApp({ initial, meId, isAdmin }: OfficeAppProps) {
     [snapshot, now],
   )
   const me = live.find(e => e.id === meId) ?? null
+  const cheers = snapshot.cheers ?? []
+  const incoming = activeCheers(cheers, now)
+    .filter(c => c.toId === meId)
+    .map(c => ({ id: c.id, text: cheerMessage(c, live.find(e => e.id === c.fromId)?.name ?? 'Noen') }))
 
   useStandAlerts(me, sound.on)
   useTabTitle(me, now)
@@ -53,6 +60,19 @@ export function OfficeApp({ initial, meId, isAdmin }: OfficeAppProps) {
     run(() => startStanding(minutes))
   }
 
+  function cheer(toId: string, emoji: string) {
+    setError(null)
+    startTransition(async () => {
+      try {
+        const result = await sendCheer(toId, emoji)
+        accept(result.snapshot)
+        if (!result.ok) setError(result.message)
+      } catch {
+        setError('Noe gikk galt. Prøv igjen.')
+      }
+    })
+  }
+
   const standing = live.filter(e => e.phase !== 'sitting').length
   const todayTotal = live.reduce((sum, e) => sum + e.todaySeconds, 0)
 
@@ -70,8 +90,9 @@ export function OfficeApp({ initial, meId, isAdmin }: OfficeAppProps) {
       >
         <MyStatus me={me} now={now} pending={pending} error={error} onStart={start} onStop={() => run(stopStanding)} />
       </OfficeHeader>
-      <OfficeRoom employees={live} leaderId={snapshot.leaderId} now={now} meId={meId} />
+      <OfficeRoom employees={live} leaderId={snapshot.leaderId} now={now} meId={meId} cheers={cheers} onCheer={cheer} />
       <Leaderboard employees={live} meId={meId} />
+      <CheerToasts messages={incoming} />
       {me?.phase === 'awaiting' && me.session && (
         <StillStandingDialog
           me={me}

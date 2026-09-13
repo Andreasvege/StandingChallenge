@@ -1,8 +1,9 @@
 // Database side of the office snapshot. The maths lives in lib/snapshot.ts.
 
-import { and, gte, isNull, lt, or, sql } from 'drizzle-orm'
+import { and, asc, gte, isNull, lt, or, sql } from 'drizzle-orm'
 import { db } from '@/db/client'
-import { employees, standSessions, type EmployeeRecord, type StandSessionRecord } from '@/db/schema'
+import { cheers, employees, standSessions, type CheerRecord, type EmployeeRecord, type StandSessionRecord } from '@/db/schema'
+import { CHEER_SHOW_MS, type Cheer } from './cheers'
 import { currentGraceMs } from './clock-config'
 import { buildSnapshot, type EmployeeRow, type OfficeSnapshot, type SessionRow } from './snapshot'
 import { osloWeekStart } from './time'
@@ -23,6 +24,10 @@ export function toSessionRow(s: StandSessionRecord): SessionRow {
   }
 }
 
+export function toCheer(c: CheerRecord): Cheer {
+  return { id: c.id, fromId: c.fromEmployeeId, toId: c.toEmployeeId, emoji: c.emoji, at: c.createdAt.getTime() }
+}
+
 /** Lazy timeout: close every session whose «Står du fortsatt?» went unanswered. No cron needed. */
 export async function closeExpiredSessions(now: number, grace: number): Promise<void> {
   await db
@@ -35,12 +40,17 @@ export async function loadOfficeSnapshot(now = Date.now()): Promise<OfficeSnapsh
   const grace = currentGraceMs()
   await closeExpiredSessions(now, grace)
   const weekStart = new Date(osloWeekStart(now))
-  const [employeeRows, sessionRows] = await Promise.all([
+  const [employeeRows, sessionRows, cheerRows] = await Promise.all([
     db.select().from(employees),
     db
       .select()
       .from(standSessions)
       .where(or(isNull(standSessions.endedAt), gte(standSessions.endedAt, weekStart))),
+    db
+      .select()
+      .from(cheers)
+      .where(gte(cheers.createdAt, new Date(now - CHEER_SHOW_MS)))
+      .orderBy(asc(cheers.createdAt)),
   ])
-  return buildSnapshot(employeeRows.map(toEmployeeRow), sessionRows.map(toSessionRow), now, grace)
+  return buildSnapshot(employeeRows.map(toEmployeeRow), sessionRows.map(toSessionRow), now, grace, cheerRows.map(toCheer))
 }

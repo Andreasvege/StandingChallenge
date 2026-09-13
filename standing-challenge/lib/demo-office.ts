@@ -1,6 +1,7 @@
 // Demo office used by the dev seed, the /dev/room preview and the blurred login background.
 // Everyone except Mina, Emma, Aslak, Vilde and Even is made up.
 
+import type { Cheer } from './cheers'
 import type { Figure } from './figure'
 import { buildSnapshot, liveEmployee, type EmployeeRow, type LiveEmployee, type OfficeSnapshot, type SessionRow } from './snapshot'
 import { osloDayStart } from './time'
@@ -86,9 +87,11 @@ export function demoSnapshot(now: number, grace = 5 * MIN): OfficeSnapshot {
  * Everything <OfficeRoom> needs to show the demo office right now (or at `hour` o'clock Oslo time today).
  * Reads the clock here rather than in page components, which must stay pure (react-hooks/purity).
  */
-export function demoRoom(hour?: number): { employees: LiveEmployee[]; leaderId: string | null; now: number } {
+export function demoRoom(hour?: number, withCheer = false): { employees: LiveEmployee[]; leaderId: string | null; now: number; cheers: Cheer[] } {
   const clock = Date.now()
   const now = hour === undefined || Number.isNaN(hour) ? clock : osloDayStart(clock) + hour * 3_600_000
   const snap = demoSnapshot(now)
-  return { employees: snap.employees.map(e => liveEmployee(e, now, now, snap.graceMs)), leaderId: snap.leaderId, now }
+  // /dev/room?cheer=1 shows Emma cheering on Even, to preview the floating emoji.
+  const cheers: Cheer[] = withCheer ? [{ id: 'demo-cheer', fromId: 'emma@thebrave.no', toId: 'even@thebrave.no', emoji: '🔥', at: now - 500 }] : []
+  return { employees: snap.employees.map(e => liveEmployee(e, now, now, snap.graceMs)), leaderId: snap.leaderId, now, cheers }
 }

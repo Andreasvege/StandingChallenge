@@ -34,11 +34,15 @@ Next.js 16.3 (App Router, Turbopack) · React 19 · TypeScript strict · Auth.js
 - One-off DB queries: `npx tsx -e` with `loadEnvConfig(process.cwd(), false)` from `@next/env` + `neon(process.env.DATABASE_URL!)`, wrapped in an async IIFE (tsx `-e` has no top-level await).
 
 ## Structure
-- `lib/` — pure, unit-tested logic: `time` (Europe/Oslo day/week), `sessions` (round rules), `snapshot` (office state + live advance between polls), `figure` (model + palettes), `sprite` (pixel rects), `access` (domain/admin), `leaderboard`, `room-layout`, `sky`, `format`, `employee-import`, `demo-office`. Server/DB glue without tests: `office` (snapshot + lazy expiry), `current-employee`, `clock-config`, `alerts` (Web Audio pling + notifications).
-- `db/` — Drizzle schema (`employees`, `stand_sessions`; partial unique index = max one open session per person) and client.
-- `app/actions/` — Server Actions (`stand`, `admin`, `auth`); every action re-checks auth itself.
+- `lib/` — pure, unit-tested logic: `time` (Europe/Oslo day/week), `sessions` (round rules), `snapshot` (office state + live advance between polls), `figure` (model + palettes), `sprite` (pixel rects), `sprite-art` (hand-drawn art helpers), `cheers` (heiarop rules), `plant` (kontorplanten), `access` (domain/admin), `leaderboard`, `room-layout`, `sky`, `format`, `employee-import`, `demo-office`. Server/DB glue without tests: `office` (snapshot + lazy expiry + recent cheers), `current-employee`, `clock-config`, `alerts` (Web Audio pling + notifications).
+- `db/` — Drizzle schema (`employees`, `stand_sessions` with a partial unique index = max one open session per person, `cheers`) and client.
+- `app/actions/` — Server Actions (`stand`, `cheer`, `admin`, `auth`); every action re-checks auth itself.
 - `app/api/office` — polled every 5 s by the client; 401 when logged out.
-- `components/` — `OfficeApp` (client shell: polling, ticking clock, tab title, dynamic favicon), `office/OfficeRoom` (scene; desktop 2×8, phones ≤700px 4×4 with compact two-line bubbles), `PixelPerson`, `MyStatus`, `Leaderboard`, `StillStandingDialog`, `admin/*` (FigureBuilder, SeatGrid).
+- `components/` — `OfficeApp` (client shell: polling, ticking clock, tab title, dynamic favicon, heiarop toasts via `CheerToasts`), `office/OfficeRoom` (scene; desktop 2×8, phones ≤700px 4×4 with compact two-line bubbles; tap a colleague for the heiarop menu), `office/OfficePlant`, `PixelPerson`, `MyStatus`, `Leaderboard`, `StillStandingDialog`, `admin/*` (FigureBuilder, SeatGrid).
+
+## Heiarop & kontorplanten
+- **Heiarop:** tap a colleague → menu with today's total and emojis (standing: 👏🔥💪☕, sitting: ⬆️ «reis deg!», 👀, ☕). `sendCheer` stores it in `cheers` (sender = logged-in user; no self-cheers; 30 s cooldown per sender→receiver). Snapshots carry cheers from the last 8 s (`CHEER_SHOW_MS`, longer than a poll); the room floats the emoji over the receiver's head and the receiver gets a toast. Everything is derived from `now` — no effects/state for animations. Preview with `/dev/room?cheer=1`.
+- **Kontorplanten:** a potted plant on a wall shelf (back-left corner on desktop, between the windows on phones) grows through 6 stages with the whole office's standing this week toward `WEEKLY_GOAL_HOURS` (30), blooming at the goal; resets Monday with the week totals. Sign «12/30 t»; tap for the full label.
 - `scripts/` — `import-employees`, `seed-dev`, `make-icon`.
 
 ## Rules & conventions

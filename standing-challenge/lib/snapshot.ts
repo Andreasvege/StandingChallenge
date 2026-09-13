@@ -1,6 +1,7 @@
-// The office "snapshot" sent to every browser: who sits where, who stands, and today's/this week's totals.
-// Pure: the DB layer (lib/office.ts) feeds it rows and a timestamp.
+// The office "snapshot" sent to every browser: who sits where, who stands, today's/this week's totals
+// and the latest heiarop. Pure: the DB layer (lib/office.ts) feeds it rows and a timestamp.
 
+import type { Cheer } from './cheers'
 import type { Figure } from './figure'
 import { creditedSecondsBetween, phaseAt, type StandSession } from './sessions'
 import { osloDayStart, osloNextDayStart, osloWeekStart } from './time'
@@ -28,9 +29,17 @@ export interface OfficeSnapshot {
   todayTotalSeconds: number
   /** Today's leader (gets the crown), or null when nobody has stood yet. */
   leaderId: string | null
+  /** Heiarop from the last few seconds (see CHEER_SHOW_MS); browsers animate the ones they haven't shown. */
+  cheers: Cheer[]
 }
 
-export function buildSnapshot(employees: EmployeeRow[], sessions: SessionRow[], now: number, grace: number): OfficeSnapshot {
+export function buildSnapshot(
+  employees: EmployeeRow[],
+  sessions: SessionRow[],
+  now: number,
+  grace: number,
+  cheers: Cheer[] = [],
+): OfficeSnapshot {
   const dayStart = osloDayStart(now)
   const dayEnd = osloNextDayStart(now)
   const weekStart = osloWeekStart(now)
@@ -85,6 +94,7 @@ export function buildSnapshot(employees: EmployeeRow[], sessions: SessionRow[], 
     employees: list,
     todayTotalSeconds: list.reduce((sum, e) => sum + e.todaySeconds, 0),
     leaderId: leader?.id ?? null,
+    cheers,
   }
 }
 

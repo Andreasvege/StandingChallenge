@@ -36,5 +36,23 @@ export const standSessions = pgTable(
   ],
 )
 
+/** Heiarop: a little emoji one colleague sends another. Kept after showing, for future stats. */
+export const cheers = pgTable(
+  'cheers',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    fromEmployeeId: uuid('from_employee_id')
+      .notNull()
+      .references(() => employees.id, { onDelete: 'cascade' }),
+    toEmployeeId: uuid('to_employee_id')
+      .notNull()
+      .references(() => employees.id, { onDelete: 'cascade' }),
+    emoji: text('emoji').notNull(),
+    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+  },
+  t => [index('cheers_created_at').on(t.createdAt), index('cheers_from_to').on(t.fromEmployeeId, t.toEmployeeId)],
+)
+
 export type EmployeeRecord = typeof employees.$inferSelect
 export type StandSessionRecord = typeof standSessions.$inferSelect
+export type CheerRecord = typeof cheers.$inferSelect
