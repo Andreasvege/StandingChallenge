@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { DEFAULT_FIGURE, isFigure, randomFigure } from './figure'
+import { DEFAULT_FIGURE, DESK_ITEMS, HEADWEAR, isFigure, randomFigure } from './figure'
 
 describe('isFigure', () => {
   it('accepts the default figure', () => {
@@ -23,6 +23,14 @@ describe('isFigure', () => {
     expect(isFigure({ ...DEFAULT_FIGURE, beard: true })).toBe(false)
     expect(isFigure({ ...DEFAULT_FIGURE, mustache: 'yes' })).toBe(false)
   })
+  it('accepts every hand-drawn option (DEFAULT_FIGURE itself has no headwear, like figures saved before it existed)', () => {
+    expect('headwear' in DEFAULT_FIGURE).toBe(false)
+    for (const headwear of HEADWEAR) expect(isFigure({ ...DEFAULT_FIGURE, headwear })).toBe(true)
+    for (const deskItem of DESK_ITEMS) expect(isFigure({ ...DEFAULT_FIGURE, deskItem })).toBe(true)
+  })
+  it('rejects head art that does not exist', () => {
+    expect(isFigure({ ...DEFAULT_FIGURE, headwear: 'tiara' })).toBe(false)
+  })
   it('rejects non-objects', () => {
     expect(isFigure(null)).toBe(false)
     expect(isFigure('figure')).toBe(false)
@@ -36,6 +44,6 @@ describe('randomFigure', () => {
   it('is deterministic for a given random source, including the edge values', () => {
     expect(randomFigure(() => 0)).toEqual(randomFigure(() => 0))
     expect(randomFigure(() => 0)).toMatchObject({ eyewear: 'glasses', beard: 'stubble', mustache: true })
-    expect(randomFigure(() => 0.999999)).toMatchObject({ eyewear: 'none', beard: 'none', mustache: false })
+    expect(randomFigure(() => 0.999999)).toMatchObject({ eyewear: 'none', beard: 'none', mustache: false, headwear: 'none' })
   })
 })

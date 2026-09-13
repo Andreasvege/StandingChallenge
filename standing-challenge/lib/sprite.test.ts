@@ -1,6 +1,8 @@
 import { describe, it, expect } from 'vitest'
 import { BEARDS, DEFAULT_FIGURE, EYEWEAR, HAIR_STYLES, type Figure } from './figure'
-import { CROWN, HEAD_VIEWBOX, LENS, OUTLINE, SPRITE_H, SPRITE_W, blend, emptyDeskRects, lighten, shade, spriteRects, type Rect } from './sprite'
+import { CROWN, DESK_TOP, FACE, HEAD_VIEWBOX, LENS, OUTLINE, SPRITE_H, SPRITE_W, blend, emptyDeskRects, lighten, shade, spriteRects, type Rect } from './sprite'
+import { DESK_CANVAS, HEAD_CANVAS } from './sprite-art'
+import { DESK_ART, HEAD_ART } from './sprite-art.generated'
 
 const stand = (f: Figure, crown = false) => spriteRects(f, { pose: 'stand', crown })
 const deskTop = (rects: Rect[]) => rects.find(r => r.fill === '#d49a64' && r.w === 18)?.y
@@ -80,6 +82,54 @@ describe('spriteRects', () => {
         }
       }
     }
+  })
+})
+
+describe('hand-drawn art', () => {
+  const shifted = (rects: Rect[], dx: number, dy: number) => rects.map(r => ({ ...r, x: r.x + dx, y: r.y + dy }))
+  const contains = (all: Rect[], part: Rect[]) => part.every(p => has(all, p))
+
+  it('draws head art relative to the face in both poses', () => {
+    for (const piece of HEAD_ART) {
+      const f: Figure = { ...DEFAULT_FIGURE, headwear: piece.id }
+      for (const pose of ['stand', 'sit'] as const) {
+        const origin = { x: FACE[pose].x + HEAD_CANVAS.dx, y: FACE[pose].y + HEAD_CANVAS.dy }
+        const rects = spriteRects(f, { pose })
+        expect(contains(rects, shifted(piece.rects, origin.x, origin.y))).toBe(true)
+        expect(inBounds(rects)).toBe(true)
+      }
+    }
+  })
+  it('draws desk art on the desk instead of the mug, in both poses', () => {
+    for (const piece of DESK_ART) {
+      const f: Figure = { ...DEFAULT_FIGURE, deskItem: piece.id }
+      for (const pose of ['stand', 'sit'] as const) {
+        const rects = spriteRects(f, { pose })
+        expect(contains(rects, shifted(piece.rects, DESK_CANVAS.x, DESK_TOP[pose] + DESK_CANVAS.dy))).toBe(true)
+        expect(has(rects, { fill: '#fff7ea' })).toBe(false)
+        expect(inBounds(rects)).toBe(true)
+      }
+    }
+  })
+  it('keeps the crown above head art, so it never hides behind a hat', () => {
+    for (const piece of HEAD_ART) {
+      for (const pose of ['stand', 'sit'] as const) {
+        const f: Figure = { ...DEFAULT_FIGURE, headwear: piece.id }
+        const rects = spriteRects(f, { pose, crown: true })
+        // The crown is drawn last, so it's whatever the crowned sprite has beyond the plain one
+        // (matching on colour won't do: a yellow cap uses the crown colour too).
+        const crownRects = rects.slice(spriteRects(f, { pose }).length)
+        const artTop = FACE[pose].y + HEAD_CANVAS.dy + Math.min(...piece.rects.map(r => r.y))
+        const crownBottom = Math.max(...crownRects.map(r => r.y + r.h))
+        expect(crownRects.every(r => r.fill === CROWN)).toBe(true)
+        expect(crownBottom).toBeLessThanOrEqual(Math.max(artTop, 4))
+        expect(inBounds(rects)).toBe(true)
+      }
+    }
+  })
+  it('ignores missing or unknown head art, and can leave the desk bare', () => {
+    expect(stand({ ...DEFAULT_FIGURE, headwear: 'none' })).toEqual(stand(DEFAULT_FIGURE))
+    expect(has(spriteRects(DEFAULT_FIGURE, { pose: 'stand', hideDeskItem: true }), { fill: '#fff7ea' })).toBe(false)
   })
 })
 

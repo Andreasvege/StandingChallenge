@@ -1,15 +1,20 @@
 import { useState, useTransition, type ReactNode } from 'react'
 import { deleteEmployee, placeEmployee, saveEmployee } from '@/app/actions/admin'
 import { PixelHead, PixelPerson } from '@/components/PixelPerson'
-import { BEARDS, DESK_ITEMS, EYEWEAR, HAIR_COLORS, HAIR_STYLES, SHIRT_COLORS, SKIN_COLORS, randomFigure, type Figure } from '@/lib/figure'
+import { BEARDS, DESK_ITEMS, EYEWEAR, HAIR_COLORS, HAIR_STYLES, HEADWEAR, SHIRT_COLORS, SKIN_COLORS, randomFigure, type Figure } from '@/lib/figure'
 import { SEAT_COUNT } from '@/lib/room-layout'
+import { DESK_ART, HEAD_ART } from '@/lib/sprite-art.generated'
 import type { AdminEmployee } from './AdminPanel'
 import styles from './Admin.module.css'
 
 const STYLE_LABELS: Record<Figure['hairStyle'], string> = { short: 'Kort', buzz: 'Buzz', long: 'Langt', bun: 'Knute', curly: 'Krøller' }
 const EYEWEAR_LABELS: Record<Figure['eyewear'], string> = { none: 'Ingen', glasses: 'Briller', sunglasses: 'Solbriller' }
 const BEARD_LABELS: Record<Figure['beard'], string> = { none: 'Ingen', stubble: 'Stubber', full: 'Fullskjegg' }
-const ITEM_LABELS: Record<Figure['deskItem'], string> = { mug: '☕ Kopp', plant: '🪴 Plante' }
+const BUILTIN_ITEM_LABELS: Record<string, string> = { mug: '☕ Kopp', plant: '🪴 Plante' }
+
+/** Hand-drawn options (sprites/) get a pencil so it's clear they came from the drawing folder. */
+const itemLabel = (id: string) => BUILTIN_ITEM_LABELS[id] ?? `✏️ ${DESK_ART.find(a => a.id === id)?.label ?? id}`
+const headwearLabel = (id: string) => (id === 'none' ? 'Ingen' : (HEAD_ART.find(a => a.id === id)?.label ?? id))
 
 export function seatLabel(seat: number | null): string {
   if (seat === null) return 'Uten plass'
@@ -85,6 +90,7 @@ export function FigureBuilder({ employee, employees, isMe, onRemoved }: FigureBu
   }
 
   const occupantName = (s: number) => employees.find(e => e.seat === s && e.id !== employee.id)?.name
+  const headwear = figure.headwear ?? 'none'
 
   return (
     <div className={styles.builder}>
@@ -119,6 +125,11 @@ export function FigureBuilder({ employee, employees, isMe, onRemoved }: FigureBu
         <Group title="Frisyre">
           {HAIR_STYLES.map(s => headChip(s, STYLE_LABELS[s], { hairStyle: s }, figure.hairStyle === s))}
         </Group>
+        {HEAD_ART.length > 0 && (
+          <Group title="Hodeplagg">
+            {HEADWEAR.map(h => headChip(`hw-${h}`, headwearLabel(h), { headwear: h }, headwear === h))}
+          </Group>
+        )}
         <Group title="Hårfarge">{swatches('hair', HAIR_COLORS)}</Group>
         <div className={styles.row2}>
           <Group title="Hudfarge">{swatches('skin', SKIN_COLORS)}</Group>
@@ -130,7 +141,7 @@ export function FigureBuilder({ employee, employees, isMe, onRemoved }: FigureBu
                 className={`${styles.chip} ${styles.chipText} ${figure.deskItem === i ? styles.chipOn : ''}`}
                 onClick={() => update({ deskItem: i })}
               >
-                {ITEM_LABELS[i]}
+                {itemLabel(i)}
               </button>
             ))}
           </Group>

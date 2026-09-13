@@ -22,11 +22,11 @@ const f = (hairStyle: Figure['hairStyle'], hair: string, skin: string, shirt: st
 
 // Same looks as the demo people in the figure-builder prototype.
 export const DEMO_PEOPLE: DemoPerson[] = [
-  { name: 'Mina', email: 'mina@thebrave.no', seat: 0, figure: f('long', '#2b2140', '#f6c7a1', '#8fb8ff', 'mug'), earlier: [[180, 40]] },
+  { name: 'Mina', email: 'mina@thebrave.no', seat: 0, figure: f('long', '#2b2140', '#f6c7a1', '#8fb8ff', 'katt'), earlier: [[180, 40]] },
   { name: 'Emma', email: 'emma@thebrave.no', seat: 1, figure: f('bun', '#e7b04a', '#f6c7a1', '#ff9f6b', 'plant'), standingFor: 32, roundMinutes: 60, earlier: [[200, 40]] },
   { name: 'Aslak', email: 'aslak@thebrave.no', seat: 2, figure: f('short', '#7a4a2a', '#e8b48c', '#7fd49a', 'mug', { beard: 'full' }), earlier: [[150, 25]] },
   { name: 'Vilde', email: 'vilde@thebrave.no', seat: 3, figure: f('long', '#c2452d', '#f6d0b0', '#c7a4ff', 'plant'), standingFor: 61, roundMinutes: 90, earlier: [[240, 50]] },
-  { name: 'Even', email: 'even@thebrave.no', seat: 4, figure: f('buzz', '#4a2e1c', '#c98e62', '#ff7ab0', 'mug', { eyewear: 'sunglasses', beard: 'stubble' }), standingFor: 120, roundMinutes: 90, earlier: [[260, 70]] },
+  { name: 'Even', email: 'even@thebrave.no', seat: 4, figure: f('buzz', '#4a2e1c', '#c98e62', '#ff7ab0', 'mug', { eyewear: 'sunglasses', beard: 'stubble', headwear: 'caps' }), standingFor: 120, roundMinutes: 90, earlier: [[260, 70]] },
   { name: 'Andreas', email: 'av@thebrave.no', seat: 5, figure: f('short', '#6b4a2e', '#f6c7a1', '#ffd166', 'plant', { eyewear: 'glasses' }), standingFor: 9, roundMinutes: 30 },
   { name: 'Sofie', email: 'sofie@thebrave.no', seat: 6, figure: f('curly', '#1f1a2e', '#8d5a3b', '#ff8fa3', 'mug') },
   { name: 'Jonas', email: 'jonas@thebrave.no', seat: 7, figure: f('short', '#d9a24a', '#f6d0b0', '#6fd3d0', 'mug', { eyewear: 'glasses' }), earlier: [[190, 30]] },

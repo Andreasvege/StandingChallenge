@@ -12,7 +12,8 @@
     "db:push:prod": "DB_TARGET=prod drizzle-kit push",
     "db:seed": "tsx scripts/seed-dev.ts",
     "db:import": "tsx scripts/import-employees.ts",
-    "db:import:prod": "DB_TARGET=prod tsx scripts/import-employees.ts"
+    "db:import:prod": "DB_TARGET=prod tsx scripts/import-employees.ts",
+    "sprites": "tsx scripts/build-sprites.ts"
   },
   "dependencies": {
     "@neondatabase/serverless": "^1.1.0",
@@ -26,11 +27,13 @@
     "@next/env": "^16.3.4",
     "@tailwindcss/postcss": "^4",
     "@types/node": "^20",
+    "@types/pngjs": "^6.0.5",
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "drizzle-kit": "^0.31.10",
     "eslint": "^9",
     "eslint-config-next": "16.3.4",
+    "pngjs": "^7.0.0",
     "tailwindcss": "^4",
     "tsx": "^4.23.13",
     "typescript": "^5",

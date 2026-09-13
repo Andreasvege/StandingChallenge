@@ -33,6 +33,7 @@ function cleanFigure(raw: unknown): unknown {
     beard,
     mustache,
     deskItem: f.deskItem,
+    ...(typeof f.headwear === 'string' ? { headwear: f.headwear } : {}),
   }
 }
 

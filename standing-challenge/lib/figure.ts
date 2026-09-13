@@ -1,5 +1,8 @@
 // A pixel figure's look. Colours come from fixed palettes so every figure fits the scene.
 // The same keys are used in data/employees.json (exported from the figure-builder prototype).
+// Hand-drawn extras (sprites/hode/, sprites/pult/) arrive through lib/sprite-art.generated.ts.
+
+import { DESK_ART, HEAD_ART } from './sprite-art.generated'
 
 export const HAIR_STYLES = ['short', 'buzz', 'long', 'bun', 'curly'] as const
 export type HairStyle = (typeof HAIR_STYLES)[number]
@@ -10,8 +13,14 @@ export type Eyewear = (typeof EYEWEAR)[number]
 export const BEARDS = ['none', 'stubble', 'full'] as const
 export type Beard = (typeof BEARDS)[number]
 
-export const DESK_ITEMS = ['mug', 'plant'] as const
-export type DeskItem = (typeof DESK_ITEMS)[number]
+/** Desk items drawn in code; the hand-drawn ones from sprites/pult/ come after them. */
+export const BUILTIN_DESK_ITEMS = ['mug', 'plant'] as const
+export const DESK_ITEMS: readonly string[] = [...BUILTIN_DESK_ITEMS, ...DESK_ART.map(a => a.id)]
+export type DeskItem = string
+
+/** 'none' plus the hand-drawn head art from sprites/hode/. */
+export const HEADWEAR: readonly string[] = ['none', ...HEAD_ART.map(a => a.id)]
+export type Headwear = string
 
 export const HAIR_COLORS = [
   '#1f1a2e', '#2b2140', '#3a2a1e', '#4a2e1c', '#5a3a22', '#6b4a2e', '#7a4a2a', '#8a3b2a', '#c2452d',
@@ -34,6 +43,8 @@ export interface Figure {
   beard: Beard
   mustache: boolean
   deskItem: DeskItem
+  /** Hand-drawn head art. Optional: figures saved before head art existed have none (= 'none'). */
+  headwear?: Headwear
 }
 
 export const DEFAULT_FIGURE: Figure = {
@@ -62,11 +73,12 @@ export function isFigure(value: unknown): value is Figure {
     oneOf(EYEWEAR, f.eyewear) &&
     oneOf(BEARDS, f.beard) &&
     typeof f.mustache === 'boolean' &&
-    oneOf(DESK_ITEMS, f.deskItem)
+    oneOf(DESK_ITEMS, f.deskItem) &&
+    (f.headwear === undefined || oneOf(HEADWEAR, f.headwear))
   )
 }
 
-/** Same odds as the figure-builder prototype's 🎲 button. */
+/** Same odds as the figure-builder prototype's 🎲 button, plus a small chance of head art. */
 export function randomFigure(rand: () => number = Math.random): Figure {
   function pick<T>(list: readonly T[]): T {
     return list[Math.min(list.length - 1, Math.floor(rand() * list.length))]
@@ -82,5 +94,6 @@ export function randomFigure(rand: () => number = Math.random): Figure {
     beard: b < 0.12 ? 'stubble' : b < 0.22 ? 'full' : 'none',
     mustache: rand() < 0.12,
     deskItem: pick(DESK_ITEMS),
+    headwear: HEAD_ART.length > 0 && rand() < 0.15 ? pick(HEAD_ART).id : 'none',
   }
 }

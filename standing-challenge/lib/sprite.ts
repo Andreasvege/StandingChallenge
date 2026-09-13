@@ -2,10 +2,17 @@
 // figure-builder prototype. Render with shape-rendering="crispEdges".
 
 import type { DeskItem, Figure } from './figure'
+import { DESK_CANVAS, HEAD_CANVAS } from './sprite-art'
+import { DESK_ART, HEAD_ART } from './sprite-art.generated'
 
 export type Pose = 'stand' | 'sit'
 export interface Rect { x: number; y: number; w: number; h: number; fill: string }
-export interface SpriteOptions { pose: Pose; crown?: boolean }
+export interface SpriteOptions {
+  pose: Pose
+  crown?: boolean
+  /** Leave the desk bare – used for the drawing template in sprites/mal/. */
+  hideDeskItem?: boolean
+}
 
 export const SPRITE_W = 40
 export const SPRITE_H = 48
@@ -15,6 +22,9 @@ export const LENS = '#d4f1ff'
 /** The part of the standing sprite that shows just the head (avatars, favicon). Aspect ratio 18:21. */
 export const HEAD_BOX = { x: 3, y: 4, w: 18, h: 21 } as const
 export const HEAD_VIEWBOX = `${HEAD_BOX.x} ${HEAD_BOX.y} ${HEAD_BOX.w} ${HEAD_BOX.h}`
+/** Top-left of the face and y of the desk top in each pose. Hand-drawn art is anchored to these. */
+export const FACE = { stand: { x: 7, y: 11 }, sit: { x: 7, y: 17 } } as const
+export const DESK_TOP = { stand: 26, sit: 34 } as const
 
 const METAL = '#8b88a3'
 const PANTS = '#3d3a5c'
@@ -30,6 +40,28 @@ const LEAF_LIGHT = '#7dcf76'
 const BLUSH = '#ff8fa3'
 const EYE_SHINE = '#ffffff'
 const SUNGLASS_GLINT = '#7d6fc0'
+
+/** Named scene colours, for the drawing palette in sprites/mal/. */
+export const SCENE_COLORS: Record<string, string> = {
+  Kontur: OUTLINE,
+  Krone: CROWN,
+  Brilleglass: LENS,
+  Metall: METAL,
+  Bukse: PANTS,
+  Stol: CHAIR,
+  Tre: WOOD,
+  'Mørkt tre': WOOD_DARK,
+  Laptop: LAPTOP,
+  Skjerm: SCREEN,
+  Kopp: MUG,
+  Potte: POT,
+  Blad: LEAF,
+  'Lyst blad': LEAF_LIGHT,
+  Rødme: BLUSH,
+  Øyeglans: EYE_SHINE,
+  'Rosa (logo)': '#ff6fa8',
+  'Grønn (logo)': '#7cf0a6',
+}
 
 function channels(hex: string): number[] {
   const n = parseInt(hex.slice(1), 16)
@@ -66,11 +98,15 @@ function painter() {
   const dots = (x: number, y: number, list: [number, number][], fill: string) => {
     for (const [dx, dy] of list) r(x + dx, y + dy, 1, 1, fill)
   }
-  return { rects, r, o, dots }
+  /** Hand-drawn art whose canvas top-left lands at (x, y). */
+  const art = (x: number, y: number, list: Rect[]) => {
+    for (const a of list) r(x + a.x, y + a.y, a.w, a.h, a.fill)
+  }
+  return { rects, r, o, dots, art }
 }
 type Painter = ReturnType<typeof painter>
 
-function desk({ r, o }: Painter, top: number, item: DeskItem, laptopOpen: boolean) {
+function desk({ r, o, art }: Painter, top: number, item: DeskItem | null, laptopOpen: boolean) {
   r(22, top + 3, 2, 46 - (top + 3), METAL)
   r(34, top + 3, 2, 46 - (top + 3), METAL)
   r(21, 46, 4, 1, OUTLINE)
@@ -84,7 +120,11 @@ function desk({ r, o }: Painter, top: number, item: DeskItem, laptopOpen: boolea
   } else {
     r(23, top - 3, 8, 2, LAPTOP)
   }
-  if (item === 'plant') {
+  if (item === null) return
+  const drawn = DESK_ART.find(a => a.id === item)
+  if (drawn) {
+    art(DESK_CANVAS.x, top + DESK_CANVAS.dy, drawn.rects)
+  } else if (item === 'plant') {
     r(34, top - 3, 3, 2, POT)
     r(35, top - 6, 1, 3, LEAF)
     r(34, top - 5, 1, 2, LEAF_LIGHT)
@@ -104,7 +144,7 @@ function chair({ r, o }: Painter) {
 }
 
 function head(p: Painter, f: Figure, x: number, y: number, awake: boolean, crown: boolean) {
-  const { r, o, dots } = p
+  const { r, o, dots, art } = p
   const hairLight = lighten(f.hair)
   const hairDark = shade(f.hair, 0.72)
 
@@ -188,21 +228,29 @@ function head(p: Painter, f: Figure, x: number, y: number, awake: boolean, crown
     eye()
   }
 
+  // Hand-drawn head art (sprites/hode/) goes on top of hair and glasses; the crown sits above it.
+  const headArt = HEAD_ART.find(a => a.id === f.headwear)
+  if (headArt) art(x + HEAD_CANVAS.dx, y + HEAD_CANVAS.dy, headArt.rects)
+
   if (crown) {
-    r(x + 3, y - 3, 7, 2, CROWN)
-    r(x + 3, y - 5, 1, 2, CROWN)
-    r(x + 6, y - 5, 1, 2, CROWN)
-    r(x + 9, y - 5, 1, 2, CROWN)
+    // The crown rests on the top of the head, or on top of the head art so a yellow cap can't hide it.
+    const artTop = headArt ? y + HEAD_CANVAS.dy + Math.min(...headArt.rects.map(a => a.y)) : y
+    const base = Math.max(4, Math.min(y, artTop) - 1)
+    r(x + 3, base - 2, 7, 2, CROWN)
+    r(x + 3, base - 4, 1, 2, CROWN)
+    r(x + 6, base - 4, 1, 2, CROWN)
+    r(x + 9, base - 4, 1, 2, CROWN)
   }
 }
 
 /** A person at their desk: standing at a raised desk, or dozing on a chair at a lowered one. */
-export function spriteRects(f: Figure, { pose, crown = false }: SpriteOptions): Rect[] {
+export function spriteRects(f: Figure, { pose, crown = false, hideDeskItem = false }: SpriteOptions): Rect[] {
   const p = painter()
   const { r, o } = p
   const shirtShade = shade(f.shirt)
+  const item = hideDeskItem ? null : f.deskItem
   if (pose === 'stand') {
-    desk(p, 26, f.deskItem, true)
+    desk(p, DESK_TOP.stand, item, true)
     o(11, 34, 2, 12, PANTS)
     o(15, 34, 2, 12, PANTS)
     r(11, 46, 3, 1, OUTLINE)
@@ -211,9 +259,9 @@ export function spriteRects(f: Figure, { pose, crown = false }: SpriteOptions): 
     r(15, 27, 4, 2, shirtShade)
     r(19, 25, 2, 2, shirtShade)
     r(21, 24, 2, 2, f.skin)
-    head(p, f, 7, 11, true, crown)
+    head(p, f, FACE.stand.x, FACE.stand.y, true, crown)
   } else {
-    desk(p, 34, f.deskItem, true)
+    desk(p, DESK_TOP.sit, item, true)
     chair(p)
     o(18, 38, 3, 8, PANTS)
     r(18, 46, 4, 1, OUTLINE)
@@ -221,7 +269,7 @@ export function spriteRects(f: Figure, { pose, crown = false }: SpriteOptions): 
     o(12, 36, 8, 2, PANTS)
     r(16, 32, 5, 2, shirtShade)
     r(21, 32, 2, 2, f.skin)
-    head(p, f, 7, 17, false, crown)
+    head(p, f, FACE.sit.x, FACE.sit.y, false, crown)
   }
   return p.rects
 }
@@ -229,7 +277,7 @@ export function spriteRects(f: Figure, { pose, crown = false }: SpriteOptions): 
 /** An unoccupied seat: lowered desk, closed laptop and an empty chair. */
 export function emptyDeskRects(): Rect[] {
   const p = painter()
-  desk(p, 34, 'plant', false)
+  desk(p, DESK_TOP.sit, 'plant', false)
   chair(p)
   return p.rects
 }
