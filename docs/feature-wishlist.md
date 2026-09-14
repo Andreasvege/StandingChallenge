@@ -4,8 +4,8 @@ Ideer til videre utvikling, sortert etter glede per innsats. Oppdater status her
 
 | # | Feature | Innsats | Status |
 |---|---------|---------|--------|
-| 1 | Heiarop 👏🔥☕ | Liten | 🧪 Klar til test (branch `feature/heiarop-kontorplante`) |
-| 2 | Kontorplanten – felles ukesmål (30 t) | Middels | 🧪 Klar til test (branch `feature/heiarop-kontorplante`) |
+| 1 | Heiarop 👏🔥☕ | Liten | ✅ Ferdig (i produksjon fra 14.09.2026) |
+| 2 | Kontorplanten – felles ukesmål (30 t) | Middels | ✅ Ferdig (i produksjon fra 14.09.2026) |
 | 3 | Ukas ståkonge + Slack | Middels | 💡 Idé |
 | 4 | Merker og streaks | Middels | 💡 Idé |
 | 5 | Sesongpynt | Liten–middels | 💡 Idé |
