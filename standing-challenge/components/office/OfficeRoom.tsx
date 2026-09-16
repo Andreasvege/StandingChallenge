@@ -12,6 +12,7 @@ import { osloHour } from '@/lib/time'
 import { Bubble, type BubbleTone } from './Bubble'
 import { CheerMenu } from './CheerMenu'
 import { Clock, Dog, HangingPlant, Lights, PixelWindow } from './Decor'
+import { FactPoster } from './FactPoster'
 import { OfficePlant } from './OfficePlant'
 import { WallScreen } from './WallScreen'
 import styles from './OfficeRoom.module.css'
@@ -148,6 +149,7 @@ export function OfficeRoom({ employees, leaderId, now, meId = null, cheers = [],
       <Clock className={styles.clock} />
       <HangingPlant className={styles.hanging} />
       <OfficePlant weekSeconds={weekTotal} />
+      <FactPoster now={now} />
       {remotePeople.length > 0 && (
         <div className={styles.screens}>
           {remotePeople.map(e => (

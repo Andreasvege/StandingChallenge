@@ -12,10 +12,12 @@ describe('FUN_FACTS', () => {
     }
     expect(new Set(FUN_FACTS.map(f => f.id)).size).toBe(FUN_FACTS.length)
   })
-  it('keeps them short enough for a poster', () => {
+  it('keeps them short enough to read in one go', () => {
+    // A generous ceiling: the poster opens a panel, so a fact may be a few sentences with a joke in
+    // it — but not an essay nobody reads standing at their desk.
     for (const f of FUN_FACTS) {
-      expect(f.nb.length).toBeLessThanOrEqual(120)
-      expect(f.en.length).toBeLessThanOrEqual(120)
+      expect(f.nb.length, `too long: "${f.id}" (nb)`).toBeLessThanOrEqual(280)
+      expect(f.en.length, `too long: "${f.id}" (en)`).toBeLessThanOrEqual(280)
     }
   })
   it('cites a real source for every fact', () => {

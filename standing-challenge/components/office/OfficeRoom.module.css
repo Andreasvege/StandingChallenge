@@ -321,3 +321,65 @@
 /* …and right-aligned, since the screen hangs by the right wall with no room to centre on. */
 .screen .cheerMenu { top: calc(100% + 6px); bottom: auto; left: auto; right: 0; transform: none; }
 .screen .float { top: calc(100% - 8px); bottom: auto; }
+
+/* The fun-facts poster on the wall. Like the wall screens it sits above the desk rows (z-index 20),
+   because it is a stacking context and its panel has to open over the room, not behind it. */
+.poster { position: absolute; top: 26px; left: 30%; z-index: 26; }
+.posterButton {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: inherit;
+  cursor: pointer;
+}
+.posterSvg { display: block; width: 48px; height: 61px; }
+.posterLabel { font: 700 10px var(--font-body), system-ui, sans-serif; color: var(--muted); }
+.factPanel {
+  position: absolute;
+  top: calc(100% + 8px);
+  left: 50%;
+  width: min(300px, 62vw);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 12px 14px;
+  border-radius: 12px;
+  text-align: left;
+  background: var(--panel);
+  box-shadow: 0 0 0 2px var(--outline), 0 12px 24px rgba(10, 6, 24, 0.45);
+  transform: translateX(-50%);
+}
+.factText { margin: 0; font: 600 13px var(--font-body), system-ui, sans-serif; line-height: 1.45; color: var(--text); }
+.factSource {
+  margin: 0;
+  font: 500 10px var(--font-body), system-ui, sans-serif;
+  line-height: 1.4;
+  color: var(--muted);
+  overflow-wrap: anywhere;
+}
+.factActions { display: flex; gap: 8px; }
+.factActions button {
+  padding: 4px 12px;
+  border: 0;
+  border-radius: 999px;
+  font: 600 11px var(--font-body), system-ui, sans-serif;
+  color: var(--text);
+  background: var(--panel-hi);
+  cursor: pointer;
+}
+.factActions button:hover { background: #4d4180; }
+
+/* Phones: the wall above is full of windows, so the poster hangs below them on the left, and the
+   panel opens from the poster's left edge — centred it would run out of the room. This block has to
+   come after the poster's own rules above, or it would lose to them at equal specificity. */
+@media (max-width: 700px) {
+  .poster { top: 116px; left: 5%; }
+  .posterSvg { width: 34px; height: 43px; }
+  .posterLabel { font-size: 8px; }
+  .factPanel { left: 0; width: min(250px, 74vw); padding: 10px 12px; transform: none; }
+  .factText { font-size: 12px; }
+}
