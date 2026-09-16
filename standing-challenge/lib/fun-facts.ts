@@ -56,7 +56,7 @@ export const FUN_FACTS: FunFact[] = [
   },
   {
     id: 'hjerte',
-    nb: 'Å stå hele dagen er ingen fasit: yrker med konstant ståing har mer hjertesykdom enn sittende. Så takk gud for disse stolene, eller hva?',
+    nb: 'Å stå hele dagen er ikke nødvendigvis det beste: yrker med konstant ståing har mer hjertesykdom enn sittende. Så takk gud for disse stolene, eller hva?',
     en: 'Standing all day is no answer either: jobs with constant standing show more heart disease. So thank god for these chairs, right?',
     source:
       'Smith et al., Am J Epidemiol 187(1) (2018), 7320 arbeidstakere fulgt i 12 år (academic.oup.com/aje/article/187/1/27)',
