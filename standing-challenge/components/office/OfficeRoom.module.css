@@ -2,7 +2,7 @@
 
 .room {
   position: relative;
-  height: 560px;
+  height: var(--room-h, 440px);
   overflow: hidden;
   isolation: isolate;
   background: linear-gradient(#34295e 0 20%, #3a2e68 20% 40%, #413472 40% 60%, #463879 60% 100%);
@@ -30,7 +30,7 @@
 .plant {
   position: absolute;
   left: 1.5%;
-  bottom: 200px;
+  bottom: calc(var(--floor-h, 176px) + 24px);
   z-index: 5;
   display: flex;
   flex-direction: column;
@@ -58,7 +58,7 @@
   left: 0;
   right: 0;
   bottom: 0;
-  height: 340px;
+  height: var(--floor-h, 176px);
   border-top: 4px solid var(--outline);
   background: repeating-linear-gradient(#7a5140 0 40px, #5e3c30 40px 44px);
 }
@@ -76,6 +76,8 @@
 .row[data-depth='1'] { filter: brightness(0.88) saturate(0.9); }
 .row[data-depth='2'] { filter: brightness(0.8) saturate(0.85); }
 .row[data-depth='3'] { filter: brightness(0.74) saturate(0.8); }
+.row[data-depth='4'] { filter: brightness(0.68) saturate(0.76); }
+.row[data-depth='5'] { filter: brightness(0.62) saturate(0.72); }
 
 .seat { position: relative; display: flex; flex-direction: column; align-items: center; }
 .seatButton {
@@ -166,7 +168,7 @@
 @keyframes trot { 0%, 100% { margin-bottom: 0; } 50% { margin-bottom: 2px; } }
 
 @media (max-width: 700px) {
-  .room { height: 640px; }
+  .room { height: var(--room-h-mobile, 470px); }
   .desktopOnly { display: none; }
   .mobileOnly { display: contents; }
   .window { top: 30px; width: 144px; height: 81px; }
@@ -179,7 +181,7 @@
   .plantSvg { width: 30px; height: 48px; }
   .shelf { width: 34px; height: 4px; }
   .plantSign { display: none; }
-  .floor { height: 480px; }
+  .floor { height: var(--floor-h-mobile, 320px); }
   .bubble { font-size: 10px; padding: 1px 5px 2px; }
 }
 
@@ -192,4 +194,58 @@
   .seat.up svg,
   .dog,
   .dog svg { animation: none; }
+}
+
+/* Colleagues who work somewhere else hang on the wall as little video screens — an endless call. */
+.screens { position: absolute; top: 38px; right: 2%; z-index: 6; display: flex; align-items: flex-start; gap: 14px; }
+.screen { position: relative; display: flex; flex-direction: column; align-items: center; }
+.screenButton {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: inherit;
+  cursor: pointer;
+}
+.screenFrame {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 64px;
+  height: 52px;
+  overflow: hidden;
+  background: #2a3550;
+  box-shadow: 0 0 0 4px var(--outline), 0 7px 0 0 var(--outline);
+}
+/* Rain behind them, because of course it rains in Bergen. */
+.screenRain {
+  position: absolute;
+  inset: -8px;
+  background: repeating-linear-gradient(74deg, transparent 0 7px, #9fd2ff44 7px 8px);
+  animation: rain 0.75s linear infinite;
+}
+.screenHead { position: relative; z-index: 1; background: #3a2e68; border-radius: 6px; padding: 2px 3px; }
+.screenAway { position: absolute; right: 3px; bottom: 1px; z-index: 2; font-size: 12px; }
+.screenPlace {
+  font: 700 10px var(--font-body), system-ui, sans-serif;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  background: #4d4180;
+  color: #cfc4f2;
+  padding: 1px 6px 2px;
+  box-shadow: 0 -2px 0 0 var(--outline), 0 2px 0 0 var(--outline), -2px 0 0 0 var(--outline), 2px 0 0 0 var(--outline);
+}
+@keyframes rain { to { transform: translateY(9px); } }
+
+@media (max-width: 700px) {
+  .screens { top: 104px; right: 2%; gap: 8px; }
+  .screenFrame { width: 48px; height: 40px; }
+  .screenPlace { font-size: 9px; padding: 0 4px 1px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .screenRain { animation: none; }
 }

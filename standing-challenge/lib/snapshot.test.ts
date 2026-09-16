@@ -7,7 +7,7 @@ const GRACE = 5 * MIN
 const NOW = Date.parse('2026-09-11T10:00:00Z') // Friday 12:00 in Oslo
 const t = (s: string) => Date.parse(s)
 
-const emp = (id: string, name: string, seat: number | null): EmployeeRow => ({ id, name, seat, figure: DEFAULT_FIGURE })
+const emp = (id: string, name: string, seat: number | null, remoteFrom: string | null = null): EmployeeRow => ({ id, name, seat, remoteFrom, figure: DEFAULT_FIGURE })
 
 function sess(id: string, employeeId: string, start: string, roundMinutes: number, end: string | null, ended: string | null): SessionRow {
   const startedAt = t(start)
@@ -66,6 +66,10 @@ describe('buildSnapshot', () => {
     expect(tie.leaderId).toBe('y')
     expect(buildSnapshot([emp('x', 'Bjørn', 0)], [], NOW, GRACE).leaderId).toBeNull()
   })
+  it('passes on where a colleague works, so the room can hang them on the wall', () => {
+    const remote = buildSnapshot([emp('a', 'Anna', null, 'Bergen'), emp('b', 'Bjørn', 0)], [], NOW, GRACE)
+    expect(remote.employees.map(e => e.remoteFrom)).toEqual([null, 'Bergen'])
+  })
   it('splits a session that crosses Oslo midnight', () => {
     const snap2 = buildSnapshot([emp('a', 'Anna', 0)], [sess('1', 'a', '2026-09-10T21:30:00Z', 60, null, '2026-09-10T22:30:00Z')], NOW, GRACE)
     expect(snap2.employees[0].todaySeconds).toBe(1800)
@@ -75,7 +79,7 @@ describe('buildSnapshot', () => {
 
 describe('liveEmployee', () => {
   const base: OfficeEmployee = {
-    id: 'a', name: 'Anna', figure: DEFAULT_FIGURE, seat: 0,
+    id: 'a', name: 'Anna', figure: DEFAULT_FIGURE, seat: 0, remoteFrom: null,
     session: { startedAt: NOW - 10 * MIN, roundEndsAt: NOW + 20 * MIN, roundMinutes: 30 },
     todaySeconds: 600, weekSeconds: 900,
   }

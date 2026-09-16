@@ -14,6 +14,8 @@ export interface AdminEmployee {
   email: string
   seat: number | null
   figure: Figure
+  /** Set when they work somewhere else (e.g. «Bergen») and hang on the wall as a video screen. */
+  remoteFrom: string | null
 }
 
 export function AdminPanel({ employees, meId }: { employees: AdminEmployee[]; meId: string }) {

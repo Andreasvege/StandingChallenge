@@ -3,7 +3,7 @@
 
 import { isAllowedEmail, normalizeEmail } from './access'
 import { isFigure, type Figure } from './figure'
-import { SEAT_COUNT } from './room-layout'
+import { MAX_SEATS } from './room-layout'
 
 export interface ImportedEmployee {
   name: string
@@ -65,8 +65,8 @@ export function parseEmployeesFile(json: unknown): { employees: ImportedEmployee
     if (name.length < 1 || name.length > 30) errors.push(`${label}: navnet må være 1–30 tegn`)
     if (!isAllowedEmail(email)) errors.push(`${label}: e-posten må slutte på @thebrave.no`)
     else if (seenEmails.has(email)) errors.push(`${label}: e-posten står flere ganger`)
-    if (seat !== null && !(typeof seat === 'number' && Number.isInteger(seat) && seat >= 0 && seat < SEAT_COUNT)) {
-      errors.push(`${label}: plass må være 0–${SEAT_COUNT - 1} eller null`)
+    if (seat !== null && !(typeof seat === 'number' && Number.isInteger(seat) && seat >= 0 && seat < MAX_SEATS)) {
+      errors.push(`${label}: plass må være 0–${MAX_SEATS - 1} eller null`)
     } else if (typeof seat === 'number' && seatOwner.has(seat)) {
       errors.push(`${label}: plass ${seat} er allerede gitt til ${seatOwner.get(seat)}`)
     }

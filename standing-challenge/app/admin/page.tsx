@@ -10,7 +10,7 @@ export default async function AdminPage() {
   return (
     <AdminPanel
       meId={me.id}
-      employees={rows.map(r => ({ id: r.id, name: r.name, email: r.email, seat: r.seat, figure: r.figure }))}
+      employees={rows.map(r => ({ id: r.id, name: r.name, email: r.email, seat: r.seat, figure: r.figure, remoteFrom: r.remoteFrom }))}
     />
   )
 }

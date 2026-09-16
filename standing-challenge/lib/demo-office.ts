@@ -11,6 +11,8 @@ export interface DemoPerson {
   email: string
   seat: number
   figure: Figure
+  /** Works somewhere else: shown on a video screen on the wall instead of at a desk. */
+  remoteFrom?: string
   /** Minutes ago the current session started (standing now), if any. */
   standingFor?: number
   roundMinutes?: 30 | 60 | 90
@@ -38,7 +40,7 @@ export const DEMO_PEOPLE: DemoPerson[] = [
   { name: 'Nora', email: 'nora@thebrave.no', seat: 12, figure: f('bun', '#2b2140', '#f6d0b0', '#d9a4ff', 'mug'), earlier: [[170, 20]] },
   { name: 'Sander', email: 'sander@thebrave.no', seat: 13, figure: f('short', '#1f1a2e', '#8d5a3b', '#6fb8ff', 'plant', { beard: 'stubble', mustache: true }), standingFor: 80, roundMinutes: 90, earlier: [[230, 45]] },
   { name: 'Ida', email: 'ida@thebrave.no', seat: 14, figure: f('long', '#e6c07a', '#f6c7a1', '#ff9fc4', 'plant') },
-  { name: 'Kasper', email: 'kasper@thebrave.no', seat: 15, figure: f('curly', '#5a3a22', '#f6d0b0', '#ffa26b', 'mug', { mustache: true }) },
+  { name: 'Kasper', email: 'kasper@thebrave.no', seat: 15, remoteFrom: 'Bergen', figure: f('curly', '#5a3a22', '#f6d0b0', '#ffa26b', 'mug', { mustache: true }) },
 ]
 
 const MIN = 60_000
@@ -70,7 +72,7 @@ export function demoSessions(now: number): DemoSession[] {
 
 /** A ready-made snapshot of the demo office (no database needed). */
 export function demoSnapshot(now: number, grace = 5 * MIN): OfficeSnapshot {
-  const employees: EmployeeRow[] = DEMO_PEOPLE.map(p => ({ id: p.email, name: p.name, figure: p.figure, seat: p.seat }))
+  const employees: EmployeeRow[] = DEMO_PEOPLE.map(p => ({ id: p.email, name: p.name, figure: p.figure, seat: p.seat, remoteFrom: p.remoteFrom ?? null }))
   const sessions: SessionRow[] = demoSessions(now).map((s, i) => ({
     id: String(i),
     employeeId: s.email,

@@ -4,13 +4,14 @@ import { useEffect, useState, type CSSProperties, type ReactNode } from 'react'
 import { EmptyDesk, PixelPerson } from '@/components/PixelPerson'
 import { activeCheers, cheerOptions, type Cheer } from '@/lib/cheers'
 import { formatDuration } from '@/lib/format'
-import { DESKTOP_ROWS, MOBILE_ROWS, SEAT_COUNT, seatRows, type RowStyle } from '@/lib/room-layout'
+import { DESKTOP_MAX_PER_ROW, MOBILE_MAX_PER_ROW, balancedRows, roomMetrics, rowStyles, type RowStyle } from '@/lib/room-layout'
 import { SKIES, skyPhase } from '@/lib/sky'
 import type { LiveEmployee } from '@/lib/snapshot'
 import { osloHour } from '@/lib/time'
 import { Bubble, type BubbleTone } from './Bubble'
 import { Clock, Dog, HangingPlant, Lights, PixelWindow } from './Decor'
 import { OfficePlant } from './OfficePlant'
+import { WallScreen } from './WallScreen'
 import styles from './OfficeRoom.module.css'
 
 interface OfficeRoomProps {
@@ -24,14 +25,28 @@ interface OfficeRoomProps {
   onCheer?: (toId: string, emoji: string) => void
 }
 
-/** The pixel office. Desktop: 2 rows × 8. Phones (≤700px): 4 rows × 4. Both are rendered; CSS shows one. */
+/**
+ * The pixel office. The room follows the office: as many desks as there are seated colleagues,
+ * split into balanced rows — up to nine per row on desktop, four on phones. Colleagues who work
+ * somewhere else hang on the wall as video screens. Both layouts are rendered and CSS shows one,
+ * so the row geometry is handed over as custom properties.
+ */
 export function OfficeRoom({ employees, leaderId, now, meId = null, cheers = [], onCheer }: OfficeRoomProps) {
   const [openId, setOpenId] = useState<string | null>(null)
+  const remotePeople = employees.filter(e => e.remoteFrom)
   const bySeat = new Map<number, LiveEmployee>()
-  for (const e of employees) if (e.seat !== null) bySeat.set(e.seat, e)
+  for (const e of employees) if (e.seat !== null && !e.remoteFrom) bySeat.set(e.seat, e)
   const sky = SKIES[skyPhase(osloHour(now))]
   const fresh = activeCheers(cheers, now)
   const weekTotal = employees.reduce((sum, e) => sum + e.weekSeconds, 0)
+
+  const seatCount = Math.max(0, ...[...bySeat.keys()].map(s => s + 1))
+  const desktopSeats = balancedRows(seatCount, DESKTOP_MAX_PER_ROW)
+  const mobileSeats = balancedRows(seatCount, MOBILE_MAX_PER_ROW)
+  const desktopStyles = rowStyles(desktopSeats.length, 'desktop')
+  const mobileStyles = rowStyles(mobileSeats.length, 'mobile')
+  const desktop = roomMetrics(desktopStyles, 'desktop', remotePeople.length)
+  const mobile = roomMetrics(mobileStyles, 'mobile', remotePeople.length)
 
   // Close the heiarop menu on a click outside any seat, or on Escape.
   useEffect(() => {
@@ -56,10 +71,11 @@ export function OfficeRoom({ employees, leaderId, now, meId = null, cheers = [],
         setOpenId(null)
       }
     : undefined
+  const toggle = (id: string) => () => setOpenId(openId === id ? null : id)
 
-  function rows(perRow: number, rowStyles: RowStyle[], compact: boolean) {
-    return seatRows(SEAT_COUNT, perRow).map((seats, depth) => {
-      const row = rowStyles[depth]
+  function rows(seatRows: number[][], rowStyleList: RowStyle[], compact: boolean) {
+    return seatRows.map((seats, depth) => {
+      const row = rowStyleList[depth]
       return (
         <div
           key={depth}
@@ -70,8 +86,8 @@ export function OfficeRoom({ employees, leaderId, now, meId = null, cheers = [],
             left: `${row.inset[0]}%`,
             right: `${row.inset[1]}%`,
             // minmax(0, …) keeps columns equal even when a bubble is wider than its column.
-            gridTemplateColumns: `repeat(${perRow}, minmax(0, 1fr))`,
-            zIndex: 10 - depth,
+            gridTemplateColumns: `repeat(${seats.length}, minmax(0, 1fr))`,
+            zIndex: 20 - depth,
           }}
         >
           {seats.map(seat => {
@@ -93,7 +109,7 @@ export function OfficeRoom({ employees, leaderId, now, meId = null, cheers = [],
                 open={openId === e.id}
                 compact={compact}
                 floats={fresh.filter(c => c.toId === e.id)}
-                onToggle={() => setOpenId(openId === e.id ? null : e.id)}
+                onToggle={toggle(e.id)}
                 onCheer={cheer}
               />
             )
@@ -104,16 +120,42 @@ export function OfficeRoom({ employees, leaderId, now, meId = null, cheers = [],
   }
 
   return (
-    <div className={styles.room}>
+    <div
+      className={styles.room}
+      style={
+        {
+          '--room-h': `${desktop.height}px`,
+          '--floor-h': `${desktop.floor}px`,
+          '--room-h-mobile': `${mobile.height}px`,
+          '--floor-h-mobile': `${mobile.floor}px`,
+        } as CSSProperties
+      }
+    >
       <Lights className={styles.lights} />
       <PixelWindow sky={sky} className={`${styles.window} ${styles.windowLeft}`} />
       <PixelWindow sky={sky} className={`${styles.window} ${styles.windowRight}`} />
       <Clock className={styles.clock} />
       <HangingPlant className={styles.hanging} />
       <OfficePlant weekSeconds={weekTotal} />
+      {remotePeople.length > 0 && (
+        <div className={styles.screens}>
+          {remotePeople.map(e => (
+            <WallScreen
+              key={e.id}
+              employee={e}
+              isLeader={e.id === leaderId}
+              isMe={e.id === meId}
+              open={openId === e.id}
+              floats={fresh.filter(c => c.toId === e.id)}
+              onToggle={toggle(e.id)}
+              onCheer={cheer}
+            />
+          ))}
+        </div>
+      )}
       <div className={styles.floor} />
-      <div className={styles.desktopOnly}>{rows(8, DESKTOP_ROWS, false)}</div>
-      <div className={styles.mobileOnly}>{rows(4, MOBILE_ROWS, true)}</div>
+      <div className={styles.desktopOnly}>{rows(desktopSeats, desktopStyles, false)}</div>
+      <div className={styles.mobileOnly}>{rows(mobileSeats, mobileStyles, true)}</div>
       <Dog className={styles.dog} />
     </div>
   )

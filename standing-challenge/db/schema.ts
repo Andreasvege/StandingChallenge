@@ -11,8 +11,10 @@ export const employees = pgTable('employees', {
   email: text('email').notNull().unique(),
   name: text('name').notNull(),
   figure: jsonb('figure').$type<Figure>().notNull(),
-  /** 0–15; 0–7 is the front row on desktop. Null = no desk yet. */
+  /** Desk number, counted from the front row. Null = no desk (not placed, or working elsewhere). */
   seat: integer('seat').unique(),
+  /** Works somewhere else (e.g. Bergen): shown on a video screen on the wall instead of at a desk. */
+  remoteFrom: text('remote_from'),
   createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
 })
 

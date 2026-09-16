@@ -1,23 +1,27 @@
-// How the seats are arranged in the pixel room. Seats fill up front row first: 0–7 front,
-// 8–15 middle, 16–23 back (desktop). The numbers here go with the room height in
-// components/office/OfficeRoom.module.css — change them together.
+// How the desks are arranged in the pixel room. The room follows the office: the number of desks is
+// the number of seated colleagues, split into balanced rows, so it never looks half empty.
+// Row geometry is derived here and handed to the CSS as custom properties.
 
-export const SEAT_COUNT = 24
+/** Upper bound for a seat number (admin and import validation). */
+export const MAX_SEATS = 24
+export const DESKTOP_MAX_PER_ROW = 9
+export const MOBILE_MAX_PER_ROW = 4
 
-/** Seat numbers grouped into rows, front row first. */
-export function seatRows(total: number, perRow: number): number[][] {
+/**
+ * Seat numbers split into rows of roughly equal size, front row first:
+ * 17 desks on desktop → [9, 8], on a phone → [4, 4, 3, 3, 3].
+ */
+export function balancedRows(seats: number, maxPerRow: number): number[][] {
+  if (seats <= 0) return []
+  const rowCount = Math.ceil(seats / maxPerRow)
   const rows: number[][] = []
-  for (let start = 0; start < total; start += perRow) {
-    rows.push(Array.from({ length: Math.min(perRow, total - start) }, (_, i) => start + i))
+  let next = 0
+  for (let i = 0; i < rowCount; i++) {
+    const size = Math.ceil((seats - next) / (rowCount - i))
+    rows.push(Array.from({ length: size }, (_, j) => next + j))
+    next += size
   }
   return rows
-}
-
-const ROW_NAMES = ['fremste', 'midterste', 'bakerste']
-
-/** «fremste rad», «midterste rad» … for the row a seat sits in (rows of eight, front first). */
-export function seatRowName(seat: number, perRow = 8): string {
-  return `${ROW_NAMES[Math.floor(seat / perRow)] ?? ROW_NAMES[ROW_NAMES.length - 1]} rad`
 }
 
 export interface RowStyle {
@@ -29,19 +33,68 @@ export interface RowStyle {
   inset: [number, number]
 }
 
-/** Three rows of eight; the left edge stays clear of the plant shelf. */
-export const DESKTOP_ROWS: RowStyle[] = [
-  { scale: 3, bottom: 14, inset: [0, 0] },
-  { scale: 2.5, bottom: 150, inset: [8, 2] },
-  { scale: 2.1, bottom: 272, inset: [12, 0] },
+export type Layout = 'desktop' | 'mobile'
+
+const BASE: Record<Layout, { scale: number; bottom: number; step: number; shrink: number }> = {
+  desktop: { scale: 3, bottom: 14, step: 136, shrink: 0.84 },
+  mobile: { scale: 2, bottom: 10, step: 108, shrink: 0.88 },
+}
+/** Rows further back are nudged sideways so nobody hides behind the row in front. */
+const INSETS: [number, number][] = [
+  [0, 0],
+  [8, 2],
+  [12, 0],
+  [3, 5],
+  [9, 0],
+  [2, 6],
 ]
 
-/** Six rows of four on phones. */
-export const MOBILE_ROWS: RowStyle[] = [
-  { scale: 2, bottom: 10, inset: [0, 0] },
-  { scale: 1.75, bottom: 118, inset: [6, 0] },
-  { scale: 1.5, bottom: 212, inset: [2, 4] },
-  { scale: 1.25, bottom: 294, inset: [8, 0] },
-  { scale: 1.15, bottom: 366, inset: [3, 5] },
-  { scale: 1.05, bottom: 430, inset: [9, 0] },
-]
+/** One style per row, shrinking and lifting toward the back wall. */
+export function rowStyles(rowCount: number, layout: Layout): RowStyle[] {
+  const base = BASE[layout]
+  const rows: RowStyle[] = []
+  let bottom = base.bottom
+  let scale = base.scale
+  let step = base.step
+  for (let i = 0; i < rowCount; i++) {
+    rows.push({ scale: Math.round(scale * 100) / 100, bottom: Math.round(bottom), inset: INSETS[i % INSETS.length] })
+    bottom += step
+    step *= base.shrink
+    scale *= base.shrink
+  }
+  return rows
+}
+
+export interface RoomMetrics {
+  /** Room height in px. */
+  height: number
+  /** Floor height in px, measured from the bottom of the room. */
+  floor: number
+}
+
+/**
+ * Room and floor heights that fit the back row, with wall left over for windows and the clock —
+ * plus a little more when colleagues elsewhere hang on the wall as video screens.
+ */
+export function roomMetrics(rows: RowStyle[], layout: Layout, screens = 0): RoomMetrics {
+  const base = BASE[layout]
+  const back = rows[rows.length - 1] ?? { scale: base.scale, bottom: base.bottom }
+  const headroom = layout === 'desktop' ? 34 : 26
+  const wall = layout === 'desktop' ? 152 : 120
+  const behindFeet = layout === 'desktop' ? 46 : 34
+  const screenWall = screens > 0 ? (layout === 'desktop' ? 96 : 78) : 0
+  return {
+    height: Math.round(back.bottom + 48 * back.scale + headroom + wall + screenWall),
+    floor: Math.round(back.bottom + behindFeet),
+  }
+}
+
+/** «fremste rad», «midterste rad», «bakerste rad» — or «rad 2 forfra» when there are many rows. */
+export function seatRowName(seat: number, rows: number[][]): string {
+  const i = rows.findIndex(r => r.includes(seat))
+  if (i < 0) return 'uten plass'
+  if (i === 0) return 'fremste rad'
+  if (i === rows.length - 1) return 'bakerste rad'
+  if (rows.length === 3) return 'midterste rad'
+  return `rad ${i + 1} forfra`
+}

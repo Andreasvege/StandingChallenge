@@ -9,7 +9,7 @@ import { buildSnapshot, type EmployeeRow, type OfficeSnapshot, type SessionRow }
 import { osloWeekStart } from './time'
 
 export function toEmployeeRow(e: EmployeeRecord): EmployeeRow {
-  return { id: e.id, name: e.name, figure: e.figure, seat: e.seat }
+  return { id: e.id, name: e.name, figure: e.figure, seat: e.seat, remoteFrom: e.remoteFrom }
 }
 
 export function toSessionRow(s: StandSessionRecord): SessionRow {

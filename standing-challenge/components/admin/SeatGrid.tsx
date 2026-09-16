@@ -1,15 +1,7 @@
 import { PixelHead } from '@/components/PixelPerson'
-import { SEAT_COUNT, seatRowName, seatRows } from '@/lib/room-layout'
+import { DESKTOP_MAX_PER_ROW, MAX_SEATS, balancedRows, seatRowName } from '@/lib/room-layout'
 import type { AdminEmployee } from './AdminPanel'
 import styles from './Admin.module.css'
-
-// Laid out like the room seen from the front: the back row on top.
-const ROWS = seatRows(SEAT_COUNT, 8)
-  .map(seats => ({
-    label: `${seatRowName(seats[0])} · plass ${seats[0] + 1}–${seats[seats.length - 1] + 1}`,
-    seats,
-  }))
-  .reverse()
 
 interface SeatGridProps {
   employees: AdminEmployee[]
@@ -21,6 +13,13 @@ export function SeatGrid({ employees, selectedId, onSelect }: SeatGridProps) {
   const bySeat = new Map<number, AdminEmployee>()
   for (const e of employees) if (e.seat !== null) bySeat.set(e.seat, e)
   const unseated = employees.filter(e => e.seat === null)
+
+  // As many desks as are in use, plus one free desk to move somebody into.
+  const used = Math.max(0, ...[...bySeat.keys()].map(s => s + 1))
+  const seatCount = Math.min(MAX_SEATS, used + 1)
+  const seatRows = balancedRows(seatCount, DESKTOP_MAX_PER_ROW)
+  // Laid out like the room seen from the front: the back row on top.
+  const rows = seatRows.map(seats => ({ label: `${seatRowName(seats[0], seatRows)} · plass ${seats[0] + 1}–${seats[seats.length - 1] + 1}`, seats })).reverse()
 
   const head = (e: AdminEmployee) => (
     <button
@@ -38,7 +37,7 @@ export function SeatGrid({ employees, selectedId, onSelect }: SeatGridProps) {
   return (
     <div className={styles.grid}>
       <h2 className={styles.gridTitle}>Kontoret · {employees.length} personer</h2>
-      {ROWS.map(row => (
+      {rows.map(row => (
         <div key={row.label}>
           <div className={styles.rowLabel}>{row.label}</div>
           <div className={styles.heads}>

@@ -7,7 +7,7 @@ import { employees } from '@/db/schema'
 import { isAllowedEmail, normalizeEmail } from '@/lib/access'
 import { requireAdminAction } from '@/lib/current-employee'
 import { isFigure, randomFigure, type Figure } from '@/lib/figure'
-import { SEAT_COUNT } from '@/lib/room-layout'
+import { MAX_SEATS } from '@/lib/room-layout'
 
 function cleanName(name: string): string {
   const trimmed = name.trim()
@@ -20,10 +20,19 @@ function refresh() {
   revalidatePath('/')
 }
 
-export async function saveEmployee(input: { id: string; name: string; figure: Figure }): Promise<void> {
+/** Empty means «at the office»; anything else is the place shown on their screen on the wall. */
+function cleanPlace(place: string | null | undefined): string | null {
+  const trimmed = (place ?? '').trim().slice(0, 20)
+  return trimmed === '' ? null : trimmed
+}
+
+export async function saveEmployee(input: { id: string; name: string; figure: Figure; remoteFrom?: string | null }): Promise<void> {
   await requireAdminAction()
   if (!isFigure(input.figure)) throw new Error('Ugyldig figur')
-  await db.update(employees).set({ name: cleanName(input.name), figure: input.figure }).where(eq(employees.id, input.id))
+  await db
+    .update(employees)
+    .set({ name: cleanName(input.name), figure: input.figure, remoteFrom: cleanPlace(input.remoteFrom) })
+    .where(eq(employees.id, input.id))
   refresh()
 }
 
@@ -42,7 +51,7 @@ export async function createEmployee(input: { email: string; name: string }): Pr
 export async function placeEmployee(input: { employeeId: string; seat: number | null }): Promise<void> {
   await requireAdminAction()
   const { employeeId, seat } = input
-  if (seat !== null && !(Number.isInteger(seat) && seat >= 0 && seat < SEAT_COUNT)) throw new Error('Ugyldig plass')
+  if (seat !== null && !(Number.isInteger(seat) && seat >= 0 && seat < MAX_SEATS)) throw new Error('Ugyldig plass')
   const [mover] = await db.select().from(employees).where(eq(employees.id, employeeId))
   if (!mover) throw new Error('Fant ikke personen')
 

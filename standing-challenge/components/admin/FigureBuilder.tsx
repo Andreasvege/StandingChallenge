@@ -2,7 +2,7 @@ import { useState, useTransition, type ReactNode } from 'react'
 import { deleteEmployee, placeEmployee, saveEmployee } from '@/app/actions/admin'
 import { PixelHead, PixelPerson } from '@/components/PixelPerson'
 import { BEARDS, DESK_ITEMS, EYEWEAR, HAIR_COLORS, HAIR_STYLES, HEADWEAR, SHIRT_COLORS, SKIN_COLORS, randomFigure, type Figure } from '@/lib/figure'
-import { SEAT_COUNT, seatRowName } from '@/lib/room-layout'
+import { DESKTOP_MAX_PER_ROW, MAX_SEATS, balancedRows, seatRowName } from '@/lib/room-layout'
 import { DESK_ART, HEAD_ART } from '@/lib/sprite-art.generated'
 import type { AdminEmployee } from './AdminPanel'
 import styles from './Admin.module.css'
@@ -16,9 +16,9 @@ const BUILTIN_ITEM_LABELS: Record<string, string> = { mug: '☕ Kopp', plant: '�
 const itemLabel = (id: string) => BUILTIN_ITEM_LABELS[id] ?? `✏️ ${DESK_ART.find(a => a.id === id)?.label ?? id}`
 const headwearLabel = (id: string) => (id === 'none' ? 'Ingen' : (HEAD_ART.find(a => a.id === id)?.label ?? id))
 
-export function seatLabel(seat: number | null): string {
+export function seatLabel(seat: number | null, seatRows: number[][] = []): string {
   if (seat === null) return 'Uten plass'
-  return `Plass ${seat + 1} · ${seatRowName(seat)}`
+  return `Plass ${seat + 1} · ${seatRowName(seat, seatRows)}`
 }
 
 interface FigureBuilderProps {
@@ -31,6 +31,7 @@ interface FigureBuilderProps {
 export function FigureBuilder({ employee, employees, isMe, onRemoved }: FigureBuilderProps) {
   const [name, setName] = useState(employee.name)
   const [figure, setFigure] = useState<Figure>(employee.figure)
+  const [remoteFrom, setRemoteFrom] = useState(employee.remoteFrom ?? '')
   const [armedRemove, setArmedRemove] = useState(false)
   const [message, setMessage] = useState<string | null>(null)
   const [pending, startTransition] = useTransition()
@@ -52,7 +53,7 @@ export function FigureBuilder({ employee, employees, isMe, onRemoved }: FigureBu
     })
   }
 
-  const save = () => run(() => saveEmployee({ id: employee.id, name, figure }), `Lagret ${name.trim()} ✓`)
+  const save = () => run(() => saveEmployee({ id: employee.id, name, figure, remoteFrom }), `Lagret ${name.trim()} ✓`)
   const place = (to: number | null) =>
     run(() => placeEmployee({ employeeId: employee.id, seat: to }), to === null ? 'Tatt bort fra pulten' : `Flyttet til plass ${to + 1}`)
 
@@ -90,6 +91,10 @@ export function FigureBuilder({ employee, employees, isMe, onRemoved }: FigureBu
   }
 
   const occupantName = (s: number) => employees.find(e => e.seat === s && e.id !== employee.id)?.name
+  // The desks in use, plus one free desk to move somebody into.
+  const usedSeats = Math.max(0, ...employees.map(e => (e.seat ?? -1) + 1))
+  const seatChoices = Math.min(MAX_SEATS, usedSeats + 1)
+  const seatRows = balancedRows(seatChoices, DESKTOP_MAX_PER_ROW)
   const headwear = figure.headwear ?? 'none'
 
   return (
@@ -106,7 +111,7 @@ export function FigureBuilder({ employee, employees, isMe, onRemoved }: FigureBu
             }}
           />
           <span className={styles.email}>
-            {employee.email} · {seatLabel(seat)}
+            {employee.email} · {seatLabel(seat, seatRows)}
           </span>
         </div>
         <div className={styles.poses}>
@@ -159,6 +164,21 @@ export function FigureBuilder({ employee, employees, isMe, onRemoved }: FigureBu
             {headChip('no-mustache', 'Uten', { mustache: false }, !figure.mustache)}
             {headChip('mustache', 'Bart', { mustache: true }, figure.mustache)}
           </Group>
+          <Group title="Jobber fra">
+            <input
+              className={styles.select}
+              value={remoteFrom}
+              maxLength={20}
+              placeholder="Tomt = på kontoret"
+              aria-label="Jobber fra"
+              onChange={e => {
+                setRemoteFrom(e.target.value)
+                setMessage(null)
+              }}
+            />
+          </Group>
+        </div>
+        <div className={styles.row2}>
           <Group title="Pult">
             <select
               className={styles.select}
@@ -168,9 +188,9 @@ export function FigureBuilder({ employee, employees, isMe, onRemoved }: FigureBu
               onChange={e => place(e.target.value === '' ? null : Number(e.target.value))}
             >
               <option value="">Uten plass</option>
-              {Array.from({ length: SEAT_COUNT }, (_, s) => (
+              {Array.from({ length: seatChoices }, (_, s) => (
                 <option key={s} value={s}>
-                  {seatLabel(s)}
+                  {seatLabel(s, seatRows)}
                   {occupantName(s) ? ` (${occupantName(s)})` : ''}
                 </option>
               ))}
@@ -189,7 +209,7 @@ export function FigureBuilder({ employee, employees, isMe, onRemoved }: FigureBu
           <button
             type="button"
             className={styles.btn}
-            disabled={pending || seat === null || seat === SEAT_COUNT - 1}
+            disabled={pending || seat === null || seat === seatChoices - 1}
             onClick={() => seat !== null && place(seat + 1)}
           >
             Flytt ▶

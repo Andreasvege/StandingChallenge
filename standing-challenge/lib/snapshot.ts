@@ -6,7 +6,14 @@ import type { Figure } from './figure'
 import { creditedSecondsBetween, phaseAt, type StandSession } from './sessions'
 import { osloDayStart, osloNextDayStart, osloWeekStart } from './time'
 
-export interface EmployeeRow { id: string; name: string; figure: Figure; seat: number | null }
+export interface EmployeeRow {
+  id: string
+  name: string
+  figure: Figure
+  seat: number | null
+  /** Set for colleagues working somewhere else (e.g. «Bergen»): shown on a screen on the wall. */
+  remoteFrom?: string | null
+}
 export interface SessionRow extends StandSession { id: string; employeeId: string }
 
 export interface OpenSession { startedAt: number; roundEndsAt: number; roundMinutes: number }
@@ -16,6 +23,7 @@ export interface OfficeEmployee {
   name: string
   figure: Figure
   seat: number | null
+  remoteFrom: string | null
   /** The running (or awaiting-answer) session, if any. */
   session: OpenSession | null
   todaySeconds: number
@@ -68,6 +76,7 @@ export function buildSnapshot(
       name: e.name,
       figure: e.figure,
       seat: e.seat,
+      remoteFrom: e.remoteFrom ?? null,
       session: open,
       todaySeconds: Math.floor(today),
       weekSeconds: Math.floor(week),
