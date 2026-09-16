@@ -64,8 +64,10 @@ export function WallScreen({ employee: e, isLeader, isMe, open, floats, onToggle
         <span className={styles.screenFrame}>
           <span className={styles.screenRain} aria-hidden="true" />
           <PixelHead figure={e.figure} crown={isLeader} size={40} className={styles.screenHead} />
+          <span className={styles.screenLive} aria-hidden="true">LIVE</span>
+          <span className={styles.screenPlace}>{e.remoteFrom}</span>
         </span>
-        <span className={styles.screenPlace}>{e.remoteFrom}</span>
+        <span className={styles.screenStand} aria-hidden="true" />
       </button>
     </div>
   )
