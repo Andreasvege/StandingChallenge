@@ -3,18 +3,19 @@
 # Stå på! — Project State
 
 ## What it is
-A cozy internal site for The Brave's 16 employees to compete on standing-desk time. Pick 30/60/90 min, a timer runs, everyone sees a live pixel-art office (who stands at a raised desk, who dozes at a lowered one), plus today/this-week leaderboards. **Visual delight is the #1 success criterion** — colleagues should think «herregud så gøy og koselig!».
+A cozy internal site for The Brave's 17 employees to compete on standing-desk time. Pick 30/60/90 min, a timer runs, everyone sees a live pixel-art office (who stands at a raised desk, who dozes at a lowered one), plus today/this-week leaderboards. **Visual delight is the #1 success criterion** — colleagues should think «herregud så gøy og koselig!».
 
 - Design spec: `../docs/superpowers/specs/2026-09-11-sta-pa-design.md`
 - Approved room mockup (sprite origin): `../docs/superpowers/specs/mockups/2026-09-11-pikselkontoret.html`
 - Brainstorm mockups + figure-builder prototypes (v1–v4): `../.superpowers/brainstorm/` (gitignored, local only)
 - Git root is the parent folder; this Next app lives in `standing-challenge/`.
 
-## Current status (2026-09-13)
-- **Live** at https://standing-challenge.vercel.app, used by the real 16 employees (imported, all seated). Leaderboards were reset to zero after testing.
+## Current status (2026-09-16)
+- **Live** at https://standing-challenge.vercel.app, used by the real 17 employees (imported, all seated). Leaderboards were reset to zero after testing.
 - Verified in production: Google login for `@thebrave.no` (admin + a regular colleague), start/stop a round, room with real figures, admin figure builder, phone layout, `/dev/room` → 404, `/api/office` → 401 when logged out, only the Google provider exposed (no dev login).
 - **Not yet verified in production:** a round actually expiring → «Står du fortsatt?» dialog, pling and browser notification (notification permission is requested on the first Start click).
-- Checks: 101 Vitest tests, `tsc`, ESLint and `next build` all pass.
+- Built after the first release, verified locally but **not yet checked in production**: the room that follows the office, wall screens for remote colleagues, the English toggle, the fun-facts noticeboard and the admin «sett ned».
+- Checks: 155 Vitest tests, `tsc`, ESLint and `next build` all pass.
 
 ## Deployment
 - Vercel project `standing-challenge` lives in the **Brave** team (scope `brave-abc43642`), *not* "Andreas' projects". The Vercel MCP connector only sees "Andreas' projects" — use the Vercel CLI: `vercel <cmd> --scope brave-abc43642` (e.g. `vercel env ls --project standing-challenge`, `vercel ls standing-challenge`, `vercel inspect <url> --logs`).
@@ -34,15 +35,18 @@ Next.js 16.3 (App Router, Turbopack) · React 19 · TypeScript strict · Auth.js
 - One-off DB queries: `npx tsx -e` with `loadEnvConfig(process.cwd(), false)` from `@next/env` + `neon(process.env.DATABASE_URL!)`, wrapped in an async IIFE (tsx `-e` has no top-level await).
 
 ## Structure
-- `lib/` — pure, unit-tested logic: `time` (Europe/Oslo day/week), `sessions` (round rules), `snapshot` (office state + live advance between polls), `figure` (model + palettes), `sprite` (pixel rects), `sprite-art` (hand-drawn art helpers), `cheers` (heiarop rules), `plant` (kontorplanten), `access` (domain/admin), `leaderboard`, `room-layout`, `sky`, `format`, `employee-import`, `demo-office`. Server/DB glue without tests: `office` (snapshot + lazy expiry + recent cheers), `current-employee`, `clock-config`, `alerts` (Web Audio pling + notifications).
+- `lib/` — pure, unit-tested logic: `time` (Europe/Oslo day/week), `sessions` (round rules), `snapshot` (office state + live advance between polls), `figure` (model + palettes), `sprite` (pixel rects), `sprite-art` (hand-drawn art helpers), `cheers` (heiarop rules), `plant` (kontorplanten), `access` (domain/admin), `leaderboard`, `room-layout` (balanced rows + room height), `sky`, `format`, `fun-facts`, `i18n` (the pure `t()` behind `locales/{nb,en}.json`), `employee-import`, `demo-office`. Server/DB glue without tests: `office` (snapshot + lazy expiry + recent cheers), `current-employee`, `clock-config`, `alerts` (Web Audio pling + notifications).
 - `db/` — Drizzle schema (`employees`, `stand_sessions` with a partial unique index = max one open session per person, `cheers`) and client.
-- `app/actions/` — Server Actions (`stand`, `cheer`, `admin`, `auth`); every action re-checks auth itself.
+- `app/actions/` — Server Actions (`stand`, `cheer`, `admin`, `auth`); every action re-checks auth itself. `admin` also holds `sitEmployeeDown` (see Room features).
 - `app/api/office` — polled every 5 s by the client; 401 when logged out.
-- `components/` — `OfficeApp` (client shell: polling, ticking clock, tab title, dynamic favicon, heiarop toasts via `CheerToasts`), `office/OfficeRoom` (scene; desktop 2×8, phones ≤700px 4×4 with compact two-line bubbles; tap a colleague for the heiarop menu), `office/OfficePlant`, `PixelPerson`, `MyStatus`, `Leaderboard`, `StillStandingDialog`, `admin/*` (FigureBuilder, SeatGrid).
+- `components/` — `OfficeApp` (client shell: polling, ticking clock, tab title, dynamic favicon, heiarop toasts via `CheerToasts`), `office/OfficeRoom` (scene; the rows follow the office — balanced rows of up to 9 desks on desktop, 4 on phones ≤700px with compact two-line bubbles; tap a colleague to open `office/CheerMenu`, shared by desks and wall screens), `office/WallScreen`, `office/FactPoster`, `office/OfficePlant`, `PixelPerson`, `MyStatus`, `Leaderboard`, `LanguageToggle`, `StillStandingDialog`, `admin/*` (FigureBuilder, SeatGrid).
 
-## Heiarop & kontorplanten
+## Room features
 - **Heiarop:** tap a colleague → menu with today's total and emojis (standing: 👏🔥💪☕, sitting: ⬆️ «reis deg!», 👀, ☕). `sendCheer` stores it in `cheers` (sender = logged-in user; no self-cheers; 30 s cooldown per sender→receiver). Snapshots carry cheers from the last 8 s (`CHEER_SHOW_MS`, longer than a poll); the room floats the emoji over the receiver's head and the receiver gets a toast. Everything is derived from `now` — no effects/state for animations. Preview with `/dev/room?cheer=1`.
 - **Kontorplanten:** a potted plant on a wall shelf (back-left corner on desktop, between the windows on phones) grows through 6 stages with the whole office's standing this week toward `WEEKLY_GOAL_HOURS` (30), blooming at the goal; resets Monday with the week totals. Sign «12/30 t»; tap for the full label.
+- **Veggskjermer:** anyone with `employees.remote_from` set (Shobhit in Bergen) gets no desk — they hang on the wall as a pixel TV, rain falling behind them, with a LIVE dot and the place name. Their menu and floating cheers open *downward*: the room clips anything that leaves it, so upward reads as sliding under the header.
+- **Fakta-plakaten:** a corkboard with «Visste du?» above it. Tap for a panel with today's fact, its source in small print and «Neste fakta» to page through. The list is `lib/fun-facts.ts` — house rule: every fact traces to a study, a systematic review or a health authority, and `source` names it; where the evidence is weak the fact says so. Up to 280 characters each. `factOfTheDay(osloDayStart(now))` gives the whole office the same fact until midnight.
+- **Admin «sett ned»:** an admin tapping a colleague who is standing gets a two-step button that ends the round. `planAdminStop` is built on `planStop`, so they keep exactly what «Jeg satte meg» would have given them, and the row records `end_reason = 'admin'`. Hidden for non-admins, for people already sitting, and for the admin themselves (who has their own Stop button).
 - `scripts/` — `import-employees`, `seed-dev`, `make-icon`.
 
 ## Rules & conventions
@@ -51,6 +55,7 @@ Next.js 16.3 (App Router, Turbopack) · React 19 · TypeScript strict · Auth.js
 - Rounds are 30/60/90 min; 5 min grace for «Står du fortsatt?» (30 s and minutes-as-seconds with `DEV_FAST_TIME=1`, dev only). Expired rounds are closed lazily on read — no cron.
 - No `proxy.ts`/middleware: auth is checked in pages (redirect), route handlers (401) and inside each Server Action. The dev Credentials login exists only when `NODE_ENV=development`.
 - Keep testable logic in `lib/` with a `*.test.ts` next to it.
+- Wall props (windows, clock, noticeboard, wall screens) hang off the wall gradient's own 20% band, not a pixel offset from the ceiling — the room grows downward as rows are added, and a fixed `top` leaves them stranded up there. Two CSS traps in `OfficeRoom.module.css`: a rule added at the end of the file beats the phone overrides in the earlier `@media` block (same specificity, last one wins), so late additions need their own media block at the end; and anything with a `z-index` is a stacking context, so a menu inside it cannot rise above the desk rows (max 20) on its own.
 - Language (bokmål by default, English when the browser is English or the header toggle says so): the server always renders Norwegian and the client swaps after mount via `components/useLang.ts` (localStorage + `useSyncExternalStore`, exactly like `useSoundSetting`) rather than a cookie, because that keeps the pages cookie-free and cacheable and makes a hydration mismatch impossible by construction — the dictionaries are `locales/{nb,en}.json` behind the pure `t()` in `lib/i18n.ts`, which server actions also use via a `lang` argument passed from the client.
 
 ## Figures / sprites
@@ -72,9 +77,9 @@ Next.js 16.3 (App Router, Turbopack) · React 19 · TypeScript strict · Auth.js
 4. Small a11y nit: the blurred demo room behind `/login` is `aria-hidden` but its buttons are still focusable — add `inert` to the backdrop.
 5. Holiday themes (make it month by month. e.g. October: Halloween, December: Christmas etc.)
 6. Create weather animations (rain, snow, thunder?) and connect it to Yr/MET API so that its live updated.
-7. Add "fun facts" about standing. Like "Standing desks are good for your posture and cardiovascular health" etc.
+7. ✅ **Bygget** — fun facts på oppslagstavla på veggen (se Room features).
 8. Remove the generic boring dog and create Ginko!
-9. Localization - Add english option! <3
+9. ✅ **Bygget** — engelsk slår inn automatisk på engelske nettlesere, og 🌐-knappen overstyrer.
 10. Move the hanging plant in the background to the right.
 11. Fix glasses when sitting.
 12. Picture in Picture mode for timer. So that you can have a running timer telling you how long you have left, outside of the screen.
