@@ -20,10 +20,14 @@
   animation: blink 1.4s steps(2) infinite;
 }
 
-.window { position: absolute; top: 20%; width: 240px; height: 135px; }
+/* Fixed-px props in a %-positioned band grow into each other as the room narrows: a 240px window at
+   10% reached past the poster at 30% on anything under ~1200px, which is every iPad. The windows now
+   shrink with the room, and the poster and clock sit in gaps that stay open at every width down to
+   the phone breakpoint. Keep the 64:36 of the pixel art rather than a second fixed number. */
+.window { position: absolute; top: 20%; width: min(240px, 23%); aspect-ratio: 64 / 36; }
 .windowLeft { left: 10%; }
 .windowRight { left: 58%; }
-.clock { position: absolute; top: calc(20% + 41px); left: 44%; width: 54px; height: 54px; }
+.clock { position: absolute; top: calc(20% + 41px); left: calc(50% - 27px); width: 54px; height: 54px; }
 .hanging { position: absolute; top: 20px; left: 2%; width: 48px; height: 84px; }
 
 /* Kontorplanten on a little wall shelf in the back-left corner (free of desks because the back row is inset). */
@@ -324,7 +328,7 @@
 
 /* The fun-facts poster on the wall. Like the wall screens it sits above the desk rows (z-index 20),
    because it is a stacking context and its panel has to open over the room, not behind it. */
-.poster { position: absolute; top: calc(20% + 27px); left: 30%; z-index: 26; }
+.poster { position: absolute; top: calc(20% + 27px); left: 36%; z-index: 26; }
 .posterButton {
   display: flex;
   flex-direction: column;

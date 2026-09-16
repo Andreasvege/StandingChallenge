@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { DESKTOP_MAX_PER_ROW, MOBILE_MAX_PER_ROW, balancedRows, roomMetrics, rowStyles, seatRowName } from './room-layout'
+import { DESKTOP_MAX_PER_ROW, MOBILE_MAX_PER_ROW, ROOM_LAYERS, balancedRows, roomMetrics, rowStyles, rowZIndex, seatRowName } from './room-layout'
 
 const sizes = (rows: number[][]) => rows.map(r => r.length)
 
@@ -81,5 +81,21 @@ describe('seatRowName', () => {
     const many = balancedRows(17, MOBILE_MAX_PER_ROW)
     expect(seatRowName(5, many)).toBe('rad 2 forfra')
     expect(seatRowName(99, two)).toBe('uten plass')
+  })
+})
+
+describe('rowZIndex', () => {
+  it('keeps the desk rows behind the wall props, the front row nearest', () => {
+    expect(rowZIndex(0, false)).toBe(ROOM_LAYERS.frontRow)
+    expect(rowZIndex(1, false)).toBe(ROOM_LAYERS.frontRow - 1)
+    expect(rowZIndex(0, false)).toBeLessThan(ROOM_LAYERS.poster)
+  })
+
+  // A row is a stacking context, so the menu's own z-index cannot leave it: the row has to rise.
+  it('lifts the row holding an open menu above the noticeboard and the wall screens', () => {
+    for (const depth of [0, 1, 4]) {
+      expect(rowZIndex(depth, true)).toBeGreaterThan(ROOM_LAYERS.poster)
+      expect(rowZIndex(depth, true)).toBeGreaterThan(ROOM_LAYERS.screens)
+    }
   })
 })

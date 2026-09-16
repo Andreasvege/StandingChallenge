@@ -67,6 +67,28 @@ export function rowStyles(rowCount: number, layout: Layout): RowStyle[] {
   return rows
 }
 
+/**
+ * Stacking order inside the room. The desk rows sit *under* the wall props, so the noticeboard's
+ * fact panel can open out over the desks instead of behind them. That is also the trap: a row with
+ * a z-index is a stacking context, so the heiarop menu inside it cannot rise past the row on its
+ * own — whatever holds the open menu has to be lifted itself.
+ */
+export const ROOM_LAYERS = {
+  /** The front desk row. Rows further back count down from here. */
+  frontRow: 20,
+  /** Colleagues working elsewhere, hanging on the wall as video screens. */
+  screens: 25,
+  /** The fun-facts noticeboard and the panel it opens. */
+  poster: 26,
+  /** The row or wall-screen strip holding the open menu — above every wall prop. */
+  openMenu: 40,
+} as const
+
+/** z-index for a desk row: behind the wall props, unless it is the one holding the open menu. */
+export function rowZIndex(depth: number, hasOpenMenu: boolean): number {
+  return hasOpenMenu ? ROOM_LAYERS.openMenu : ROOM_LAYERS.frontRow - depth
+}
+
 export interface RoomMetrics {
   /** Room height in px. */
   height: number

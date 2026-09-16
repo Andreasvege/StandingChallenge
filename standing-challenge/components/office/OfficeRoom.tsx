@@ -5,7 +5,7 @@ import { EmptyDesk, PixelPerson } from '@/components/PixelPerson'
 import { useTranslation } from '@/components/useLang'
 import { activeCheers, type Cheer } from '@/lib/cheers'
 import { formatDuration } from '@/lib/format'
-import { DESKTOP_MAX_PER_ROW, MOBILE_MAX_PER_ROW, balancedRows, roomMetrics, rowStyles, type RowStyle } from '@/lib/room-layout'
+import { DESKTOP_MAX_PER_ROW, MOBILE_MAX_PER_ROW, ROOM_LAYERS, balancedRows, roomMetrics, rowStyles, rowZIndex, type RowStyle } from '@/lib/room-layout'
 import { SKIES, skyPhase } from '@/lib/sky'
 import type { LiveEmployee } from '@/lib/snapshot'
 import { osloHour } from '@/lib/time'
@@ -38,12 +38,15 @@ interface OfficeRoomProps {
  */
 export function OfficeRoom({ employees, leaderId, now, meId = null, cheers = [], onCheer, onSitDown }: OfficeRoomProps) {
   const [openId, setOpenId] = useState<string | null>(null)
+  const [factOpen, setFactOpen] = useState(false)
   const remotePeople = employees.filter(e => e.remoteFrom)
   const bySeat = new Map<number, LiveEmployee>()
   for (const e of employees) if (e.seat !== null && !e.remoteFrom) bySeat.set(e.seat, e)
   const sky = SKIES[skyPhase(osloHour(now))]
   const fresh = activeCheers(cheers, now)
   const weekTotal = employees.reduce((sum, e) => sum + e.weekSeconds, 0)
+  // The wall-screen strip is a stacking context too, so it has to rise for its own menu to clear the poster.
+  const openIsRemote = openId !== null && remotePeople.some(e => e.id === openId)
 
   const seatCount = Math.max(0, ...[...bySeat.keys()].map(s => s + 1))
   const desktopSeats = balancedRows(seatCount, DESKTOP_MAX_PER_ROW)
@@ -82,11 +85,17 @@ export function OfficeRoom({ employees, leaderId, now, meId = null, cheers = [],
         setOpenId(null)
       }
     : undefined
-  const toggle = (id: string) => () => setOpenId(openId === id ? null : id)
+  // One pop-up at a time. A row is a single stacking context, so lifting a menu clear of the
+  // noticeboard lifts the whole row of name bubbles with it — tidier to put the board away instead.
+  const toggle = (id: string) => () => {
+    setOpenId(openId === id ? null : id)
+    setFactOpen(false)
+  }
 
   function rows(seatRows: number[][], rowStyleList: RowStyle[], compact: boolean) {
     return seatRows.map((seats, depth) => {
       const row = rowStyleList[depth]
+      const hasOpenMenu = openId !== null && seats.some(seat => bySeat.get(seat)?.id === openId)
       return (
         <div
           key={depth}
@@ -98,7 +107,7 @@ export function OfficeRoom({ employees, leaderId, now, meId = null, cheers = [],
             right: `${row.inset[1]}%`,
             // minmax(0, …) keeps columns equal even when a bubble is wider than its column.
             gridTemplateColumns: `repeat(${seats.length}, minmax(0, 1fr))`,
-            zIndex: 20 - depth,
+            zIndex: rowZIndex(depth, hasOpenMenu),
           }}
         >
           {seats.map(seat => {
@@ -149,9 +158,16 @@ export function OfficeRoom({ employees, leaderId, now, meId = null, cheers = [],
       <Clock className={styles.clock} />
       <HangingPlant className={styles.hanging} />
       <OfficePlant weekSeconds={weekTotal} />
-      <FactPoster now={now} />
+      <FactPoster
+        now={now}
+        open={factOpen}
+        onOpenChange={next => {
+          setFactOpen(next)
+          if (next) setOpenId(null)
+        }}
+      />
       {remotePeople.length > 0 && (
-        <div className={styles.screens}>
+        <div className={styles.screens} style={openIsRemote ? { zIndex: ROOM_LAYERS.openMenu } : undefined}>
           {remotePeople.map(e => (
             <WallScreen
               key={e.id}

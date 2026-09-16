@@ -26,21 +26,33 @@ const POSTER: readonly R[] = [
   [13, 3, 2, 1, '#ff8fb1'],
 ]
 
+interface FactPosterProps {
+  now: number
+  /** Whether the panel is open. The room owns this: only one pop-up is open at a time. */
+  open: boolean
+  onOpenChange: (open: boolean) => void
+}
+
 /**
  * «Visste du?» on the office wall. Everyone gets the same fact on the same day, and tapping through
  * shows the rest. Every fact carries its source, in small print under the text — the list is only
  * worth having on the wall if you can check it.
  */
-export function FactPoster({ now }: { now: number }) {
+export function FactPoster({ now, open, onOpenChange }: FactPosterProps) {
   const { lang, t } = useTranslation()
-  const [open, setOpen] = useState(false)
   // Which fact is on show, once you start tapping through. Null means today's.
   const [browsing, setBrowsing] = useState<FunFact | null>(null)
   const fact = browsing ?? factOfTheDay(osloDayStart(now))
 
   function close() {
-    setOpen(false)
+    onOpenChange(false)
     setBrowsing(null) // reopening always starts at today's fact again
+  }
+
+  // Reset here too: the room closes the panel behind our back when a colleague's menu opens.
+  function openPanel() {
+    setBrowsing(null)
+    onOpenChange(true)
   }
 
   return (
@@ -62,7 +74,7 @@ export function FactPoster({ now }: { now: number }) {
       <button
         type="button"
         className={styles.posterButton}
-        onClick={() => (open ? close() : setOpen(true))}
+        onClick={() => (open ? close() : openPanel())}
         aria-expanded={open}
         title={t('room.factTitle')}
       >
