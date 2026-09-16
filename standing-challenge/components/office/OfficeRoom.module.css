@@ -20,10 +20,10 @@
   animation: blink 1.4s steps(2) infinite;
 }
 
-.window { position: absolute; top: 24px; width: 240px; height: 135px; }
+.window { position: absolute; bottom: calc(var(--floor-h, 176px) + 154px); width: 240px; height: 135px; }
 .windowLeft { left: 10%; }
 .windowRight { left: 58%; }
-.clock { position: absolute; top: 30px; left: 44%; width: 54px; height: 54px; }
+.clock { position: absolute; bottom: calc(var(--floor-h, 176px) + 195px); left: 44%; width: 54px; height: 54px; }
 .hanging { position: absolute; top: 20px; left: 2%; width: 48px; height: 84px; }
 
 /* Kontorplanten on a little wall shelf in the back-left corner (free of desks because the back row is inset). */
@@ -184,7 +184,7 @@
   .room { height: var(--room-h-mobile, 470px); }
   .desktopOnly { display: none; }
   .mobileOnly { display: contents; }
-  .window { top: 30px; width: 144px; height: 81px; }
+  .window { top: 30px; bottom: auto; width: 144px; height: 81px; }
   .windowLeft { left: 8%; }
   .windowRight { left: 56%; }
   .clock,
@@ -324,7 +324,7 @@
 
 /* The fun-facts poster on the wall. Like the wall screens it sits above the desk rows (z-index 20),
    because it is a stacking context and its panel has to open over the room, not behind it. */
-.poster { position: absolute; top: 26px; left: 30%; z-index: 26; }
+.poster { position: absolute; bottom: calc(var(--floor-h, 176px) + 154px); left: 30%; z-index: 26; }
 .posterButton {
   display: flex;
   flex-direction: column;
@@ -377,7 +377,7 @@
    panel opens from the poster's left edge — centred it would run out of the room. This block has to
    come after the poster's own rules above, or it would lose to them at equal specificity. */
 @media (max-width: 700px) {
-  .poster { top: 116px; left: 5%; }
+  .poster { top: 116px; bottom: auto; left: 5%; }
   .posterSvg { width: 44px; height: 38px; }
   .posterLabel { font-size: 8px; }
   .factPanel { left: 0; width: min(250px, 74vw); padding: 10px 12px; transform: none; }
