@@ -1,6 +1,7 @@
 import { describe, it, expect } from 'vitest'
 import { DEFAULT_FIGURE } from './figure'
 import { parseEmployeesFile } from './employee-import'
+import { SEAT_COUNT } from './room-layout'
 
 const row = (over: Record<string, unknown> = {}) => ({ name: 'Emma', email: 'emma@thebrave.no', seat: 1, figure: DEFAULT_FIGURE, ...over })
 const file = (...employees: unknown[]) => ({ version: 1, exportedAt: '2026-09-11T10:00:00Z', employees })
@@ -54,7 +55,13 @@ describe('parseEmployeesFile', () => {
   })
   it('rejects seats out of range, bad names and bad figures', () => {
     const { errors } = parseEmployeesFile(
-      file(row({ seat: 16 }), row({ email: 'a@thebrave.no', seat: 2.5 }), row({ email: 'b@thebrave.no', seat: 3, name: '' }), row({ email: 'c@thebrave.no', seat: 4, figure: { ...DEFAULT_FIGURE, hair: '#123456' } })),
+      file(
+        // One past the last seat, whatever SEAT_COUNT happens to be.
+        row({ seat: SEAT_COUNT }),
+        row({ email: 'a@thebrave.no', seat: 2.5 }),
+        row({ email: 'b@thebrave.no', seat: 3, name: '' }),
+        row({ email: 'c@thebrave.no', seat: 4, figure: { ...DEFAULT_FIGURE, hair: '#123456' } }),
+      ),
     )
     expect(errors).toHaveLength(4)
   })

@@ -2,7 +2,7 @@ import { useState, useTransition, type ReactNode } from 'react'
 import { deleteEmployee, placeEmployee, saveEmployee } from '@/app/actions/admin'
 import { PixelHead, PixelPerson } from '@/components/PixelPerson'
 import { BEARDS, DESK_ITEMS, EYEWEAR, HAIR_COLORS, HAIR_STYLES, HEADWEAR, SHIRT_COLORS, SKIN_COLORS, randomFigure, type Figure } from '@/lib/figure'
-import { SEAT_COUNT } from '@/lib/room-layout'
+import { SEAT_COUNT, seatRowName } from '@/lib/room-layout'
 import { DESK_ART, HEAD_ART } from '@/lib/sprite-art.generated'
 import type { AdminEmployee } from './AdminPanel'
 import styles from './Admin.module.css'
@@ -18,7 +18,7 @@ const headwearLabel = (id: string) => (id === 'none' ? 'Ingen' : (HEAD_ART.find(
 
 export function seatLabel(seat: number | null): string {
   if (seat === null) return 'Uten plass'
-  return `Plass ${seat + 1} · ${seat < 8 ? 'fremste rad' : 'bakerste rad'}`
+  return `Plass ${seat + 1} · ${seatRowName(seat)}`
 }
 
 interface FigureBuilderProps {

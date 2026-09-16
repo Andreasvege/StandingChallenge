@@ -1,17 +1,30 @@
 import { describe, it, expect } from 'vitest'
-import { DESKTOP_ROWS, MOBILE_ROWS, SEAT_COUNT, seatRows } from './room-layout'
+import { DESKTOP_ROWS, MOBILE_ROWS, SEAT_COUNT, seatRowName, seatRows } from './room-layout'
 
 describe('seatRows', () => {
-  it('makes two rows of eight on desktop', () => {
-    expect(seatRows(SEAT_COUNT, 8)).toEqual([[0, 1, 2, 3, 4, 5, 6, 7], [8, 9, 10, 11, 12, 13, 14, 15]])
+  it('makes three rows of eight on desktop', () => {
+    expect(seatRows(SEAT_COUNT, 8)).toEqual([
+      [0, 1, 2, 3, 4, 5, 6, 7],
+      [8, 9, 10, 11, 12, 13, 14, 15],
+      [16, 17, 18, 19, 20, 21, 22, 23],
+    ])
   })
-  it('makes four rows of four on mobile', () => {
+  it('makes six rows of four on mobile', () => {
     const rows = seatRows(SEAT_COUNT, 4)
-    expect(rows).toHaveLength(4)
-    expect(rows[3]).toEqual([12, 13, 14, 15])
+    expect(rows).toHaveLength(6)
+    expect(rows[5]).toEqual([20, 21, 22, 23])
   })
   it('leaves a short last row when seats do not divide evenly', () => {
     expect(seatRows(10, 4)).toEqual([[0, 1, 2, 3], [4, 5, 6, 7], [8, 9]])
+  })
+})
+
+describe('seatRowName', () => {
+  it('names the row a seat sits in', () => {
+    expect(seatRowName(0)).toBe('fremste rad')
+    expect(seatRowName(7)).toBe('fremste rad')
+    expect(seatRowName(8)).toBe('midterste rad')
+    expect(seatRowName(23)).toBe('bakerste rad')
   })
 })
 

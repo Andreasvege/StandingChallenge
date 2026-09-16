@@ -1,12 +1,15 @@
 import { PixelHead } from '@/components/PixelPerson'
+import { SEAT_COUNT, seatRowName, seatRows } from '@/lib/room-layout'
 import type { AdminEmployee } from './AdminPanel'
 import styles from './Admin.module.css'
 
-// Laid out like the room seen from the front: back row on top.
-const ROWS = [
-  { label: 'Bakerste rad · plass 9–16', seats: [8, 9, 10, 11, 12, 13, 14, 15] },
-  { label: 'Fremste rad · plass 1–8', seats: [0, 1, 2, 3, 4, 5, 6, 7] },
-]
+// Laid out like the room seen from the front: the back row on top.
+const ROWS = seatRows(SEAT_COUNT, 8)
+  .map(seats => ({
+    label: `${seatRowName(seats[0])} · plass ${seats[0] + 1}–${seats[seats.length - 1] + 1}`,
+    seats,
+  }))
+  .reverse()
 
 interface SeatGridProps {
   employees: AdminEmployee[]

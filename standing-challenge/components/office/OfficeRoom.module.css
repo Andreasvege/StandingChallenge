@@ -2,7 +2,7 @@
 
 .room {
   position: relative;
-  height: 440px;
+  height: 560px;
   overflow: hidden;
   isolation: isolate;
   background: linear-gradient(#34295e 0 20%, #3a2e68 20% 40%, #413472 40% 60%, #463879 60% 100%);
@@ -20,11 +20,11 @@
   animation: blink 1.4s steps(2) infinite;
 }
 
-.window { position: absolute; top: 36px; width: 256px; height: 144px; }
+.window { position: absolute; top: 24px; width: 240px; height: 135px; }
 .windowLeft { left: 10%; }
 .windowRight { left: 58%; }
-.clock { position: absolute; top: 44px; left: 44%; width: 54px; height: 54px; }
-.hanging { position: absolute; top: 24px; left: 2%; width: 48px; height: 84px; }
+.clock { position: absolute; top: 30px; left: 44%; width: 54px; height: 54px; }
+.hanging { position: absolute; top: 20px; left: 2%; width: 48px; height: 84px; }
 
 /* Kontorplanten on a little wall shelf in the back-left corner (free of desks because the back row is inset). */
 .plant {
@@ -58,7 +58,7 @@
   left: 0;
   right: 0;
   bottom: 0;
-  height: 176px;
+  height: 340px;
   border-top: 4px solid var(--outline);
   background: repeating-linear-gradient(#7a5140 0 40px, #5e3c30 40px 44px);
 }
@@ -166,7 +166,7 @@
 @keyframes trot { 0%, 100% { margin-bottom: 0; } 50% { margin-bottom: 2px; } }
 
 @media (max-width: 700px) {
-  .room { height: 470px; }
+  .room { height: 640px; }
   .desktopOnly { display: none; }
   .mobileOnly { display: contents; }
   .window { top: 30px; width: 144px; height: 81px; }
@@ -179,7 +179,7 @@
   .plantSvg { width: 30px; height: 48px; }
   .shelf { width: 34px; height: 4px; }
   .plantSign { display: none; }
-  .floor { height: 320px; }
+  .floor { height: 480px; }
   .bubble { font-size: 10px; padding: 1px 5px 2px; }
 }
 
