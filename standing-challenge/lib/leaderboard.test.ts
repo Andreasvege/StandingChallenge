@@ -27,6 +27,12 @@ describe('rankBy', () => {
     expect(rows).toHaveLength(5)
     expect(rows[3]).toMatchObject({ name: 'Emma', isMe: true })
   })
+  it('shows everyone with time when the cut is raised, and me only once', () => {
+    expect(rankBy(people, 'todaySeconds', null, people.length).map(r => r.name)).toEqual([
+      'Even', 'Sander', 'Vilde', 'Emma', 'Ingrid', 'Thea', 'Andreas',
+    ])
+    expect(rankBy(people, 'todaySeconds', '7', people.length).filter(r => r.isMe)).toHaveLength(1)
+  })
   it('leaves out people with no time', () => {
     expect(rankBy(people, 'todaySeconds', '8', 10).some(r => r.name === 'Mina')).toBe(false)
   })

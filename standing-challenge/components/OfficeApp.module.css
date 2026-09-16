@@ -35,6 +35,8 @@
 .time { margin-left: auto; font-weight: 700; color: var(--green); font-variant-numeric: tabular-nums; }
 .meRow { outline: 2px solid var(--pink); }
 .empty { margin: 0; color: var(--muted); font-size: 14px; }
+/* Phones only: the list is cut to five rows (plus my own) until «Vis alle». */
+.showAll { display: none; margin-top: 8px; padding: 4px 0; font-size: 13px; color: var(--muted); background: none; border: 0; text-decoration: underline; text-underline-offset: 3px; }
 
 /* «Står du fortsatt?» */
 .backdrop { position: fixed; inset: 0; z-index: 50; display: grid; place-items: center; padding: 16px; background: #120d22b3; }
@@ -50,4 +52,6 @@
   .logo { font-size: 30px; }
   .status { width: 100%; justify-content: space-between; }
   .board { padding: 16px; }
+  .showAll { display: inline-block; }
+  .board ol:not(.expanded) li:nth-child(n + 6):not(.meRow) { display: none; }
 }
