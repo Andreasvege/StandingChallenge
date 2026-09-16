@@ -7,20 +7,23 @@ import styles from './OfficeRoom.module.css'
 
 type R = readonly [x: number, y: number, w: number, h: number, fill: string]
 
-// A pinned-up sheet with a question mark on it. The facts themselves are far too long to read at
-// pixel size, so the poster is only the invitation — the text opens in a panel below it.
+// A corkboard in a wooden frame with a note pinned to it. The facts run to a couple of sentences,
+// which is unreadable at pixel size, so the board is only the invitation — the text opens below it.
 const POSTER: readonly R[] = [
-  [0, 0, 22, 28, OUTLINE],
-  [1, 1, 20, 26, '#fff3dc'],
-  [1, 1, 20, 6, '#ff6fa8'],
-  [3, 3, 2, 2, '#fff3dc'],
-  [6, 3, 2, 2, '#fff3dc'],
-  [9, 10, 5, 2, '#2b1f4d'],
-  [13, 11, 2, 3, '#2b1f4d'],
-  [11, 14, 3, 2, '#2b1f4d'],
-  [11, 16, 2, 3, '#2b1f4d'],
-  [11, 21, 2, 2, '#2b1f4d'],
-  [4, 24, 14, 1, '#cfc4ea'],
+  [0, 0, 28, 24, OUTLINE],
+  [1, 1, 26, 22, '#8a5a36'],
+  [3, 3, 22, 18, '#c98a55'],
+  [5, 6, 1, 1, '#a8703f'],
+  [22, 7, 1, 1, '#a8703f'],
+  [7, 17, 1, 1, '#a8703f'],
+  [21, 18, 1, 1, '#a8703f'],
+  [8, 5, 12, 14, '#ffe066'],
+  [8, 18, 12, 1, '#e9c84f'],
+  [10, 9, 8, 1, '#b08b1e'],
+  [10, 12, 8, 1, '#b08b1e'],
+  [10, 15, 5, 1, '#b08b1e'],
+  [13, 3, 2, 3, '#ff4d6d'],
+  [13, 3, 2, 1, '#ff8fb1'],
 ]
 
 /**
@@ -63,7 +66,7 @@ export function FactPoster({ now }: { now: number }) {
         aria-expanded={open}
         title={t('room.factTitle')}
       >
-        <svg viewBox="0 0 22 28" className={styles.posterSvg} shapeRendering="crispEdges" aria-hidden="true">
+        <svg viewBox="0 0 28 24" className={styles.posterSvg} shapeRendering="crispEdges" aria-hidden="true">
           {POSTER.map(([x, y, w, h, fill], i) => (
             <rect key={i} x={x} y={y} width={w} height={h} fill={fill} />
           ))}

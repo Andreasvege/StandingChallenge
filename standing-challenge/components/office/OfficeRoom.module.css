@@ -336,7 +336,7 @@
   color: inherit;
   cursor: pointer;
 }
-.posterSvg { display: block; width: 48px; height: 61px; }
+.posterSvg { display: block; width: 56px; height: 48px; }
 .posterLabel { font: 700 10px var(--font-body), system-ui, sans-serif; color: var(--muted); }
 .factPanel {
   position: absolute;
@@ -378,7 +378,7 @@
    come after the poster's own rules above, or it would lose to them at equal specificity. */
 @media (max-width: 700px) {
   .poster { top: 116px; left: 5%; }
-  .posterSvg { width: 34px; height: 43px; }
+  .posterSvg { width: 44px; height: 38px; }
   .posterLabel { font-size: 8px; }
   .factPanel { left: 0; width: min(250px, 74vw); padding: 10px 12px; transform: none; }
   .factText { font-size: 12px; }
