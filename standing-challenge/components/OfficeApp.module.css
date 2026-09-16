@@ -17,7 +17,8 @@
 .status { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; background: var(--panel); padding: 10px 10px 10px 16px; border-radius: 16px; }
 .statusLabel { font-size: 14px; color: #d9cff7; }
 .statusLabel b { color: var(--text); font-variant-numeric: tabular-nums; }
-.pills { display: flex; gap: 8px; }
+/* Wraps: four round lengths are wider than a phone (345px nb / 362px en against 332px at 390px). */
+.pills { display: flex; flex-wrap: wrap; gap: 8px; }
 .pill { font-weight: 600; font-size: 14px; background: var(--panel-hi); color: var(--text); border: 0; border-radius: 11px; padding: 9px 14px; box-shadow: 0 3px 0 #1a1430; }
 .pill:active:not(:disabled) { transform: translateY(2px); box-shadow: 0 1px 0 #1a1430; }
 .go { background: var(--yellow); color: var(--bg); box-shadow: 0 3px 0 #b8902e; }

@@ -13,7 +13,8 @@ function session(overrides: Partial<StandSession> = {}): StandSession {
 }
 
 describe('isRoundMinutes', () => {
-  it('accepts only 30, 60 and 90', () => {
+  it('accepts only 15, 30, 60 and 90', () => {
+    expect(isRoundMinutes(15)).toBe(true)
     expect(isRoundMinutes(30)).toBe(true)
     expect(isRoundMinutes(60)).toBe(true)
     expect(isRoundMinutes(90)).toBe(true)

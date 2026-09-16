@@ -3,6 +3,7 @@
 
 import type { Cheer } from './cheers'
 import type { Figure } from './figure'
+import type { RoundMinutes } from './sessions'
 import { buildSnapshot, liveEmployee, type EmployeeRow, type LiveEmployee, type OfficeSnapshot, type SessionRow } from './snapshot'
 import { osloDayStart } from './time'
 
@@ -15,7 +16,7 @@ export interface DemoPerson {
   remoteFrom?: string
   /** Minutes ago the current session started (standing now), if any. */
   standingFor?: number
-  roundMinutes?: 30 | 60 | 90
+  roundMinutes?: RoundMinutes
   /** Earlier finished sessions today: [minutes ago it started, length in minutes]. */
   earlier?: [number, number][]
 }

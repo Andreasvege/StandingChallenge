@@ -3,7 +3,7 @@
 
 import { overlapSeconds } from './time'
 
-export const ROUND_OPTIONS = [30, 60, 90] as const
+export const ROUND_OPTIONS = [15, 30, 60, 90] as const
 export type RoundMinutes = (typeof ROUND_OPTIONS)[number]
 export type EndReason = 'sat_down' | 'completed' | 'timeout' | 'admin'
 /** standing: round running · awaiting: round over, «Står du fortsatt?» grace · expired: grace passed, not yet closed · ended: closed */

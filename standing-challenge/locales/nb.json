@@ -142,7 +142,7 @@
   "grid.unseated": "Uten plass · velg personen og gi dem en pult",
 
   "error.notSignedIn": "Du er ikke logget inn",
-  "error.badRound": "Velg 30, 60 eller 90 minutter",
+  "error.badRound": "Velg 15, 30, 60 eller 90 minutter",
   "error.unknownCheer": "Ukjent heiarop",
   "error.personNotFound": "Fant ikke personen",
   "error.badName": "Navnet må være 1–30 tegn",

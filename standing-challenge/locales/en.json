@@ -142,7 +142,7 @@
   "grid.unseated": "No desk · pick the person and give them a desk",
 
   "error.notSignedIn": "You are not signed in",
-  "error.badRound": "Choose 30, 60 or 90 minutes",
+  "error.badRound": "Choose 15, 30, 60 or 90 minutes",
   "error.unknownCheer": "Unknown cheer",
   "error.personNotFound": "Could not find that person",
   "error.badName": "The name must be 1–30 characters",
