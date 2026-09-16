@@ -69,3 +69,5 @@ Next.js 16.3 (App Router, Turbopack) · React 19 · TypeScript strict · Auth.js
 2. Custom domain, e.g. `stapa.thebrave.no` (+ Google redirect URI).
 3. Streaks and badges (explicitly out of scope for v1).
 4. Small a11y nit: the blurred demo room behind `/login` is `aria-hidden` but its buttons are still focusable — add `inert` to the backdrop.
+5. Holiday themes (make it month by month. e.g. October: Halloween, December: Christmas etc.)
+6. Create weather animations (rain, snow, thunder?) and connect it to Yr/MET API so that its live updated.
