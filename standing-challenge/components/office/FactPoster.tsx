@@ -66,12 +66,12 @@ export function FactPoster({ now }: { now: number }) {
         aria-expanded={open}
         title={t('room.factTitle')}
       >
+        <span className={styles.posterLabel}>{t('room.factTitle')}</span>
         <svg viewBox="0 0 28 24" className={styles.posterSvg} shapeRendering="crispEdges" aria-hidden="true">
           {POSTER.map(([x, y, w, h, fill], i) => (
             <rect key={i} x={x} y={y} width={w} height={h} fill={fill} />
           ))}
         </svg>
-        <span className={styles.posterLabel}>{t('room.factTitle')}</span>
       </button>
     </div>
   )

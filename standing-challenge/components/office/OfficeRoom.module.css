@@ -324,7 +324,7 @@
 
 /* The fun-facts poster on the wall. Like the wall screens it sits above the desk rows (z-index 20),
    because it is a stacking context and its panel has to open over the room, not behind it. */
-.poster { position: absolute; top: calc(20% + 44px); left: 30%; z-index: 26; }
+.poster { position: absolute; top: calc(20% + 27px); left: 30%; z-index: 26; }
 .posterButton {
   display: flex;
   flex-direction: column;
@@ -377,7 +377,7 @@
    panel opens from the poster's left edge — centred it would run out of the room. This block has to
    come after the poster's own rules above, or it would lose to them at equal specificity. */
 @media (max-width: 700px) {
-  .poster { top: 116px; bottom: auto; left: 5%; }
+  .poster { top: 102px; bottom: auto; left: 5%; }
   .posterSvg { width: 44px; height: 38px; }
   .posterLabel { font-size: 8px; }
   .factPanel { left: 0; width: min(250px, 74vw); padding: 10px 12px; transform: none; }
