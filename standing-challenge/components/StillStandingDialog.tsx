@@ -2,6 +2,7 @@ import { formatClock, formatDuration } from '@/lib/format'
 import { graceSecondsLeft } from '@/lib/sessions'
 import type { LiveEmployee, OpenSession } from '@/lib/snapshot'
 import { PixelPerson } from './PixelPerson'
+import { useTranslation } from './useLang'
 import styles from './OfficeApp.module.css'
 
 interface StillStandingDialogProps {
@@ -15,6 +16,7 @@ interface StillStandingDialogProps {
 }
 
 export function StillStandingDialog({ me, session, now, graceMs, pending, onExtend, onStop }: StillStandingDialogProps) {
+  const { lang, t } = useTranslation()
   const left = graceSecondsLeft({ ...session, endedAt: null, endReason: null }, now, graceMs)
   return (
     <div className={styles.backdrop}>
@@ -22,15 +24,15 @@ export function StillStandingDialog({ me, session, now, graceMs, pending, onExte
         <div className={styles.figure}>
           <PixelPerson figure={me.figure} pose="stand" scale={3} />
         </div>
-        <h2 id="still-standing-title">Står du fortsatt?</h2>
-        <p>Du har stått i {formatDuration(me.elapsedSeconds)} 🎉</p>
-        <p className={styles.countdown}>Økta avsluttes om {formatClock(left)}</p>
+        <h2 id="still-standing-title">{t('dialog.stillStanding')}</h2>
+        <p>{t('dialog.stoodFor', { duration: formatDuration(me.elapsedSeconds, lang) })}</p>
+        <p className={styles.countdown}>{t('dialog.endsIn', { clock: formatClock(left) })}</p>
         <div className={styles.dialogActions}>
           <button type="button" className={`${styles.pill} ${styles.go}`} onClick={onExtend} disabled={pending}>
-            Én runde til ({session.roundMinutes} min)
+            {t('dialog.oneMore', { minutes: session.roundMinutes })}
           </button>
           <button type="button" className={styles.pill} onClick={onStop} disabled={pending}>
-            Nei, jeg sitter
+            {t('dialog.noSitting')}
           </button>
         </div>
       </div>

@@ -13,6 +13,7 @@ import { MyStatus } from './MyStatus'
 import { OfficeHeader } from './OfficeHeader'
 import { OfficeRoom } from './office/OfficeRoom'
 import { StillStandingDialog } from './StillStandingDialog'
+import { useTranslation } from './useLang'
 import { useDynamicFavicon, useOfficeSnapshot, useServerNow, useSoundSetting, useStandAlerts, useTabTitle } from './useOffice'
 import styles from './OfficeApp.module.css'
 
@@ -26,6 +27,7 @@ export function OfficeApp({ initial, meId, isAdmin }: OfficeAppProps) {
   const { snapshot, accept, offline } = useOfficeSnapshot(initial)
   const now = useServerNow(snapshot.now)
   const sound = useSoundSetting()
+  const { lang, t } = useTranslation()
   const [pending, startTransition] = useTransition()
   const [error, setError] = useState<string | null>(null)
 
@@ -37,10 +39,10 @@ export function OfficeApp({ initial, meId, isAdmin }: OfficeAppProps) {
   const cheers = snapshot.cheers ?? []
   const incoming = activeCheers(cheers, now)
     .filter(c => c.toId === meId)
-    .map(c => ({ id: c.id, text: cheerMessage(c, live.find(e => e.id === c.fromId)?.name ?? 'Noen') }))
+    .map(c => ({ id: c.id, text: cheerMessage(c, live.find(e => e.id === c.fromId)?.name ?? t('app.someone'), lang) }))
 
-  useStandAlerts(me, sound.on)
-  useTabTitle(me, now)
+  useStandAlerts(me, sound.on, lang)
+  useTabTitle(me, now, lang)
   useDynamicFavicon(me?.figure ?? null, me ? me.phase !== 'sitting' : false)
 
   function run(action: () => Promise<OfficeSnapshot>) {
@@ -49,7 +51,7 @@ export function OfficeApp({ initial, meId, isAdmin }: OfficeAppProps) {
       try {
         accept(await action())
       } catch {
-        setError('Noe gikk galt. Prøv igjen.')
+        setError(t('app.error.generic'))
       }
     })
   }
@@ -57,18 +59,18 @@ export function OfficeApp({ initial, meId, isAdmin }: OfficeAppProps) {
   function start(minutes: RoundMinutes) {
     warmUpAudio() // unlock audio from this click so the pling can play when the round ends
     void requestNotificationPermission()
-    run(() => startStanding(minutes))
+    run(() => startStanding(minutes, lang))
   }
 
   function cheer(toId: string, emoji: string) {
     setError(null)
     startTransition(async () => {
       try {
-        const result = await sendCheer(toId, emoji)
+        const result = await sendCheer(toId, emoji, lang)
         accept(result.snapshot)
         if (!result.ok) setError(result.message)
       } catch {
-        setError('Noe gikk galt. Prøv igjen.')
+        setError(t('app.error.generic'))
       }
     })
   }
@@ -88,7 +90,7 @@ export function OfficeApp({ initial, meId, isAdmin }: OfficeAppProps) {
         soundOn={sound.on}
         onToggleSound={sound.toggle}
       >
-        <MyStatus me={me} now={now} pending={pending} error={error} onStart={start} onStop={() => run(stopStanding)} />
+        <MyStatus me={me} now={now} pending={pending} error={error} onStart={start} onStop={() => run(() => stopStanding(lang))} />
       </OfficeHeader>
       <OfficeRoom employees={live} leaderId={snapshot.leaderId} now={now} meId={meId} cheers={cheers} onCheer={cheer} />
       <Leaderboard employees={live} meId={meId} />
@@ -100,8 +102,8 @@ export function OfficeApp({ initial, meId, isAdmin }: OfficeAppProps) {
           now={now}
           graceMs={snapshot.graceMs}
           pending={pending}
-          onExtend={() => run(extendStanding)}
-          onStop={() => run(stopStanding)}
+          onExtend={() => run(() => extendStanding(lang))}
+          onStop={() => run(() => stopStanding(lang))}
         />
       )}
     </div>

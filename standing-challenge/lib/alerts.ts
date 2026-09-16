@@ -1,5 +1,7 @@
 // «Står du fortsatt?» sound + browser notification. Adapted from pomodorotimer/lib/alerts.ts:
-// same shared AudioContext and silent fallbacks, but a square-wave 8-bit «pling» and Norwegian copy.
+// same shared AudioContext and silent fallbacks, but a square-wave 8-bit «pling».
+
+import { DEFAULT_LANG, t, type Lang } from './i18n'
 
 let audioCtx: AudioContext | null = null
 
@@ -50,11 +52,11 @@ export function playPling(volume = 1): void {
   }
 }
 
-export function showStillStandingNotification(minutes: number): void {
+export function showStillStandingNotification(minutes: number, lang: Lang = DEFAULT_LANG): void {
   try {
     if (typeof Notification === 'undefined' || Notification.permission !== 'granted') return
-    const n = new Notification('Står du fortsatt?', {
-      body: `Du har stått i ${minutes} min 🎉 Én runde til?`,
+    const n = new Notification(t(lang, 'alert.title'), {
+      body: t(lang, 'alert.body', { minutes }),
       tag: 'stapa-still-standing',
     })
     n.onclick = () => {

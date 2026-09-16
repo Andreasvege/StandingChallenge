@@ -2,6 +2,8 @@
 // the number of seated colleagues, split into balanced rows, so it never looks half empty.
 // Row geometry is derived here and handed to the CSS as custom properties.
 
+import { DEFAULT_LANG, t, type Lang } from './i18n'
+
 /** Upper bound for a seat number (admin and import validation). */
 export const MAX_SEATS = 24
 export const DESKTOP_MAX_PER_ROW = 9
@@ -90,11 +92,11 @@ export function roomMetrics(rows: RowStyle[], layout: Layout, screens = 0): Room
 }
 
 /** «fremste rad», «midterste rad», «bakerste rad» — or «rad 2 forfra» when there are many rows. */
-export function seatRowName(seat: number, rows: number[][]): string {
+export function seatRowName(seat: number, rows: number[][], lang: Lang = DEFAULT_LANG): string {
   const i = rows.findIndex(r => r.includes(seat))
-  if (i < 0) return 'uten plass'
-  if (i === 0) return 'fremste rad'
-  if (i === rows.length - 1) return 'bakerste rad'
-  if (rows.length === 3) return 'midterste rad'
-  return `rad ${i + 1} forfra`
+  if (i < 0) return t(lang, 'seat.row.none')
+  if (i === 0) return t(lang, 'seat.row.front')
+  if (i === rows.length - 1) return t(lang, 'seat.row.back')
+  if (rows.length === 3) return t(lang, 'seat.row.middle')
+  return t(lang, 'seat.row.nth', { number: i + 1 })
 }

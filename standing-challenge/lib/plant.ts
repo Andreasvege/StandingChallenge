@@ -1,6 +1,7 @@
 // Kontorplanten: a potted plant in the room that grows with how long the whole office has stood this
 // week, and blooms when the weekly goal is reached. Starts over every Monday (the week totals do).
 
+import { DEFAULT_LANG, t, type Lang } from './i18n'
 import { OUTLINE, type Rect } from './sprite'
 
 export const WEEKLY_GOAL_HOURS = 30
@@ -28,14 +29,14 @@ export function plantStage(progress: number): number {
 }
 
 /** «12 t av 30 t denne uka 🌱», or a little celebration once the goal is reached. */
-export function plantLabel(weekSeconds: number, goalHours = WEEKLY_GOAL_HOURS): string {
+export function plantLabel(weekSeconds: number, lang: Lang = DEFAULT_LANG, goalHours = WEEKLY_GOAL_HOURS): string {
   const hours = Math.floor(weekSeconds / 3600)
-  return weekSeconds >= goalHours * 3600 ? `Ukesmålet er nådd! ${hours} t av ${goalHours} t 🌸` : `${hours} t av ${goalHours} t denne uka 🌱`
+  return t(lang, weekSeconds >= goalHours * 3600 ? 'plant.goal' : 'plant.progress', { hours, goal: goalHours })
 }
 
 /** The short sign on the shelf: «12/30 t». */
-export function plantSign(weekSeconds: number, goalHours = WEEKLY_GOAL_HOURS): string {
-  return `${Math.floor(weekSeconds / 3600)}/${goalHours} t`
+export function plantSign(weekSeconds: number, lang: Lang = DEFAULT_LANG, goalHours = WEEKLY_GOAL_HOURS): string {
+  return t(lang, 'plant.sign', { hours: Math.floor(weekSeconds / 3600), goal: goalHours })
 }
 
 export function plantRects(stage: number): Rect[] {

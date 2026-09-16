@@ -5,6 +5,8 @@
 .title { margin: 0; font-family: var(--font-display), system-ui, sans-serif; font-weight: 800; font-size: 30px; letter-spacing: -0.02em; }
 .title span { color: var(--pink); }
 .back { color: var(--muted); }
+.topLinks { display: flex; align-items: center; gap: 16px; }
+.langBtn { color: var(--muted); background: none; border: 0; padding: 0; font: inherit; text-decoration: underline; text-underline-offset: 3px; }
 .card { background: var(--bg); border-radius: 16px; overflow: hidden; box-shadow: 0 0 0 1px #ffffff14; }
 
 /* Builder */

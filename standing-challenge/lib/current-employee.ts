@@ -7,6 +7,7 @@ import { db } from '@/db/client'
 import { employees, type EmployeeRecord } from '@/db/schema'
 import { firstName, isAdminEmail, isAllowedEmail, normalizeEmail } from './access'
 import { randomFigure } from './figure'
+import { DEFAULT_LANG, t, type Lang } from './i18n'
 
 /** Finds the employee by e-mail, creating one (random figure, no desk) on first login. */
 export async function ensureEmployee(email: string, name: string | null | undefined): Promise<EmployeeRecord> {
@@ -48,8 +49,8 @@ export async function requireAdmin(): Promise<EmployeeRecord> {
 }
 
 /** For server actions: throw instead of redirecting. */
-export async function requireAdminAction(): Promise<EmployeeRecord> {
+export async function requireAdminAction(lang: Lang = DEFAULT_LANG): Promise<EmployeeRecord> {
   const me = await getCurrentEmployee()
-  if (!me || !isAdminEmail(me.email)) throw new Error('Bare admin kan gjøre dette')
+  if (!me || !isAdminEmail(me.email)) throw new Error(t(lang, 'error.adminOnly'))
   return me
 }

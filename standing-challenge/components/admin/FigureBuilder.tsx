@@ -1,24 +1,48 @@
 import { useState, useTransition, type ReactNode } from 'react'
 import { deleteEmployee, placeEmployee, saveEmployee } from '@/app/actions/admin'
 import { PixelHead, PixelPerson } from '@/components/PixelPerson'
+import { useTranslation } from '@/components/useLang'
 import { BEARDS, DESK_ITEMS, EYEWEAR, HAIR_COLORS, HAIR_STYLES, HEADWEAR, SHIRT_COLORS, SKIN_COLORS, randomFigure, type Figure } from '@/lib/figure'
+import { DEFAULT_LANG, t as translate, type Lang, type MessageKey, type MessageParams } from '@/lib/i18n'
 import { DESKTOP_MAX_PER_ROW, MAX_SEATS, balancedRows, seatRowName } from '@/lib/room-layout'
 import { DESK_ART, HEAD_ART } from '@/lib/sprite-art.generated'
 import type { AdminEmployee } from './AdminPanel'
 import styles from './Admin.module.css'
 
-const STYLE_LABELS: Record<Figure['hairStyle'], string> = { short: 'Kort', buzz: 'Buzz', long: 'Langt', bun: 'Knute', curly: 'Krøller' }
-const EYEWEAR_LABELS: Record<Figure['eyewear'], string> = { none: 'Ingen', glasses: 'Briller', sunglasses: 'Solbriller' }
-const BEARD_LABELS: Record<Figure['beard'], string> = { none: 'Ingen', stubble: 'Stubber', full: 'Fullskjegg' }
-const BUILTIN_ITEM_LABELS: Record<string, string> = { mug: '☕ Kopp', plant: '🪴 Plante' }
+type Translate = (key: MessageKey, params?: MessageParams) => string
 
-/** Hand-drawn options (sprites/) get a pencil so it's clear they came from the drawing folder. */
-const itemLabel = (id: string) => BUILTIN_ITEM_LABELS[id] ?? `✏️ ${DESK_ART.find(a => a.id === id)?.label ?? id}`
-const headwearLabel = (id: string) => (id === 'none' ? 'Ingen' : (HEAD_ART.find(a => a.id === id)?.label ?? id))
+const STYLE_KEYS: Record<Figure['hairStyle'], MessageKey> = {
+  short: 'figure.hair.short',
+  buzz: 'figure.hair.buzz',
+  long: 'figure.hair.long',
+  bun: 'figure.hair.bun',
+  curly: 'figure.hair.curly',
+}
+const EYEWEAR_KEYS: Record<Figure['eyewear'], MessageKey> = {
+  none: 'figure.eyewear.none',
+  glasses: 'figure.eyewear.glasses',
+  sunglasses: 'figure.eyewear.sunglasses',
+}
+const BEARD_KEYS: Record<Figure['beard'], MessageKey> = {
+  none: 'figure.beard.none',
+  stubble: 'figure.beard.stubble',
+  full: 'figure.beard.full',
+}
+const BUILTIN_ITEM_KEYS: Record<string, MessageKey> = { mug: 'figure.item.mug', plant: 'figure.item.plant' }
 
-export function seatLabel(seat: number | null, seatRows: number[][] = []): string {
-  if (seat === null) return 'Uten plass'
-  return `Plass ${seat + 1} · ${seatRowName(seat, seatRows)}`
+/**
+ * Hand-drawn options (sprites/) get a pencil so it's clear they came from the drawing folder. Their
+ * labels are the file names the user gave them, so they stay as-is in both languages.
+ */
+const itemLabel = (id: string, t: Translate) => {
+  const key = BUILTIN_ITEM_KEYS[id]
+  return key ? t(key) : `✏️ ${DESK_ART.find(a => a.id === id)?.label ?? id}`
+}
+const headwearLabel = (id: string, t: Translate) => (id === 'none' ? t('figure.headwear.none') : (HEAD_ART.find(a => a.id === id)?.label ?? id))
+
+export function seatLabel(seat: number | null, seatRows: number[][] = [], lang: Lang = DEFAULT_LANG): string {
+  if (seat === null) return translate(lang, 'seat.none')
+  return translate(lang, 'seat.label', { seat: seat + 1, row: seatRowName(seat, seatRows, lang) })
 }
 
 interface FigureBuilderProps {
@@ -35,6 +59,7 @@ export function FigureBuilder({ employee, employees, isMe, onRemoved }: FigureBu
   const [armedRemove, setArmedRemove] = useState(false)
   const [message, setMessage] = useState<string | null>(null)
   const [pending, startTransition] = useTransition()
+  const { lang, t } = useTranslation()
   const seat = employee.seat
 
   function update(patch: Partial<Figure>) {
@@ -48,14 +73,18 @@ export function FigureBuilder({ employee, employees, isMe, onRemoved }: FigureBu
         await action()
         setMessage(done)
       } catch {
-        setMessage('Noe gikk galt – prøv igjen')
+        setMessage(t('figure.failed'))
       }
     })
   }
 
-  const save = () => run(() => saveEmployee({ id: employee.id, name, figure, remoteFrom }), `Lagret ${name.trim()} ✓`)
+  const save = () =>
+    run(() => saveEmployee({ id: employee.id, name, figure, remoteFrom }, lang), t('figure.saved', { name: name.trim() }))
   const place = (to: number | null) =>
-    run(() => placeEmployee({ employeeId: employee.id, seat: to }), to === null ? 'Tatt bort fra pulten' : `Flyttet til plass ${to + 1}`)
+    run(
+      () => placeEmployee({ employeeId: employee.id, seat: to }, lang),
+      to === null ? t('figure.takenOffDesk') : t('figure.movedToSeat', { seat: to + 1 }),
+    )
 
   function remove() {
     if (!armedRemove) {
@@ -63,9 +92,9 @@ export function FigureBuilder({ employee, employees, isMe, onRemoved }: FigureBu
       return
     }
     run(async () => {
-      await deleteEmployee({ id: employee.id })
+      await deleteEmployee({ id: employee.id }, lang)
       onRemoved()
-    }, 'Fjernet')
+    }, t('figure.removed'))
   }
 
   function headChip(key: string, label: string, patch: Partial<Figure>, on: boolean) {
@@ -104,19 +133,19 @@ export function FigureBuilder({ employee, employees, isMe, onRemoved }: FigureBu
           <input
             value={name}
             maxLength={30}
-            aria-label="Navn"
+            aria-label={t('figure.name')}
             onChange={e => {
               setName(e.target.value)
               setMessage(null)
             }}
           />
           <span className={styles.email}>
-            {employee.email} · {seatLabel(seat, seatRows)}
+            {employee.email} · {seatLabel(seat, seatRows, lang)}
           </span>
         </div>
         <div className={styles.poses}>
           <div className={`${styles.pose} ${styles.poseUp}`}>
-            <span className={styles.lbl}>{name || '…'} · står</span>
+            <span className={styles.lbl}>{t('figure.poseStanding', { name: name || '…' })}</span>
             <PixelPerson figure={figure} pose="stand" scale={4} />
           </div>
           <div className={styles.pose}>
@@ -127,18 +156,18 @@ export function FigureBuilder({ employee, employees, isMe, onRemoved }: FigureBu
       </div>
 
       <div className={styles.controls}>
-        <Group title="Frisyre">
-          {HAIR_STYLES.map(s => headChip(s, STYLE_LABELS[s], { hairStyle: s }, figure.hairStyle === s))}
+        <Group title={t('figure.group.hairStyle')}>
+          {HAIR_STYLES.map(s => headChip(s, t(STYLE_KEYS[s]), { hairStyle: s }, figure.hairStyle === s))}
         </Group>
         {HEAD_ART.length > 0 && (
-          <Group title="Hodeplagg">
-            {HEADWEAR.map(h => headChip(`hw-${h}`, headwearLabel(h), { headwear: h }, headwear === h))}
+          <Group title={t('figure.group.headwear')}>
+            {HEADWEAR.map(h => headChip(`hw-${h}`, headwearLabel(h, t), { headwear: h }, headwear === h))}
           </Group>
         )}
-        <Group title="Hårfarge">{swatches('hair', HAIR_COLORS)}</Group>
+        <Group title={t('figure.group.hairColor')}>{swatches('hair', HAIR_COLORS)}</Group>
         <div className={styles.row2}>
-          <Group title="Hudfarge">{swatches('skin', SKIN_COLORS)}</Group>
-          <Group title="På pulten">
+          <Group title={t('figure.group.skinColor')}>{swatches('skin', SKIN_COLORS)}</Group>
+          <Group title={t('figure.group.deskItem')}>
             {DESK_ITEMS.map(i => (
               <button
                 key={i}
@@ -146,31 +175,31 @@ export function FigureBuilder({ employee, employees, isMe, onRemoved }: FigureBu
                 className={`${styles.chip} ${styles.chipText} ${figure.deskItem === i ? styles.chipOn : ''}`}
                 onClick={() => update({ deskItem: i })}
               >
-                {itemLabel(i)}
+                {itemLabel(i, t)}
               </button>
             ))}
           </Group>
         </div>
         <div className={styles.row2}>
-          <Group title="Briller">
-            {EYEWEAR.map(v => headChip(v, EYEWEAR_LABELS[v], { eyewear: v }, figure.eyewear === v))}
+          <Group title={t('figure.group.eyewear')}>
+            {EYEWEAR.map(v => headChip(v, t(EYEWEAR_KEYS[v]), { eyewear: v }, figure.eyewear === v))}
           </Group>
-          <Group title="Skjegg">
-            {BEARDS.map(v => headChip(v, BEARD_LABELS[v], { beard: v }, figure.beard === v))}
+          <Group title={t('figure.group.beard')}>
+            {BEARDS.map(v => headChip(v, t(BEARD_KEYS[v]), { beard: v }, figure.beard === v))}
           </Group>
         </div>
         <div className={styles.row2}>
-          <Group title="Bart">
-            {headChip('no-mustache', 'Uten', { mustache: false }, !figure.mustache)}
-            {headChip('mustache', 'Bart', { mustache: true }, figure.mustache)}
+          <Group title={t('figure.group.mustache')}>
+            {headChip('no-mustache', t('figure.mustache.without'), { mustache: false }, !figure.mustache)}
+            {headChip('mustache', t('figure.mustache.with'), { mustache: true }, figure.mustache)}
           </Group>
-          <Group title="Jobber fra">
+          <Group title={t('figure.group.remoteFrom')}>
             <input
               className={styles.select}
               value={remoteFrom}
               maxLength={20}
-              placeholder="Tomt = på kontoret"
-              aria-label="Jobber fra"
+              placeholder={t('figure.remotePlaceholder')}
+              aria-label={t('figure.group.remoteFrom')}
               onChange={e => {
                 setRemoteFrom(e.target.value)
                 setMessage(null)
@@ -179,32 +208,32 @@ export function FigureBuilder({ employee, employees, isMe, onRemoved }: FigureBu
           </Group>
         </div>
         <div className={styles.row2}>
-          <Group title="Pult">
+          <Group title={t('figure.group.seat')}>
             <select
               className={styles.select}
-              aria-label="Pult"
+              aria-label={t('figure.group.seat')}
               value={seat ?? ''}
               disabled={pending}
               onChange={e => place(e.target.value === '' ? null : Number(e.target.value))}
             >
-              <option value="">Uten plass</option>
+              <option value="">{t('seat.none')}</option>
               {Array.from({ length: seatChoices }, (_, s) => (
                 <option key={s} value={s}>
-                  {seatLabel(s, seatRows)}
+                  {seatLabel(s, seatRows, lang)}
                   {occupantName(s) ? ` (${occupantName(s)})` : ''}
                 </option>
               ))}
             </select>
           </Group>
         </div>
-        <Group title="Genser">{swatches('shirt', SHIRT_COLORS)}</Group>
+        <Group title={t('figure.group.shirt')}>{swatches('shirt', SHIRT_COLORS)}</Group>
 
         <div className={styles.actions}>
           <button type="button" className={styles.btn} onClick={() => update(randomFigure())}>
-            🎲 Tilfeldig
+            {t('figure.random')}
           </button>
           <button type="button" className={styles.btn} disabled={pending || seat === null || seat === 0} onClick={() => seat !== null && place(seat - 1)}>
-            ◀ Flytt
+            {t('figure.moveLeft')}
           </button>
           <button
             type="button"
@@ -212,7 +241,7 @@ export function FigureBuilder({ employee, employees, isMe, onRemoved }: FigureBu
             disabled={pending || seat === null || seat === seatChoices - 1}
             onClick={() => seat !== null && place(seat + 1)}
           >
-            Flytt ▶
+            {t('figure.moveRight')}
           </button>
           {!isMe && (
             <button
@@ -222,11 +251,11 @@ export function FigureBuilder({ employee, employees, isMe, onRemoved }: FigureBu
               onClick={remove}
               onBlur={() => setArmedRemove(false)}
             >
-              {armedRemove ? 'Klikk igjen for å fjerne' : '🗑 Fjern'}
+              {armedRemove ? t('figure.removeArmed') : t('figure.remove')}
             </button>
           )}
           <button type="button" className={`${styles.btn} ${styles.btnGo}`} disabled={pending} onClick={save}>
-            Lagre {name.trim() || '…'}
+            {t('figure.save', { name: name.trim() || '…' })}
           </button>
         </div>
         {message && (

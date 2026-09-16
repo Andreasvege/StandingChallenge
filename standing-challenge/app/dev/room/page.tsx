@@ -1,5 +1,6 @@
 import { notFound } from 'next/navigation'
 import { connection } from 'next/server'
+import { LanguageToggle } from '@/components/LanguageToggle'
 import { OfficeRoom } from '@/components/office/OfficeRoom'
 import { demoRoom } from '@/lib/demo-office'
 
@@ -12,6 +13,9 @@ export default async function DevRoomPage({ searchParams }: { searchParams: Prom
   const room = demoRoom(hour === undefined ? undefined : Number(hour), cheer !== undefined)
   return (
     <main style={{ padding: 16 }}>
+      <p style={{ margin: '0 0 12px' }}>
+        <LanguageToggle />
+      </p>
       <OfficeRoom employees={room.employees} leaderId={room.leaderId} now={room.now} cheers={room.cheers} />
     </main>
   )

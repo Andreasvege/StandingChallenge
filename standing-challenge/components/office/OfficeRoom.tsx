@@ -2,6 +2,7 @@
 
 import { useEffect, useState, type CSSProperties, type ReactNode } from 'react'
 import { EmptyDesk, PixelPerson } from '@/components/PixelPerson'
+import { useTranslation } from '@/components/useLang'
 import { activeCheers, cheerOptions, type Cheer } from '@/lib/cheers'
 import { formatDuration } from '@/lib/format'
 import { DESKTOP_MAX_PER_ROW, MOBILE_MAX_PER_ROW, balancedRows, roomMetrics, rowStyles, type RowStyle } from '@/lib/room-layout'
@@ -176,11 +177,12 @@ interface SeatProps {
 }
 
 function Seat({ employee: e, scale, isLeader, isMe, open, compact, floats, onToggle, onCheer }: SeatProps) {
+  const { lang, t } = useTranslation()
   const standing = e.phase !== 'sitting'
   const tone: BubbleTone =
     e.phase === 'sitting' ? 'sitting' : e.phase === 'awaiting' ? 'awaiting' : isLeader ? 'leader' : 'standing'
   const name = `${isLeader ? '👑 ' : ''}${e.name}`
-  const info = e.phase === 'sitting' ? '💤' : `${formatDuration(e.elapsedSeconds)}${e.phase === 'awaiting' ? ' ⏰' : ''}`
+  const info = e.phase === 'sitting' ? '💤' : `${formatDuration(e.elapsedSeconds, lang)}${e.phase === 'awaiting' ? ' ⏰' : ''}`
   const classes = [styles.seat, standing ? styles.up : styles.sit, isMe ? styles.me : ''].filter(Boolean).join(' ')
   let label: ReactNode
   if (compact && standing) label = <span className={styles.compact}><span>{name}</span><span className={styles.info}>{info}</span></span>
@@ -189,20 +191,18 @@ function Seat({ employee: e, scale, isLeader, isMe, open, compact, floats, onTog
   return (
     <div className={classes} style={{ '--s': scale } as CSSProperties} data-seat>
       {open && (
-        <div className={styles.cheerMenu} role="dialog" aria-label={canCheer ? `Heiarop til ${e.name}` : e.name}>
-          <span>
-            {e.name} · i dag {formatDuration(e.todaySeconds)}
-          </span>
+        <div className={styles.cheerMenu} role="dialog" aria-label={canCheer ? t('room.cheerMenu', { name: e.name }) : e.name}>
+          <span>{t('room.todayIs', { name: e.name, duration: formatDuration(e.todaySeconds, lang) })}</span>
           {canCheer && (
             <span className={styles.emojis}>
               {cheerOptions(standing).map(emoji => (
-                <button key={emoji} type="button" aria-label={`Send ${emoji} til ${e.name}`} onClick={() => onCheer(e.id, emoji)}>
+                <button key={emoji} type="button" aria-label={t('room.sendCheer', { emoji, name: e.name })} onClick={() => onCheer(e.id, emoji)}>
                   {emoji}
                 </button>
               ))}
             </span>
           )}
-          {canCheer && !standing && <span className={styles.menuHint}>⬆️ = «reis deg!»</span>}
+          {canCheer && !standing && <span className={styles.menuHint}>{t('room.nudgeHint')}</span>}
         </div>
       )}
       {floats.map((c, i) => (
@@ -210,7 +210,13 @@ function Seat({ employee: e, scale, isLeader, isMe, open, compact, floats, onTog
           {c.emoji}
         </span>
       ))}
-      <button type="button" className={styles.seatButton} onClick={onToggle} aria-expanded={open} title={`${e.name} · i dag: ${formatDuration(e.todaySeconds)}`}>
+      <button
+        type="button"
+        className={styles.seatButton}
+        onClick={onToggle}
+        aria-expanded={open}
+        title={t('room.seatTitle', { name: e.name, duration: formatDuration(e.todaySeconds, lang) })}
+      >
         <Bubble tone={tone}>{label}</Bubble>
         <PixelPerson figure={e.figure} pose={standing ? 'stand' : 'sit'} crown={isLeader} scale={scale} />
       </button>

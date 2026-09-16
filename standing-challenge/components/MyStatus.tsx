@@ -1,6 +1,7 @@
 import { formatClock } from '@/lib/format'
 import { ROUND_OPTIONS, type RoundMinutes } from '@/lib/sessions'
 import type { LiveEmployee } from '@/lib/snapshot'
+import { useTranslation } from './useLang'
 import styles from './OfficeApp.module.css'
 
 interface MyStatusProps {
@@ -13,19 +14,21 @@ interface MyStatusProps {
 }
 
 export function MyStatus({ me, now, pending, error, onStart, onStop }: MyStatusProps) {
+  const { t } = useTranslation()
+
   if (me?.session && me.phase === 'standing') {
     const { startedAt, roundEndsAt } = me.session
     const progress = Math.min(1, (now - startedAt) / (roundEndsAt - startedAt))
     return (
       <div className={styles.status}>
         <span className={styles.statusLabel}>
-          Du står! <b>{formatClock((roundEndsAt - now) / 1000)}</b> igjen
+          {t('status.standing')} <b>{formatClock((roundEndsAt - now) / 1000)}</b> {t('status.left')}
         </span>
         <span className={styles.progress} aria-hidden="true">
           <i style={{ width: `${progress * 100}%` }} />
         </span>
         <button type="button" className={styles.pill} onClick={onStop} disabled={pending}>
-          Jeg satte meg
+          {t('status.sitDown')}
         </button>
         {error && <span className={styles.error}>{error}</span>}
       </div>
@@ -35,14 +38,14 @@ export function MyStatus({ me, now, pending, error, onStart, onStop }: MyStatusP
   if (me?.phase === 'awaiting') {
     return (
       <div className={styles.status}>
-        <span className={styles.statusLabel}>⏰ Tiden er ute – står du fortsatt?</span>
+        <span className={styles.statusLabel}>{t('status.timeUp')}</span>
       </div>
     )
   }
 
   return (
     <div className={styles.status}>
-      <span className={styles.statusLabel}>Du sitter nå. Klar for en runde?</span>
+      <span className={styles.statusLabel}>{t('status.sitting')}</span>
       <span className={styles.pills}>
         {ROUND_OPTIONS.map(m => (
           <button
@@ -52,7 +55,7 @@ export function MyStatus({ me, now, pending, error, onStart, onStop }: MyStatusP
             onClick={() => onStart(m)}
             disabled={pending}
           >
-            {m === 60 ? 'Stå 60 min' : `${m} min`}
+            {m === 60 ? t('status.stand60') : t('format.minutes', { minutes: m })}
           </button>
         ))}
       </span>

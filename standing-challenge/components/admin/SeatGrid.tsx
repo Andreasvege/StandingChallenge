@@ -1,4 +1,5 @@
 import { PixelHead } from '@/components/PixelPerson'
+import { useTranslation } from '@/components/useLang'
 import { DESKTOP_MAX_PER_ROW, MAX_SEATS, balancedRows, seatRowName } from '@/lib/room-layout'
 import type { AdminEmployee } from './AdminPanel'
 import styles from './Admin.module.css'
@@ -10,6 +11,7 @@ interface SeatGridProps {
 }
 
 export function SeatGrid({ employees, selectedId, onSelect }: SeatGridProps) {
+  const { lang, t } = useTranslation()
   const bySeat = new Map<number, AdminEmployee>()
   for (const e of employees) if (e.seat !== null) bySeat.set(e.seat, e)
   const unseated = employees.filter(e => e.seat === null)
@@ -19,7 +21,16 @@ export function SeatGrid({ employees, selectedId, onSelect }: SeatGridProps) {
   const seatCount = Math.min(MAX_SEATS, used + 1)
   const seatRows = balancedRows(seatCount, DESKTOP_MAX_PER_ROW)
   // Laid out like the room seen from the front: the back row on top.
-  const rows = seatRows.map(seats => ({ label: `${seatRowName(seats[0], seatRows)} · plass ${seats[0] + 1}–${seats[seats.length - 1] + 1}`, seats })).reverse()
+  const rows = seatRows
+    .map(seats => ({
+      label: t('grid.rowLabel', {
+        row: seatRowName(seats[0], seatRows, lang),
+        from: seats[0] + 1,
+        to: seats[seats.length - 1] + 1,
+      }),
+      seats,
+    }))
+    .reverse()
 
   const head = (e: AdminEmployee) => (
     <button
@@ -36,7 +47,7 @@ export function SeatGrid({ employees, selectedId, onSelect }: SeatGridProps) {
 
   return (
     <div className={styles.grid}>
-      <h2 className={styles.gridTitle}>Kontoret · {employees.length} personer</h2>
+      <h2 className={styles.gridTitle}>{t('grid.title', { count: employees.length })}</h2>
       {rows.map(row => (
         <div key={row.label}>
           <div className={styles.rowLabel}>{row.label}</div>
@@ -47,7 +58,7 @@ export function SeatGrid({ employees, selectedId, onSelect }: SeatGridProps) {
                 head(e)
               ) : (
                 <div key={s} className={styles.slot}>
-                  Tom pult {s + 1}
+                  {t('grid.emptyDesk', { seat: s + 1 })}
                 </div>
               )
             })}
@@ -56,7 +67,7 @@ export function SeatGrid({ employees, selectedId, onSelect }: SeatGridProps) {
       ))}
       {unseated.length > 0 && (
         <>
-          <div className={styles.rowLabel}>Uten plass · velg personen og gi dem en pult</div>
+          <div className={styles.rowLabel}>{t('grid.unseated')}</div>
           <div className={styles.heads}>{unseated.map(head)}</div>
         </>
       )}

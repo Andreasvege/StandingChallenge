@@ -1,15 +1,18 @@
-// Norwegian duration/clock formatting shared by bubbles, lists and the tab title.
+// Duration/clock formatting shared by bubbles, lists and the tab title. The words come from the
+// dictionaries, so «1 t 5 min» reads «1 h 5 min» in English while the clock stays language-neutral.
 
-/** Compact duration: "32 min", "1 t 5 min", "2 t". */
-export function formatDuration(totalSeconds: number): string {
+import { DEFAULT_LANG, t, type Lang } from './i18n'
+
+/** Compact duration: «32 min», «1 t 5 min», «2 t» (English: "32 min", "1 h 5 min", "2 h"). */
+export function formatDuration(totalSeconds: number, lang: Lang = DEFAULT_LANG): string {
   const s = Math.max(0, Math.floor(totalSeconds))
   const h = Math.floor(s / 3600)
   const m = Math.floor((s % 3600) / 60)
-  if (h === 0) return `${m} min`
-  return m === 0 ? `${h} t` : `${h} t ${m} min`
+  if (h === 0) return t(lang, 'format.minutes', { minutes: m })
+  return m === 0 ? t(lang, 'format.hours', { hours: h }) : t(lang, 'format.hoursMinutes', { hours: h, minutes: m })
 }
 
-/** Clock-style time: "32:10", "5:03", "1:02:05". */
+/** Clock-style time: "32:10", "5:03", "1:02:05". The same in every language. */
 export function formatClock(totalSeconds: number): string {
   const s = Math.max(0, Math.floor(totalSeconds))
   const h = Math.floor(s / 3600)

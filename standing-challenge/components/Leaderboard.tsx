@@ -1,13 +1,15 @@
 import { useState } from 'react'
 import { formatDuration } from '@/lib/format'
+import type { MessageKey } from '@/lib/i18n'
 import { rankBy, type RankKey } from '@/lib/leaderboard'
 import type { LiveEmployee } from '@/lib/snapshot'
 import { PixelHead } from './PixelPerson'
+import { useTranslation } from './useLang'
 import styles from './OfficeApp.module.css'
 
-const BOARDS: { key: RankKey; title: string }[] = [
-  { key: 'todaySeconds', title: 'I dag' },
-  { key: 'weekSeconds', title: 'Denne uka' },
+const BOARDS: { key: RankKey; title: MessageKey }[] = [
+  { key: 'todaySeconds', title: 'board.today' },
+  { key: 'weekSeconds', title: 'board.week' },
 ]
 
 /** Rows shown on phones before «Vis alle»; desktop always shows the whole list. */
@@ -15,6 +17,7 @@ const COLLAPSED_ROWS = 5
 
 export function Leaderboard({ employees, meId }: { employees: LiveEmployee[]; meId: string }) {
   const [expanded, setExpanded] = useState(false)
+  const { lang, t } = useTranslation()
   return (
     <section className={styles.board}>
       {BOARDS.map(({ key, title }) => {
@@ -22,9 +25,9 @@ export function Leaderboard({ employees, meId }: { employees: LiveEmployee[]; me
         const rows = rankBy(employees, key, meId, employees.length)
         return (
           <div key={key}>
-            <h2>{title}</h2>
+            <h2>{t(title)}</h2>
             {rows.length === 0 ? (
-              <p className={styles.empty}>Ingen har stått ennå – bli den første! 🌱</p>
+              <p className={styles.empty}>{t('board.empty')}</p>
             ) : (
               <>
                 <ol className={expanded ? styles.expanded : undefined}>
@@ -33,13 +36,13 @@ export function Leaderboard({ employees, meId }: { employees: LiveEmployee[]; me
                       <span className={styles.rank}>{r.rank}</span>
                       <PixelHead figure={r.figure} size={28} className={styles.headBox} />
                       <span>{r.name}</span>
-                      <span className={styles.time}>{formatDuration(r.seconds)}</span>
+                      <span className={styles.time}>{formatDuration(r.seconds, lang)}</span>
                     </li>
                   ))}
                 </ol>
                 {rows.length > COLLAPSED_ROWS && (
                   <button type="button" className={styles.showAll} onClick={() => setExpanded(v => !v)}>
-                    {expanded ? 'Vis færre' : `Vis alle (${rows.length})`}
+                    {expanded ? t('board.showFewer') : t('board.showAll', { count: rows.length })}
                   </button>
                 )}
               </>

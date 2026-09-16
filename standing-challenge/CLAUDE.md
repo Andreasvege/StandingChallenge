@@ -51,6 +51,7 @@ Next.js 16.3 (App Router, Turbopack) · React 19 · TypeScript strict · Auth.js
 - Rounds are 30/60/90 min; 5 min grace for «Står du fortsatt?» (30 s and minutes-as-seconds with `DEV_FAST_TIME=1`, dev only). Expired rounds are closed lazily on read — no cron.
 - No `proxy.ts`/middleware: auth is checked in pages (redirect), route handlers (401) and inside each Server Action. The dev Credentials login exists only when `NODE_ENV=development`.
 - Keep testable logic in `lib/` with a `*.test.ts` next to it.
+- Language (bokmål by default, English when the browser is English or the header toggle says so): the server always renders Norwegian and the client swaps after mount via `components/useLang.ts` (localStorage + `useSyncExternalStore`, exactly like `useSoundSetting`) rather than a cookie, because that keeps the pages cookie-free and cacheable and makes a hydration mismatch impossible by construction — the dictionaries are `locales/{nb,en}.json` behind the pure `t()` in `lib/i18n.ts`, which server actions also use via a `lang` argument passed from the client.
 
 ## Figures / sprites
 - Figure model: `hairStyle` short|buzz|long|bun|curly, `hair`/`skin`/`shirt` from the palettes in `lib/figure.ts`, `eyewear` none|glasses|sunglasses, `beard` none|stubble|full, `mustache` boolean, `deskItem` mug|plant.
@@ -64,14 +65,17 @@ Next.js 16.3 (App Router, Turbopack) · React 19 · TypeScript strict · Auth.js
 - `data/employees.json` holds the real employees (names + work emails) — **gitignored, never commit or print emails**. Exported from the figure-builder prototype; loaded with `db:import:prod`.
 - `.env.local` (gitignored): Neon vars from the Vercel integration + `AUTH_SECRET`, `AUTH_GOOGLE_ID`, `AUTH_GOOGLE_SECRET`, `ADMIN_EMAILS` (av@thebrave.no). Auth.js v5 only reads the `AUTH_GOOGLE_*` names. The same auth vars are set in Vercel (Production + Preview). Optional `DEV_FAST_TIME=1` locally. See `.env.example`.
 
-## Ideas / next steps (not started)
+## Ideas / next steps
 1. Sprite pipeline so the user can draw hats, headphones, pets, plants in Piskel/Aseprite (see Figures above).
-2. Custom domain, e.g. `stapa.thebrave.no` (+ Google redirect URI).
+2. Custom domain, e.g. `standingdesk.thebrave.no` (+ Google redirect URI).
 3. Streaks and badges (explicitly out of scope for v1).
 4. Small a11y nit: the blurred demo room behind `/login` is `aria-hidden` but its buttons are still focusable — add `inert` to the backdrop.
 5. Holiday themes (make it month by month. e.g. October: Halloween, December: Christmas etc.)
 6. Create weather animations (rain, snow, thunder?) and connect it to Yr/MET API so that its live updated.
 7. Add "fun facts" about standing. Like "Standing desks are good for your posture and cardiovascular health" etc.
-8. Localization - Add english option! <3
-9. Move the hanging plant in the background to the right.
-10. Fix glasses when sitting.
+8. Remove the generic boring dog and create Ginko!
+9. Localization - Add english option! <3
+10. Move the hanging plant in the background to the right.
+11. Fix glasses when sitting.
+12. Picture in Picture mode for timer. So that you can have a running timer telling you how long you have left, outside of the screen.
+13. Add a link to Andreas' pomodoro timer.

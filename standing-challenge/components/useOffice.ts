@@ -5,6 +5,7 @@ import { useCallback, useEffect, useRef, useState, useSyncExternalStore } from '
 import { playPling, showStillStandingNotification } from '@/lib/alerts'
 import type { Figure } from '@/lib/figure'
 import { formatClock } from '@/lib/format'
+import { DEFAULT_LANG, t, type Lang } from '@/lib/i18n'
 import type { LiveEmployee, OfficeSnapshot } from '@/lib/snapshot'
 import { HEAD_BOX, spriteRects } from '@/lib/sprite'
 
@@ -99,7 +100,7 @@ export function useSoundSetting() {
 }
 
 /** Plays the pling and shows the notification once per round end. */
-export function useStandAlerts(me: LiveEmployee | null, soundOn: boolean) {
+export function useStandAlerts(me: LiveEmployee | null, soundOn: boolean, lang: Lang = DEFAULT_LANG) {
   const firedFor = useRef<number | null>(null)
   const awaiting = me?.phase === 'awaiting'
   const roundEndsAt = me?.session?.roundEndsAt ?? null
@@ -108,19 +109,19 @@ export function useStandAlerts(me: LiveEmployee | null, soundOn: boolean) {
     if (!awaiting || roundEndsAt === null || firedFor.current === roundEndsAt) return
     firedFor.current = roundEndsAt
     if (soundOn) playPling()
-    showStillStandingNotification(minutes)
-  }, [awaiting, roundEndsAt, soundOn, minutes])
+    showStillStandingNotification(minutes, lang)
+  }, [awaiting, roundEndsAt, soundOn, minutes, lang])
 }
 
 /** "32:10 · Står" while standing, "⏰ Står du fortsatt?" while awaiting an answer. */
-export function useTabTitle(me: LiveEmployee | null, now: number) {
+export function useTabTitle(me: LiveEmployee | null, now: number, lang: Lang = DEFAULT_LANG) {
   const phase = me?.phase ?? 'sitting'
   const roundEndsAt = me?.session?.roundEndsAt ?? null
   useEffect(() => {
-    if (phase === 'standing' && roundEndsAt !== null) document.title = `${formatClock((roundEndsAt - now) / 1000)} · Står`
-    else if (phase === 'awaiting') document.title = '⏰ Står du fortsatt?'
+    if (phase === 'standing' && roundEndsAt !== null) document.title = t(lang, 'tab.standing', { clock: formatClock((roundEndsAt - now) / 1000) })
+    else if (phase === 'awaiting') document.title = t(lang, 'tab.stillStanding')
     else document.title = 'Stå på!'
-  }, [phase, roundEndsAt, now])
+  }, [phase, roundEndsAt, now, lang])
 }
 
 /** Draws my pixel head (awake or dozing) as the tab icon — same trick as pomodorotimer's favicon. */

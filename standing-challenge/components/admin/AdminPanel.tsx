@@ -3,6 +3,8 @@
 import Link from 'next/link'
 import { useState, useTransition } from 'react'
 import { createEmployee } from '@/app/actions/admin'
+import { LanguageToggle } from '@/components/LanguageToggle'
+import { useTranslation } from '@/components/useLang'
 import type { Figure } from '@/lib/figure'
 import { FigureBuilder } from './FigureBuilder'
 import { SeatGrid } from './SeatGrid'
@@ -23,14 +25,15 @@ export function AdminPanel({ employees, meId }: { employees: AdminEmployee[]; me
   const selected = employees.find(e => e.id === selectedId) ?? employees[0] ?? null
   const [pending, startTransition] = useTransition()
   const [error, setError] = useState<string | null>(null)
+  const { lang, t } = useTranslation()
 
   function add(formData: FormData) {
     setError(null)
     startTransition(async () => {
       try {
-        await createEmployee({ email: String(formData.get('email') ?? ''), name: String(formData.get('name') ?? '') })
+        await createEmployee({ email: String(formData.get('email') ?? ''), name: String(formData.get('name') ?? '') }, lang)
       } catch {
-        setError('Kunne ikke legge til. Sjekk at e-posten slutter på @thebrave.no og at navnet er 1–30 tegn.')
+        setError(t('admin.addFailed'))
       }
     })
   }
@@ -39,11 +42,15 @@ export function AdminPanel({ employees, meId }: { employees: AdminEmployee[]; me
     <main className={styles.page}>
       <div className={styles.top}>
         <h1 className={styles.title}>
-          Figurbygger<span>.</span>
+          {t('admin.title')}
+          <span>.</span>
         </h1>
-        <Link href="/" className={styles.back}>
-          ← Tilbake til kontoret
-        </Link>
+        <div className={styles.topLinks}>
+          <LanguageToggle className={styles.langBtn} />
+          <Link href="/" className={styles.back}>
+            {t('admin.back')}
+          </Link>
+        </div>
       </div>
 
       {selected ? (
@@ -58,7 +65,7 @@ export function AdminPanel({ employees, meId }: { employees: AdminEmployee[]; me
           />
         </section>
       ) : (
-        <p>Ingen ansatte ennå. Legg til den første under.</p>
+        <p>{t('admin.noEmployees')}</p>
       )}
 
       <section className={styles.card}>
@@ -67,10 +74,10 @@ export function AdminPanel({ employees, meId }: { employees: AdminEmployee[]; me
 
       <section className={styles.card}>
         <form action={add} className={styles.addForm}>
-          <input name="email" type="email" placeholder="navn@thebrave.no" required aria-label="E-post" />
-          <input name="name" placeholder="Navn" required maxLength={30} aria-label="Navn" />
+          <input name="email" type="email" placeholder={t('admin.emailPlaceholder')} required aria-label={t('admin.email')} />
+          <input name="name" placeholder={t('admin.name')} required maxLength={30} aria-label={t('admin.name')} />
           <button type="submit" className={`${styles.btn} ${styles.btnGo}`} disabled={pending}>
-            Legg til kollega
+            {t('admin.addColleague')}
           </button>
           {error && <p className={styles.error}>{error}</p>}
         </form>
