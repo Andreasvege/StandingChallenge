@@ -1,14 +1,18 @@
 'use server'
 
-import { eq } from 'drizzle-orm'
+import { and, eq, isNull } from 'drizzle-orm'
 import { revalidatePath } from 'next/cache'
 import { db } from '@/db/client'
-import { employees } from '@/db/schema'
+import { employees, standSessions } from '@/db/schema'
 import { isAllowedEmail, normalizeEmail } from '@/lib/access'
+import { currentGraceMs } from '@/lib/clock-config'
 import { requireAdminAction } from '@/lib/current-employee'
 import { isFigure, randomFigure, type Figure } from '@/lib/figure'
 import { t, toLang, type Lang } from '@/lib/i18n'
+import { loadOfficeSnapshot, toSessionRow } from '@/lib/office'
 import { MAX_SEATS } from '@/lib/room-layout'
+import { planAdminStop } from '@/lib/sessions'
+import type { OfficeSnapshot } from '@/lib/snapshot'
 
 function cleanName(name: string, lang: Lang): string {
   const trimmed = name.trim()
@@ -81,4 +85,27 @@ export async function deleteEmployee(input: { id: string }, lang?: string): Prom
   if (input.id === me.id) throw new Error(t(language, 'error.removeSelf'))
   await db.delete(employees).where(eq(employees.id, input.id)) // their sessions go too (on delete cascade)
   refresh()
+}
+
+/**
+ * Sits down a colleague who forgot to stop their round. They keep the time they had earned, exactly
+ * as if they had pressed «Jeg satte meg» themselves. Returns the fresh snapshot so the room updates
+ * for the admin at once; everybody else picks it up on the next poll.
+ */
+export async function sitEmployeeDown(input: { employeeId: string }, lang?: string): Promise<OfficeSnapshot> {
+  const language = toLang(lang)
+  await requireAdminAction(language)
+  const now = Date.now()
+  const [row] = await db
+    .select()
+    .from(standSessions)
+    .where(and(eq(standSessions.employeeId, input.employeeId), isNull(standSessions.endedAt)))
+  const plan = row ? planAdminStop(toSessionRow(row), now, currentGraceMs()) : null
+  if (row && plan) {
+    await db
+      .update(standSessions)
+      .set({ endedAt: new Date(plan.endedAt), endReason: plan.endReason })
+      .where(and(eq(standSessions.id, row.id), isNull(standSessions.endedAt)))
+  }
+  return loadOfficeSnapshot(now)
 }

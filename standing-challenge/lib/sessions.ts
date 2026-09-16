@@ -5,7 +5,7 @@ import { overlapSeconds } from './time'
 
 export const ROUND_OPTIONS = [30, 60, 90] as const
 export type RoundMinutes = (typeof ROUND_OPTIONS)[number]
-export type EndReason = 'sat_down' | 'completed' | 'timeout'
+export type EndReason = 'sat_down' | 'completed' | 'timeout' | 'admin'
 /** standing: round running · awaiting: round over, «Står du fortsatt?» grace · expired: grace passed, not yet closed · ended: closed */
 export type Phase = 'standing' | 'awaiting' | 'expired' | 'ended'
 
@@ -73,6 +73,16 @@ export function planStop(s: StandSession, now: number, grace: number): { endedAt
   if (phase === 'standing') return { endedAt: now, endReason: 'sat_down' }
   if (phase === 'awaiting') return { endedAt: s.roundEndsAt, endReason: 'completed' }
   return null
+}
+
+/**
+ * An admin sitting somebody down who forgot to stop. Credits exactly what the person would have got
+ * by pressing «Jeg satte meg» themselves — built on planStop so the two can never drift apart — but
+ * records that it was not their own doing.
+ */
+export function planAdminStop(s: StandSession, now: number, grace: number): { endedAt: number; endReason: 'admin' } | null {
+  const plan = planStop(s, now, grace)
+  return plan && { endedAt: plan.endedAt, endReason: 'admin' }
 }
 
 /** No answer within the grace period: close at the round's end. */

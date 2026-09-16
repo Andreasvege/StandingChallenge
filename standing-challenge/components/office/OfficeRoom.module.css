@@ -117,6 +117,19 @@
 .emojis button:hover { background: #4d4180; }
 .menuHint { font-size: 10px; color: var(--muted); }
 
+/* Admin only: sit down somebody who forgot to stop. Arms on the first press, ends the round on the second. */
+.sitDown {
+  padding: 4px 12px;
+  border: 0;
+  border-radius: 999px;
+  font: 600 11px var(--font-body), system-ui, sans-serif;
+  color: var(--text);
+  background: var(--panel-hi);
+  cursor: pointer;
+}
+.sitDown:hover { background: #4d4180; }
+.sitDownArmed, .sitDownArmed:hover { background: #ff6fa8; color: #241036; }
+
 /* A fresh heiarop floats up above the receiver's head: plays once, then stays hidden until it's dropped. */
 .float {
   position: absolute;

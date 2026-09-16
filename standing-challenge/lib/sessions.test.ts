@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest'
 import {
   isRoundMinutes, minuteMs, graceMs, phaseAt, creditedSeconds, creditedSecondsBetween, graceSecondsLeft,
-  planStart, planExtend, planStop, planExpire, type StandSession,
+  planStart, planExtend, planStop, planAdminStop, planExpire, type StandSession,
 } from './sessions'
 
 const MIN = 60_000
@@ -113,5 +113,18 @@ describe('planExpire', () => {
   it('leaves standing and awaiting sessions alone', () => {
     expect(planExpire(session(), T0 + 30 * MIN, GRACE)).toBeNull()
     expect(planExpire(session(), T0 + 64 * MIN, GRACE)).toBeNull()
+  })
+})
+
+describe('planAdminStop', () => {
+  it('credits exactly what sitting down yourself would, but records who ended it', () => {
+    expect(planAdminStop(session(), T0 + 25 * MIN, GRACE)).toEqual({ endedAt: T0 + 25 * MIN, endReason: 'admin' })
+  })
+  it('ends at the round end when they are in the grace period', () => {
+    expect(planAdminStop(session(), T0 + 63 * MIN, GRACE)).toEqual({ endedAt: T0 + 60 * MIN, endReason: 'admin' })
+  })
+  it('does nothing for expired or already ended sessions', () => {
+    expect(planAdminStop(session(), T0 + 70 * MIN, GRACE)).toBeNull()
+    expect(planAdminStop(session({ endedAt: T0 + MIN, endReason: 'sat_down' }), T0 + 2 * MIN, GRACE)).toBeNull()
   })
 })

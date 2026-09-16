@@ -1,6 +1,7 @@
 'use client'
 
 import { useMemo, useState, useTransition } from 'react'
+import { sitEmployeeDown } from '@/app/actions/admin'
 import { sendCheer } from '@/app/actions/cheer'
 import { extendStanding, startStanding, stopStanding } from '@/app/actions/stand'
 import { requestNotificationPermission, warmUpAudio } from '@/lib/alerts'
@@ -75,6 +76,9 @@ export function OfficeApp({ initial, meId, isAdmin }: OfficeAppProps) {
     })
   }
 
+  // Admin only: end a round for a colleague who left the desk raised without stopping.
+  const sitDown = (toId: string) => run(() => sitEmployeeDown({ employeeId: toId }, lang))
+
   const standing = live.filter(e => e.phase !== 'sitting').length
   const todayTotal = live.reduce((sum, e) => sum + e.todaySeconds, 0)
 
@@ -92,7 +96,15 @@ export function OfficeApp({ initial, meId, isAdmin }: OfficeAppProps) {
       >
         <MyStatus me={me} now={now} pending={pending} error={error} onStart={start} onStop={() => run(() => stopStanding(lang))} />
       </OfficeHeader>
-      <OfficeRoom employees={live} leaderId={snapshot.leaderId} now={now} meId={meId} cheers={cheers} onCheer={cheer} />
+      <OfficeRoom
+        employees={live}
+        leaderId={snapshot.leaderId}
+        now={now}
+        meId={meId}
+        cheers={cheers}
+        onCheer={cheer}
+        onSitDown={isAdmin ? sitDown : undefined}
+      />
       <Leaderboard employees={live} meId={meId} />
       <CheerToasts messages={incoming} />
       {me?.phase === 'awaiting' && me.session && (

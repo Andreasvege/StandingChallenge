@@ -3,13 +3,14 @@
 import { useEffect, useState, type CSSProperties, type ReactNode } from 'react'
 import { EmptyDesk, PixelPerson } from '@/components/PixelPerson'
 import { useTranslation } from '@/components/useLang'
-import { activeCheers, cheerOptions, type Cheer } from '@/lib/cheers'
+import { activeCheers, type Cheer } from '@/lib/cheers'
 import { formatDuration } from '@/lib/format'
 import { DESKTOP_MAX_PER_ROW, MOBILE_MAX_PER_ROW, balancedRows, roomMetrics, rowStyles, type RowStyle } from '@/lib/room-layout'
 import { SKIES, skyPhase } from '@/lib/sky'
 import type { LiveEmployee } from '@/lib/snapshot'
 import { osloHour } from '@/lib/time'
 import { Bubble, type BubbleTone } from './Bubble'
+import { CheerMenu } from './CheerMenu'
 import { Clock, Dog, HangingPlant, Lights, PixelWindow } from './Decor'
 import { OfficePlant } from './OfficePlant'
 import { WallScreen } from './WallScreen'
@@ -24,6 +25,8 @@ interface OfficeRoomProps {
   cheers?: Cheer[]
   /** When given, tapping a colleague offers heiarop to send. */
   onCheer?: (toId: string, emoji: string) => void
+  /** Admins only: end a round for somebody who forgot to stop. */
+  onSitDown?: (toId: string) => void
 }
 
 /**
@@ -32,7 +35,7 @@ interface OfficeRoomProps {
  * somewhere else hang on the wall as video screens. Both layouts are rendered and CSS shows one,
  * so the row geometry is handed over as custom properties.
  */
-export function OfficeRoom({ employees, leaderId, now, meId = null, cheers = [], onCheer }: OfficeRoomProps) {
+export function OfficeRoom({ employees, leaderId, now, meId = null, cheers = [], onCheer, onSitDown }: OfficeRoomProps) {
   const [openId, setOpenId] = useState<string | null>(null)
   const remotePeople = employees.filter(e => e.remoteFrom)
   const bySeat = new Map<number, LiveEmployee>()
@@ -69,6 +72,12 @@ export function OfficeRoom({ employees, leaderId, now, meId = null, cheers = [],
   const cheer = onCheer
     ? (toId: string, emoji: string) => {
         onCheer(toId, emoji)
+        setOpenId(null)
+      }
+    : undefined
+  const sitDown = onSitDown
+    ? (toId: string) => {
+        onSitDown(toId)
         setOpenId(null)
       }
     : undefined
@@ -112,6 +121,7 @@ export function OfficeRoom({ employees, leaderId, now, meId = null, cheers = [],
                 floats={fresh.filter(c => c.toId === e.id)}
                 onToggle={toggle(e.id)}
                 onCheer={cheer}
+                onSitDown={sitDown}
               />
             )
           })}
@@ -150,6 +160,7 @@ export function OfficeRoom({ employees, leaderId, now, meId = null, cheers = [],
               floats={fresh.filter(c => c.toId === e.id)}
               onToggle={toggle(e.id)}
               onCheer={cheer}
+              onSitDown={sitDown}
             />
           ))}
         </div>
@@ -174,9 +185,10 @@ interface SeatProps {
   floats: Cheer[]
   onToggle: () => void
   onCheer?: (toId: string, emoji: string) => void
+  onSitDown?: (toId: string) => void
 }
 
-function Seat({ employee: e, scale, isLeader, isMe, open, compact, floats, onToggle, onCheer }: SeatProps) {
+function Seat({ employee: e, scale, isLeader, isMe, open, compact, floats, onToggle, onCheer, onSitDown }: SeatProps) {
   const { lang, t } = useTranslation()
   const standing = e.phase !== 'sitting'
   const tone: BubbleTone =
@@ -187,24 +199,9 @@ function Seat({ employee: e, scale, isLeader, isMe, open, compact, floats, onTog
   let label: ReactNode
   if (compact && standing) label = <span className={styles.compact}><span>{name}</span><span className={styles.info}>{info}</span></span>
   else label = standing ? `${name} · ${info}` : `${name} ${info}`
-  const canCheer = onCheer !== undefined && !isMe
   return (
     <div className={classes} style={{ '--s': scale } as CSSProperties} data-seat>
-      {open && (
-        <div className={styles.cheerMenu} role="dialog" aria-label={canCheer ? t('room.cheerMenu', { name: e.name }) : e.name}>
-          <span>{t('room.todayIs', { name: e.name, duration: formatDuration(e.todaySeconds, lang) })}</span>
-          {canCheer && (
-            <span className={styles.emojis}>
-              {cheerOptions(standing).map(emoji => (
-                <button key={emoji} type="button" aria-label={t('room.sendCheer', { emoji, name: e.name })} onClick={() => onCheer(e.id, emoji)}>
-                  {emoji}
-                </button>
-              ))}
-            </span>
-          )}
-          {canCheer && !standing && <span className={styles.menuHint}>{t('room.nudgeHint')}</span>}
-        </div>
-      )}
+      {open && <CheerMenu employee={e} standing={standing} isMe={isMe} onCheer={onCheer} onSitDown={onSitDown} />}
       {floats.map((c, i) => (
         <span key={c.id} className={styles.float} style={{ marginLeft: i * 18 }} aria-hidden="true">
           {c.emoji}
