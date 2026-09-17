@@ -11,9 +11,11 @@ interface MyStatusProps {
   error: string | null
   onStart: (minutes: RoundMinutes) => void
   onStop: () => void
+  /** Opens the «stå til klokka» dialog; the round length is worked out there. */
+  onStandUntil: () => void
 }
 
-export function MyStatus({ me, now, pending, error, onStart, onStop }: MyStatusProps) {
+export function MyStatus({ me, now, pending, error, onStart, onStop, onStandUntil }: MyStatusProps) {
   const { t } = useTranslation()
 
   if (me?.session && me.phase === 'standing') {
@@ -58,6 +60,9 @@ export function MyStatus({ me, now, pending, error, onStart, onStop }: MyStatusP
             {m === 60 ? t('status.stand60') : t('format.minutes', { minutes: m })}
           </button>
         ))}
+        <button type="button" className={styles.pill} onClick={onStandUntil} disabled={pending}>
+          {t('status.standUntil')}
+        </button>
       </span>
       {error && <span className={styles.error}>{error}</span>}
     </div>

@@ -209,7 +209,7 @@ function head(p: Painter, f: Figure, x: number, y: number, awake: boolean, crown
       r(x + 9, y + 5, 2, 2, OUTLINE)
       r(x + 9, y + 5, 1, 1, EYE_SHINE)
     } else {
-      r(x + 8, y + 6, 3, 1, OUTLINE)
+      r(x + 9, y + 6, 2, 1, OUTLINE)
     }
   }
   if (f.eyewear === 'glasses') {

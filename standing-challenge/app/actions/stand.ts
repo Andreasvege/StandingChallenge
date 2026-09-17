@@ -7,7 +7,7 @@ import { currentGraceMs, currentMinuteMs } from '@/lib/clock-config'
 import { getCurrentEmployee } from '@/lib/current-employee'
 import { t, toLang, type Lang } from '@/lib/i18n'
 import { closeExpiredSessions, loadOfficeSnapshot, toSessionRow } from '@/lib/office'
-import { isRoundMinutes, planExtend, planStart, planStop } from '@/lib/sessions'
+import { isValidRoundMinutes, planExtend, planStart, planStop } from '@/lib/sessions'
 import type { OfficeSnapshot } from '@/lib/snapshot'
 
 // Server actions are reachable by direct POST, so each one checks the login itself. `lang` comes from
@@ -29,7 +29,7 @@ async function openSession(employeeId: string) {
 export async function startStanding(minutes: number, lang?: string): Promise<OfficeSnapshot> {
   const language = toLang(lang)
   const employeeId = await currentEmployeeId(language)
-  if (!isRoundMinutes(minutes)) throw new Error(t(language, 'error.badRound'))
+  if (!isValidRoundMinutes(minutes)) throw new Error(t(language, 'error.badRound'))
   const now = Date.now()
   await closeExpiredSessions(now, currentGraceMs())
   const plan = planStart(now, minutes, currentMinuteMs())

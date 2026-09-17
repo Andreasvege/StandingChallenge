@@ -46,6 +46,8 @@
 .dialog p { margin: 4px 0; color: var(--muted); }
 .figure { display: flex; justify-content: center; }
 .countdown { font-variant-numeric: tabular-nums; }
+.timeField { display: flex; flex-direction: column; align-items: center; gap: 6px; margin-top: 14px; font-size: 14px; color: var(--muted); }
+.timeField input { font: 700 22px var(--font-body), system-ui, sans-serif; color: var(--text); background: var(--panel); border: 0; border-radius: 12px; padding: 10px 14px; text-align: center; box-shadow: 0 0 0 2px var(--outline); }
 .dialogActions { display: flex; flex-direction: column; gap: 10px; margin-top: 16px; }
 
 @media (max-width: 700px) {

@@ -20,6 +20,14 @@
   "status.timeUp": "⏰ Tiden er ute – står du fortsatt?",
   "status.sitting": "Du sitter nå. Klar for en runde?",
   "status.stand60": "Stå 60 min",
+  "status.standUntil": "Stå til …",
+  "standUntil.title": "Stå til klokka",
+  "standUntil.field": "Klokkeslett",
+  "standUntil.preview": "Det blir {minutes} min",
+  "standUntil.passed": "Det klokkeslettet er passert.",
+  "standUntil.tooLong": "En runde kan vare i høyst 4 timer.",
+  "standUntil.start": "Start",
+  "standUntil.cancel": "Avbryt",
 
   "board.today": "I dag",
   "board.week": "Denne uka",
@@ -53,6 +61,8 @@
   "room.seatTitle": "{name} · i dag: {duration}",
   "room.screenTitle": "{name} jobber fra {place} · i dag: {duration}",
   "room.live": "LIVE",
+  "room.clockLabel": "Arbeidsklokke",
+  "room.clockTitle": "Andreas' sin arbeidsklokke",
   "room.plant": "Kontorplanten: {label}",
 
   "plant.progress": "{hours} t av {goal} t denne uka 🌱",
@@ -142,7 +152,7 @@
   "grid.unseated": "Uten plass · velg personen og gi dem en pult",
 
   "error.notSignedIn": "Du er ikke logget inn",
-  "error.badRound": "Velg 15, 30, 60 eller 90 minutter",
+  "error.badRound": "Runden må vare mellom 1 minutt og 4 timer",
   "error.unknownCheer": "Ukjent heiarop",
   "error.personNotFound": "Fant ikke personen",
   "error.badName": "Navnet må være 1–30 tegn",

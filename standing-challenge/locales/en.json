@@ -20,6 +20,14 @@
   "status.timeUp": "⏰ Time is up – are you still standing?",
   "status.sitting": "You are sitting. Ready for a round?",
   "status.stand60": "Stand 60 min",
+  "status.standUntil": "Stand until …",
+  "standUntil.title": "Stand until",
+  "standUntil.field": "Time of day",
+  "standUntil.preview": "That comes to {minutes} min",
+  "standUntil.passed": "That time has already passed.",
+  "standUntil.tooLong": "A round can last at most 4 hours.",
+  "standUntil.start": "Start",
+  "standUntil.cancel": "Cancel",
 
   "board.today": "Today",
   "board.week": "This week",
@@ -53,6 +61,8 @@
   "room.seatTitle": "{name} · today: {duration}",
   "room.screenTitle": "{name} works from {place} · today: {duration}",
   "room.live": "LIVE",
+  "room.clockLabel": "Work clock",
+  "room.clockTitle": "Andreas' work clock",
   "room.plant": "The office plant: {label}",
 
   "plant.progress": "{hours} h of {goal} h this week 🌱",
@@ -142,7 +152,7 @@
   "grid.unseated": "No desk · pick the person and give them a desk",
 
   "error.notSignedIn": "You are not signed in",
-  "error.badRound": "Choose 15, 30, 60 or 90 minutes",
+  "error.badRound": "The round must last between 1 minute and 4 hours",
   "error.unknownCheer": "Unknown cheer",
   "error.personNotFound": "Could not find that person",
   "error.badName": "The name must be 1–30 characters",

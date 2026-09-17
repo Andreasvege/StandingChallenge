@@ -27,8 +27,13 @@
 .window { position: absolute; top: 20%; width: min(240px, 23%); aspect-ratio: 64 / 36; }
 .windowLeft { left: 10%; }
 .windowRight { left: 58%; }
-.clock { position: absolute; top: calc(20% + 41px); left: calc(50% - 27px); width: 54px; height: 54px; }
-.hanging { position: absolute; top: 20px; left: 2%; width: 48px; height: 84px; }
+/* The clock is also the way into the work timer, so it carries a label and is centred on the wall
+   as a column — the label is wider than the dial, so centring beats a fixed left offset. */
+/* Same `top` as the poster, so the two labels share a line and the dial lines up with the corkboard. */
+.clock { position: absolute; top: calc(20% + 27px); left: 50%; transform: translateX(-50%); display: flex; flex-direction: column; align-items: center; gap: 4px; text-decoration: none; color: inherit; }
+.clockSvg { display: block; width: 54px; height: 54px; }
+.clockLabel { font: 700 10px var(--font-body), system-ui, sans-serif; color: var(--muted); white-space: nowrap; }
+.hanging { position: absolute; top: 20px; right: 2%; width: 48px; height: 84px; }
 
 /* Kontorplanten on a little wall shelf in the back-left corner (free of desks because the back row is inset). */
 .plant {

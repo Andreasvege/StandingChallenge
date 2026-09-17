@@ -1,6 +1,7 @@
 import { describe, it, expect } from 'vitest'
 import {
-  isRoundMinutes, minuteMs, graceMs, phaseAt, creditedSeconds, creditedSecondsBetween, graceSecondsLeft,
+  isRoundMinutes, isValidRoundMinutes, MAX_ROUND_MINUTES, minutesUntil, nextHalfHour, ROUND_OPTIONS,
+  minuteMs, graceMs, phaseAt, creditedSeconds, creditedSecondsBetween, graceSecondsLeft,
   planStart, planExtend, planStop, planAdminStop, planExpire, type StandSession,
 } from './sessions'
 
@@ -20,6 +21,67 @@ describe('isRoundMinutes', () => {
     expect(isRoundMinutes(90)).toBe(true)
     expect(isRoundMinutes(45)).toBe(false)
     expect(isRoundMinutes('60')).toBe(false)
+  })
+})
+
+describe('minutesUntil', () => {
+  // Built from local date parts so the expectations hold whatever zone the test runs in —
+  // «stå til 11:00» is always read off the standing colleague's own clock.
+  const at = (h: number, m: number, s = 0) => new Date(2026, 8, 17, h, m, s).getTime()
+
+  it('counts the minutes to a clock time later today', () => {
+    expect(minutesUntil(at(9, 30), '11:00')).toBe(90)
+    expect(minutesUntil(at(9, 30), '09:45')).toBe(15)
+  })
+
+  it('rounds a part-minute up, so the round actually reaches the clock time', () => {
+    expect(minutesUntil(at(9, 30, 30), '11:00')).toBe(90)
+  })
+
+  it('refuses a time that has passed, and right now', () => {
+    expect(minutesUntil(at(14, 0), '11:00')).toBeNull()
+    expect(minutesUntil(at(11, 0), '11:00')).toBeNull()
+  })
+
+  it('refuses anything that is not a clock time', () => {
+    for (const bad of ['', 'abc', '25:00', '11:60', '1100', '11']) {
+      expect(minutesUntil(at(9, 0), bad)).toBeNull()
+    }
+  })
+})
+
+describe('nextHalfHour', () => {
+  const at = (h: number, m: number) => new Date(2026, 8, 17, h, m).getTime()
+
+  it('suggests the coming half hour, zero-padded', () => {
+    expect(nextHalfHour(at(9, 5))).toBe('09:30')
+    expect(nextHalfHour(at(9, 45))).toBe('10:00')
+  })
+
+  it('steps to the next slot when already on the hour or half', () => {
+    expect(nextHalfHour(at(9, 30))).toBe('10:00')
+    expect(nextHalfHour(at(9, 0))).toBe('09:30')
+  })
+
+  it('wraps past midnight without breaking the format', () => {
+    expect(nextHalfHour(at(23, 40))).toBe('00:00')
+  })
+})
+
+describe('isValidRoundMinutes', () => {
+  it('accepts a whole number of minutes up to the cap', () => {
+    expect(isValidRoundMinutes(1)).toBe(true)
+    expect(isValidRoundMinutes(47)).toBe(true)
+    expect(isValidRoundMinutes(MAX_ROUND_MINUTES)).toBe(true)
+    for (const m of ROUND_OPTIONS) expect(isValidRoundMinutes(m)).toBe(true)
+  })
+
+  it('refuses zero, negatives, part minutes and anything past the cap', () => {
+    expect(isValidRoundMinutes(0)).toBe(false)
+    expect(isValidRoundMinutes(-5)).toBe(false)
+    expect(isValidRoundMinutes(47.5)).toBe(false)
+    expect(isValidRoundMinutes(MAX_ROUND_MINUTES + 1)).toBe(false)
+    expect(isValidRoundMinutes('60')).toBe(false)
   })
 })
 

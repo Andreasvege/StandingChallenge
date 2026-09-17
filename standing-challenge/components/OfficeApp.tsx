@@ -6,13 +6,13 @@ import { sendCheer } from '@/app/actions/cheer'
 import { extendStanding, startStanding, stopStanding } from '@/app/actions/stand'
 import { requestNotificationPermission, warmUpAudio } from '@/lib/alerts'
 import { activeCheers, cheerMessage } from '@/lib/cheers'
-import type { RoundMinutes } from '@/lib/sessions'
 import { liveEmployee, type OfficeSnapshot } from '@/lib/snapshot'
 import { CheerToasts } from './CheerToasts'
 import { Leaderboard } from './Leaderboard'
 import { MyStatus } from './MyStatus'
 import { OfficeHeader } from './OfficeHeader'
 import { OfficeRoom } from './office/OfficeRoom'
+import { StandUntilDialog } from './StandUntilDialog'
 import { StillStandingDialog } from './StillStandingDialog'
 import { useTranslation } from './useLang'
 import { useDynamicFavicon, useOfficeSnapshot, useServerNow, useSoundSetting, useStandAlerts, useTabTitle } from './useOffice'
@@ -31,6 +31,7 @@ export function OfficeApp({ initial, meId, isAdmin }: OfficeAppProps) {
   const { lang, t } = useTranslation()
   const [pending, startTransition] = useTransition()
   const [error, setError] = useState<string | null>(null)
+  const [standUntilOpen, setStandUntilOpen] = useState(false)
 
   const live = useMemo(
     () => snapshot.employees.map(e => liveEmployee(e, snapshot.now, now, snapshot.graceMs)),
@@ -57,7 +58,7 @@ export function OfficeApp({ initial, meId, isAdmin }: OfficeAppProps) {
     })
   }
 
-  function start(minutes: RoundMinutes) {
+  function start(minutes: number) {
     warmUpAudio() // unlock audio from this click so the pling can play when the round ends
     void requestNotificationPermission()
     run(() => startStanding(minutes, lang))
@@ -94,7 +95,15 @@ export function OfficeApp({ initial, meId, isAdmin }: OfficeAppProps) {
         soundOn={sound.on}
         onToggleSound={sound.toggle}
       >
-        <MyStatus me={me} now={now} pending={pending} error={error} onStart={start} onStop={() => run(() => stopStanding(lang))} />
+        <MyStatus
+          me={me}
+          now={now}
+          pending={pending}
+          error={error}
+          onStart={start}
+          onStop={() => run(() => stopStanding(lang))}
+          onStandUntil={() => setStandUntilOpen(true)}
+        />
       </OfficeHeader>
       <OfficeRoom
         employees={live}
@@ -107,6 +116,17 @@ export function OfficeApp({ initial, meId, isAdmin }: OfficeAppProps) {
       />
       <Leaderboard employees={live} meId={meId} />
       <CheerToasts messages={incoming} />
+      {standUntilOpen && (
+        <StandUntilDialog
+          now={now}
+          pending={pending}
+          onStart={minutes => {
+            setStandUntilOpen(false)
+            start(minutes)
+          }}
+          onClose={() => setStandUntilOpen(false)}
+        />
+      )}
       {me?.phase === 'awaiting' && me.session && (
         <StillStandingDialog
           me={me}

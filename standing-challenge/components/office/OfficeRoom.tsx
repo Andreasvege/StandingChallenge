@@ -11,9 +11,10 @@ import type { LiveEmployee } from '@/lib/snapshot'
 import { osloHour } from '@/lib/time'
 import { Bubble, type BubbleTone } from './Bubble'
 import { CheerMenu } from './CheerMenu'
-import { Clock, Dog, HangingPlant, Lights, PixelWindow } from './Decor'
+import { Dog, HangingPlant, Lights, PixelWindow } from './Decor'
 import { FactPoster } from './FactPoster'
 import { OfficePlant } from './OfficePlant'
+import { WallClock } from './WallClock'
 import { WallScreen } from './WallScreen'
 import styles from './OfficeRoom.module.css'
 
@@ -155,7 +156,7 @@ export function OfficeRoom({ employees, leaderId, now, meId = null, cheers = [],
       <Lights className={styles.lights} />
       <PixelWindow sky={sky} className={`${styles.window} ${styles.windowLeft}`} />
       <PixelWindow sky={sky} className={`${styles.window} ${styles.windowRight}`} />
-      <Clock className={styles.clock} />
+      <WallClock />
       <HangingPlant className={styles.hanging} />
       <OfficePlant weekSeconds={weekTotal} />
       <FactPoster

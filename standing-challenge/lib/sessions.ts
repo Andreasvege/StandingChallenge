@@ -21,6 +21,43 @@ export function isRoundMinutes(n: unknown): n is RoundMinutes {
   return typeof n === 'number' && (ROUND_OPTIONS as readonly number[]).includes(n)
 }
 
+/** The longest a round may be. The pills never reach it; «stå til …» can, up to four hours ahead. */
+export const MAX_ROUND_MINUTES = 240
+
+/**
+ * What the server accepts as a round length — the presets and «stå til …» alike. Wider than
+ * `isRoundMinutes`, which stays the type for the fixed pills.
+ */
+export function isValidRoundMinutes(n: unknown): boolean {
+  return typeof n === 'number' && Number.isInteger(n) && n >= 1 && n <= MAX_ROUND_MINUTES
+}
+
+/**
+ * Minutes from `now` until «HH:MM», rounded up so the round actually reaches the clock time.
+ * Null when the text is not a clock time, or the moment has passed — standing overnight is not a
+ * thing. Read off the local clock on purpose: it is the standing colleague's own, which sidesteps
+ * time zones entirely (this is the one place where Europe/Oslo is not imposed).
+ */
+export function minutesUntil(now: number, time: string): number | null {
+  const parts = /^(\d{2}):(\d{2})$/.exec(time)
+  if (!parts) return null
+  const hours = Number(parts[1])
+  const mins = Number(parts[2])
+  if (hours > 23 || mins > 59) return null
+  const target = new Date(now)
+  target.setHours(hours, mins, 0, 0)
+  const ms = target.getTime() - now
+  return ms > 0 ? Math.ceil(ms / 60_000) : null
+}
+
+/** The coming :00 or :30 as «HH:MM», so the «stå til …» field opens on a sensible guess. */
+export function nextHalfHour(now: number): string {
+  const d = new Date(now)
+  d.setSeconds(0, 0)
+  d.setMinutes(d.getMinutes() < 30 ? 30 : 60) // 60 rolls the hour over, and midnight with it
+  return `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`
+}
+
 /** Length of one "minute" in ms. DEV_FAST_TIME turns minutes into seconds for manual testing. */
 export function minuteMs(fast: boolean): number {
   return fast ? 1000 : 60_000
@@ -57,7 +94,7 @@ export function graceSecondsLeft(s: StandSession, now: number, grace: number): n
   return Math.max(0, Math.ceil((s.roundEndsAt + grace - now) / 1000))
 }
 
-export function planStart(now: number, minutes: RoundMinutes, minute: number) {
+export function planStart(now: number, minutes: number, minute: number) {
   return { startedAt: now, roundMinutes: minutes, roundEndsAt: now + minutes * minute }
 }
 

@@ -53,6 +53,20 @@ describe('spriteRects', () => {
     expect(outlines(glasses) - outlines(stand(DEFAULT_FIGURE))).toBe(5)
     expect(has(glasses, { fill: LENS, w: 3, h: 3 })).toBe(true)
   })
+  // The face is drawn in profile, so there is one eye. Closed, it used to be 3px wide — exactly the
+  // interior of the lens — so behind glasses it read as a bar straight across the glass.
+  it('draws the closed eye narrower than the lens, lined up with the open one', () => {
+    const glasses: Figure = { ...DEFAULT_FIGURE, eyewear: 'glasses' }
+    const inFace = (r: Rect, face: { x: number; y: number }, dy: number) =>
+      r.fill === OUTLINE && r.y === face.y + dy && r.x >= face.x + 7 && r.x <= face.x + 11
+    const closed = spriteRects(glasses, { pose: 'sit' }).find(r => inFace(r, FACE.sit, 6) && r.h === 1)
+    const open = spriteRects(glasses, { pose: 'stand' }).find(r => inFace(r, FACE.stand, 5) && r.h === 2)
+    expect(closed).toBeDefined()
+    expect(open).toBeDefined()
+    expect(closed?.w).toBe(2)
+    expect(closed?.x).toBe(open?.x)
+  })
+
   it('draws sunglasses as a solid dark block', () => {
     expect(has(stand({ ...DEFAULT_FIGURE, eyewear: 'sunglasses' }), { x: 14, y: 15, w: 6, h: 4, fill: OUTLINE })).toBe(true)
   })
