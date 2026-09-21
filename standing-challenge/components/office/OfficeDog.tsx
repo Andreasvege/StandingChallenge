@@ -1,5 +1,4 @@
 import { useState } from 'react'
-import { useTranslation } from '@/components/useLang'
 import { dogOfTheDay } from '@/lib/dogs'
 import { osloDayStart } from '@/lib/time'
 import styles from './OfficeRoom.module.css'
@@ -10,10 +9,10 @@ import styles from './OfficeRoom.module.css'
  * chase with a finger.
  */
 export function OfficeDog({ now }: { now: number }) {
-  const { t } = useTranslation()
   const [open, setOpen] = useState(false)
   const dog = dogOfTheDay(osloDayStart(now))
-  const caption = t('room.dog', { name: dog.name, owner: dog.owner })
+  // Just the name: a proper noun needs no translating, and no key to route it through.
+  const caption = dog.name
   return (
     <button
       type="button"
