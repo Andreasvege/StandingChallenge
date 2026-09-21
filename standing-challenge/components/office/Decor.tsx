@@ -1,4 +1,5 @@
-// Pixel-art props for the office room: string lights, windows, clock, hanging plant and the office dog.
+// Pixel-art props for the office room: string lights, windows, clock and the hanging plant.
+// The dogs live in lib/dogs.ts, because one of them is picked per day.
 
 import type { Sky } from '@/lib/sky'
 import { OUTLINE } from '@/lib/sprite'
@@ -79,19 +80,3 @@ export function HangingPlant({ className }: { className?: string }) {
   )
 }
 
-const DOG: readonly R[] = [
-  [0, 2, 3, 2, OUTLINE], [2, 3, 12, 7, OUTLINE], [10, 0, 7, 7, OUTLINE],
-  [3, 4, 10, 5, '#d49a64'], [11, 1, 5, 5, '#d49a64'], [1, 3, 2, 1, '#d49a64'],
-  [11, 1, 2, 3, '#8a5a36'], [14, 3, 1, 1, OUTLINE], [16, 4, 1, 1, OUTLINE],
-  [4, 7, 6, 2, '#f3d6a6'], [3, 10, 2, 2, OUTLINE], [11, 10, 2, 2, OUTLINE], [8, 4, 2, 1, '#ff6fa8'],
-]
-
-export function Dog({ className }: { className?: string }) {
-  return (
-    <div className={className} aria-hidden="true">
-      <svg viewBox="0 0 17 12" shapeRendering="crispEdges">
-        <Pixels rects={DOG} />
-      </svg>
-    </div>
-  )
-}

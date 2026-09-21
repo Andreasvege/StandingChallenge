@@ -63,6 +63,7 @@
   "room.live": "LIVE",
   "room.clockLabel": "Arbeidsklokke",
   "room.clockTitle": "Andreas' sin arbeidsklokke",
+  "room.dog": "{name}, {owner} sin hund",
   "room.plant": "Kontorplanten: {label}",
 
   "plant.progress": "{hours} t av {goal} t denne uka 🌱",

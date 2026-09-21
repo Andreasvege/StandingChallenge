@@ -11,8 +11,9 @@ import type { LiveEmployee } from '@/lib/snapshot'
 import { osloHour } from '@/lib/time'
 import { Bubble, type BubbleTone } from './Bubble'
 import { CheerMenu } from './CheerMenu'
-import { Dog, HangingPlant, Lights, PixelWindow } from './Decor'
+import { HangingPlant, Lights, PixelWindow } from './Decor'
 import { FactPoster } from './FactPoster'
+import { OfficeDog } from './OfficeDog'
 import { OfficePlant } from './OfficePlant'
 import { WallClock } from './WallClock'
 import { WallScreen } from './WallScreen'
@@ -187,7 +188,7 @@ export function OfficeRoom({ employees, leaderId, now, meId = null, cheers = [],
       <div className={styles.floor} />
       <div className={styles.desktopOnly}>{rows(desktopSeats, desktopStyles, false)}</div>
       <div className={styles.mobileOnly}>{rows(mobileSeats, mobileStyles, true)}</div>
-      <Dog className={styles.dog} />
+      <OfficeDog now={now} />
     </div>
   )
 }
