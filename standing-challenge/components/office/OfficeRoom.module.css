@@ -177,7 +177,9 @@
 
 /* Today's dog. The box is sized inline from the drawing, since a dachshund is a different shape. */
 .dog { position: absolute; bottom: 6px; z-index: 20; padding: 0; border: 0; background: none; color: inherit; cursor: pointer; animation: walk 36s linear infinite; }
-.dog svg { display: block; width: 100%; height: 100%; animation: trot 0.5s steps(2) infinite; }
+/* The turn lives on the drawing, not on the button: the name bubble is a child too, and a
+   scaleX(-1) on the whole button renders the text backwards on the way home. */
+.dog svg { display: block; width: 100%; height: 100%; animation: trot 0.5s steps(2) infinite, face 36s linear infinite; }
 /* Tapped: he stands still while his name is up, rather than walking out from under your finger. */
 .dogPaused,
 .dogPaused svg { animation-play-state: paused; }
@@ -186,11 +188,19 @@
 @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0.45; } }
 @keyframes bob { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-3px); } }
 @keyframes walk {
-  0% { left: 2%; transform: scaleX(1); }
-  48% { left: 90%; transform: scaleX(1); }
-  50% { left: 90%; transform: scaleX(-1); }
-  98% { left: 2%; transform: scaleX(-1); }
-  100% { left: 2%; transform: scaleX(1); }
+  0% { left: 2%; }
+  48% { left: 90%; }
+  50% { left: 90%; }
+  98% { left: 2%; }
+  100% { left: 2%; }
+}
+/* Same timing as the walk, so he still turns on the spot at either end. */
+@keyframes face {
+  0% { transform: scaleX(1); }
+  48% { transform: scaleX(1); }
+  50% { transform: scaleX(-1); }
+  98% { transform: scaleX(-1); }
+  100% { transform: scaleX(1); }
 }
 @keyframes trot { 0%, 100% { margin-bottom: 0; } 50% { margin-bottom: 2px; } }
 
