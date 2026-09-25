@@ -12,6 +12,13 @@ const BELLY = '#f3d6a6'
 const COLLAR = '#ff6fa8'
 const GINKO_BODY = '#e3b083'
 const GINKO_EAR = '#a86f42'
+// Near-black, but kept clear of OUTLINE (#120d22) — matching it would flatten him into a blob.
+const TONI_COAT = '#44424e'
+const TONI_MUZZLE = '#56545f'
+const TONI_EYE = '#fff3dc'
+// His own outline. The scene's near-black OUTLINE reads as a drop shadow against a grey coat
+// instead of as an edge, so he gets a line only a shade darker than his own fur.
+const TONI_LINE = '#2a2833'
 
 export interface OfficeDog {
   id: string
@@ -76,7 +83,37 @@ const GINKO: OfficeDog = {
   ],
 }
 
-export const DOGS: OfficeDog[] = [ANTONIO, GINKO]
+/**
+ * Anders' dog: a lagotto, so dark and woolly. The curls are two tones of brown rather than a bumpy
+ * silhouette — at this size a jagged outline just reads as noise, while speckling reads as coat.
+ * Squarer than the other two, which is the breed's whole shape.
+ */
+const TONI: OfficeDog = {
+  id: 'toni',
+  name: 'Toni',
+  owner: 'Anders',
+  w: 19,
+  h: 12,
+  // Flat coat on purpose: at 57×36 any two-tone curl pattern read as spots rather than wool, so the
+  // silhouette does the work. The ear is an outline edge instead of a second colour, and the eye is
+  // light because a dark pupil disappears into a near-black head.
+  rects: [
+    r(0, 3, 3, 2, TONI_LINE), // tail
+    r(2, 4, 12, 6, TONI_LINE), // body, short and square for the breed
+    r(3, 9, 2, 3, TONI_LINE), // four legs
+    r(6, 9, 2, 3, TONI_LINE),
+    r(9, 9, 2, 3, TONI_LINE),
+    r(12, 9, 2, 3, TONI_LINE),
+    r(11, 1, 8, 7, TONI_LINE), // the big round head
+    r(1, 3, 1, 1, TONI_COAT),
+    r(3, 5, 10, 4, TONI_COAT),
+    r(12, 2, 6, 5, TONI_COAT), // reaches down into the body, or the head reads as stuck on
+    r(16, 5, 2, 1, TONI_MUZZLE), // a hint of a lighter chin
+    r(16, 3, 1, 1, TONI_EYE),
+  ],
+}
+
+export const DOGS: OfficeDog[] = [ANTONIO, GINKO, TONI]
 
 /**
  * The dog on the floor today. Picked from the day so everyone sees the same one and it changes at
