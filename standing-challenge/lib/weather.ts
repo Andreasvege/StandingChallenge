@@ -16,8 +16,8 @@ export interface Weather {
 
 export const CLEAR: Weather = { precip: 'none', intensity: 2, thunder: false, overcast: false, fog: false }
 
-/** The office. Oslo sentrum until we know the address; MET wants at most 4 decimals. */
-export const OFFICE_LOCATION = { lat: 59.9139, lon: 10.7522 } as const
+/** Aker Tech House, Fornebu (OpenStreetMap). MET wants at most 4 decimals. */
+export const OFFICE_LOCATION = { lat: 59.9041, lon: 10.6248 } as const
 
 /** 'heavyrainshowersandthunder_day' → heavy rain with thunder. Unknown codes read as clear. */
 export function weatherFromSymbol(symbol: string): Weather {
