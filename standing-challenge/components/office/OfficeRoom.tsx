@@ -7,9 +7,10 @@ import { activeCheers, type Cheer } from '@/lib/cheers'
 import { formatDuration } from '@/lib/format'
 import { DESKTOP_MAX_PER_ROW, MOBILE_MAX_PER_ROW, ROOM_LAYERS, balancedRows, roomMetrics, rowStyles, rowZIndex, type RowStyle } from '@/lib/room-layout'
 import { forMonth, tileStyle } from '@/lib/scene'
-import { SKIES, skyPhase } from '@/lib/sky'
+import { SKIES, skyPhase, weatherSky } from '@/lib/sky'
 import type { LiveEmployee } from '@/lib/snapshot'
 import { osloHour, osloParts } from '@/lib/time'
+import type { Weather } from '@/lib/weather'
 import { Bubble, type BubbleTone } from './Bubble'
 import { CheerMenu } from './CheerMenu'
 import { HangingPlant, Lights, PixelWindow } from './Decor'
@@ -32,6 +33,8 @@ interface OfficeRoomProps {
   onCheer?: (toId: string, emoji: string) => void
   /** Admins only: end a round for somebody who forgot to stop. */
   onSitDown?: (toId: string) => void
+  /** The weather at the office, shown in the windows. */
+  weather?: Weather
   /** Dev preview only: pretend it is this month (1–12) for the seasonal art. */
   month?: number
 }
@@ -42,13 +45,13 @@ interface OfficeRoomProps {
  * somewhere else hang on the wall as video screens. Both layouts are rendered and CSS shows one,
  * so the row geometry is handed over as custom properties.
  */
-export function OfficeRoom({ employees, leaderId, now, meId = null, cheers = [], onCheer, onSitDown, month }: OfficeRoomProps) {
+export function OfficeRoom({ employees, leaderId, now, meId = null, cheers = [], onCheer, onSitDown, month, weather }: OfficeRoomProps) {
   const [openId, setOpenId] = useState<string | null>(null)
   const [factOpen, setFactOpen] = useState(false)
   const remotePeople = employees.filter(e => e.remoteFrom)
   const bySeat = new Map<number, LiveEmployee>()
   for (const e of employees) if (e.seat !== null && !e.remoteFrom) bySeat.set(e.seat, e)
-  const sky = SKIES[skyPhase(osloHour(now))]
+  const sky = weatherSky(SKIES[skyPhase(osloHour(now))], weather)
   const sceneMonth = month ?? osloParts(now).month
   const windowView = forMonth(WINDOW_VIEWS, sceneMonth)
   const wallTile = forMonth(WALL_TILES, sceneMonth)?.art
@@ -164,8 +167,8 @@ export function OfficeRoom({ employees, leaderId, now, meId = null, cheers = [],
       }
     >
       <Lights className={styles.lights} />
-      <PixelWindow sky={sky} view={windowView?.left} className={`${styles.window} ${styles.windowLeft}`} />
-      <PixelWindow sky={sky} view={windowView?.right ?? windowView?.left} className={`${styles.window} ${styles.windowRight}`} />
+      <PixelWindow sky={sky} weather={weather} view={windowView?.left} className={`${styles.window} ${styles.windowLeft}`} />
+      <PixelWindow sky={sky} weather={weather} view={windowView?.right ?? windowView?.left} className={`${styles.window} ${styles.windowRight}`} />
       <WallClock />
       <HangingPlant className={styles.hanging} />
       <OfficePlant weekSeconds={weekTotal} />

@@ -5,6 +5,7 @@ import type { Cheer } from './cheers'
 import type { Figure } from './figure'
 import { creditedSecondsBetween, phaseAt, type StandSession } from './sessions'
 import { osloDayStart, osloNextDayStart, osloWeekStart } from './time'
+import type { Weather } from './weather'
 
 export interface EmployeeRow {
   id: string
@@ -39,6 +40,8 @@ export interface OfficeSnapshot {
   leaderId: string | null
   /** Heiarop from the last few seconds (see CHEER_SHOW_MS); browsers animate the ones they haven't shown. */
   cheers: Cheer[]
+  /** The weather at the office from MET (lib/yr.ts); missing when MET can't be reached. */
+  weather?: Weather
 }
 
 export function buildSnapshot(

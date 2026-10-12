@@ -111,6 +111,7 @@ export function OfficeApp({ initial, meId, isAdmin }: OfficeAppProps) {
         now={now}
         meId={meId}
         cheers={cheers}
+        weather={snapshot.weather}
         onCheer={cheer}
         onSitDown={isAdmin ? sitDown : undefined}
       />

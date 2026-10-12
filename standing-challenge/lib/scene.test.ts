@@ -1,6 +1,7 @@
 import { describe, it, expect } from 'vitest'
 import { ALL_YEAR, forMonth, frameSize, tileStyle } from './scene'
-import { SKIES, WINDOW_GLASS, WINDOW_MULLION, windowRects } from './sky'
+import { SKIES, WINDOW_GLASS, WINDOW_MULLION, weatherSky, windowRects } from './sky'
+import { weatherFromSymbol } from './weather'
 
 describe('forMonth', () => {
   const list = [
@@ -64,5 +65,21 @@ describe('tileStyle', () => {
     const list = [{ id: 'jul', months: [12] }, { id: 'vanlig', months: ALL_YEAR }]
     expect(forMonth(list, 12)?.id).toBe('jul')
     expect(forMonth(list, 3)?.id).toBe('vanlig')
+  })
+})
+
+describe('weatherSky', () => {
+  it('leaves a clear sky alone', () => {
+    expect(weatherSky(SKIES.day, weatherFromSymbol('fair_day'))).toBe(SKIES.day)
+    expect(weatherSky(SKIES.day, undefined)).toBe(SKIES.day)
+  })
+  it('hides the sun and greys the sky when it rains', () => {
+    const wet = weatherSky(SKIES.day, weatherFromSymbol('rain'))
+    expect(wet.hideBody).toBe(true)
+    expect(wet.bands).not.toEqual(SKIES.day.bands)
+    expect(windowRects(wet).some(r => r.fill === SKIES.day.body.color)).toBe(false)
+  })
+  it('puts out the stars behind clouds', () => {
+    expect(weatherSky(SKIES.evening, weatherFromSymbol('cloudy')).stars).toBe(false)
   })
 })

@@ -7,6 +7,7 @@ import { CHEER_SHOW_MS, type Cheer } from './cheers'
 import { currentGraceMs } from './clock-config'
 import { buildSnapshot, type EmployeeRow, type OfficeSnapshot, type SessionRow } from './snapshot'
 import { osloWeekStart } from './time'
+import { loadWeather } from './yr'
 
 export function toEmployeeRow(e: EmployeeRecord): EmployeeRow {
   return { id: e.id, name: e.name, figure: e.figure, seat: e.seat, remoteFrom: e.remoteFrom }
@@ -40,7 +41,7 @@ export async function loadOfficeSnapshot(now = Date.now()): Promise<OfficeSnapsh
   const grace = currentGraceMs()
   await closeExpiredSessions(now, grace)
   const weekStart = new Date(osloWeekStart(now))
-  const [employeeRows, sessionRows, cheerRows] = await Promise.all([
+  const [employeeRows, sessionRows, cheerRows, weather] = await Promise.all([
     db.select().from(employees),
     db
       .select()
@@ -51,6 +52,8 @@ export async function loadOfficeSnapshot(now = Date.now()): Promise<OfficeSnapsh
       .from(cheers)
       .where(gte(cheers.createdAt, new Date(now - CHEER_SHOW_MS)))
       .orderBy(asc(cheers.createdAt)),
+    loadWeather(now),
   ])
-  return buildSnapshot(employeeRows.map(toEmployeeRow), sessionRows.map(toSessionRow), now, grace, cheerRows.map(toCheer))
+  const snapshot = buildSnapshot(employeeRows.map(toEmployeeRow), sessionRows.map(toSessionRow), now, grace, cheerRows.map(toCheer))
+  return { ...snapshot, weather }
 }

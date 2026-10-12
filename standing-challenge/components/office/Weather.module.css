@@ -1,0 +1,35 @@
+/* Rain and snow in the pixel windows. Each particle sits at y = --py; the fall carries it from just
+   above the glass to just below it, stepping a whole pixel at a time so it stays pixel art. The frame
+   is drawn over the glass afterwards, which hides the ends of the fall. */
+.drop,
+.flake { animation-iteration-count: infinite; }
+.drop { animation-name: fall; animation-timing-function: steps(13); }
+.flake { animation-name: drift; animation-timing-function: steps(9); }
+
+@keyframes fall {
+  from { transform: translateY(calc(-1px * var(--py) - 3px)); }
+  to { transform: translateY(calc(36px - 1px * var(--py))); }
+}
+@keyframes drift {
+  0% { transform: translate(0, calc(-1px * var(--py) - 1px)); }
+  25% { transform: translate(1px, calc(8px - 1px * var(--py))); }
+  50% { transform: translate(0, calc(17px - 1px * var(--py))); }
+  75% { transform: translate(-1px, calc(26px - 1px * var(--py))); }
+  100% { transform: translate(0, calc(36px - 1px * var(--py))); }
+}
+
+/* Thunder: two quick flashes every nine seconds, in both windows at once. */
+.flash { opacity: 0; animation: flash 9s infinite; }
+@keyframes flash {
+  0%, 90%, 100% { opacity: 0; }
+  91% { opacity: 0.75; }
+  92% { opacity: 0; }
+  93.5% { opacity: 0.5; }
+  95% { opacity: 0; }
+}
+
+/* Without motion the rain hangs still where it is, and the lightning keeps away. */
+@media (prefers-reduced-motion: reduce) {
+  .drop, .flake { animation: none; }
+  .flash { display: none; }
+}

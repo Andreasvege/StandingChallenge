@@ -1,9 +1,12 @@
 // Pixel-art props for the office room: string lights, windows, clock and the hanging plant.
 // The dogs live in lib/dogs.ts, because one of them is picked per day.
 
+import type { CSSProperties } from 'react'
 import type { StaticImageData } from 'next/image'
 import { WINDOW_GLASS, WINDOW_MULLION, windowRects, type Sky } from '@/lib/sky'
 import { OUTLINE, type Rect } from '@/lib/sprite'
+import { precipitation, type Weather } from '@/lib/weather'
+import weatherStyles from './Weather.module.css'
 
 type R = readonly [x: number, y: number, w: number, h: number, fill: string]
 
@@ -21,8 +24,20 @@ export function Lights({ className }: { className?: string }) {
   return <div className={className} aria-hidden="true" />
 }
 
-/** A window onto the Oslo sky, with this month's hand-drawn view (if any) between the city and the mullion. */
-export function PixelWindow({ sky, view, className }: { sky: Sky; view?: StaticImageData; className?: string }) {
+/** The window frame, drawn last so falling rain and snow never spill over it. */
+const FRAME: Rect[] = [
+  { x: 0, y: 0, w: 64, h: 2, fill: OUTLINE },
+  { x: 0, y: 34, w: 64, h: 2, fill: OUTLINE },
+  { x: 0, y: 0, w: 2, h: 36, fill: OUTLINE },
+  { x: 62, y: 0, w: 2, h: 36, fill: OUTLINE },
+  WINDOW_MULLION,
+]
+
+/**
+ * A window onto the Oslo sky: the weather-tinted sky and city, this month's hand-drawn view (if any),
+ * then rain or snow from MET falling past it, and the frame and mullion on top.
+ */
+export function PixelWindow({ sky, weather, view, className }: { sky: Sky; weather?: Weather; view?: StaticImageData; className?: string }) {
   const g = WINDOW_GLASS
   return (
     <svg viewBox="0 0 64 36" className={className} shapeRendering="crispEdges" aria-hidden="true">
@@ -39,7 +54,21 @@ export function PixelWindow({ sky, view, className }: { sky: Sky; view?: StaticI
           style={{ imageRendering: 'pixelated', filter: sky.outside < 1 ? `brightness(${sky.outside})` : undefined }}
         />
       )}
-      <Rects rects={[WINDOW_MULLION]} />
+      {precipitation(weather).map((p, i) => (
+        <rect
+          key={i}
+          x={p.x}
+          y={p.y}
+          width="1"
+          height={p.kind === 'drop' ? 3 : 1}
+          fill={p.kind === 'drop' ? '#cfe0ff' : '#ffffff'}
+          opacity={p.kind === 'drop' ? 0.75 : 0.95}
+          className={p.kind === 'drop' ? weatherStyles.drop : weatherStyles.flake}
+          style={{ '--py': p.y, animationDuration: `${p.duration}s`, animationDelay: `-${p.offset}s` } as CSSProperties}
+        />
+      ))}
+      {weather?.thunder && <rect x={g.x} y={g.y} width={g.w} height={g.h} fill="#ffffff" className={weatherStyles.flash} />}
+      <Rects rects={FRAME} />
     </svg>
   )
 }

@@ -1,6 +1,7 @@
 // The window sky follows the time of day in Oslo.
 
-import type { Rect } from './sprite'
+import { blend, shade, type Rect } from './sprite'
+import type { Weather } from './weather'
 
 export type SkyPhase = 'morning' | 'day' | 'sunset' | 'evening'
 
@@ -21,6 +22,8 @@ export interface Sky {
   litWindows: boolean
   cloud: string
   city: string
+  /** Grey weather hides the sun or moon behind the clouds. */
+  hideBody?: boolean
   /** Brightness of hand-drawn art outside the window (trees and the like), so a daytime drawing dusks with the sky. */
   outside: number
 }
@@ -83,11 +86,46 @@ export function windowRects(sky: Sky): Rect[] {
   return [
     ...sky.bands.map((fill, i) => ({ x: 2, y: BAND_Y[i], w: 60, h: BAND_H[i], fill })),
     ...(sky.stars ? STARS.map(([x, y]) => px(x, y, '#ffffff')) : []),
-    { x: body.x + 1, y: body.y, w: 6, h: 8, fill: body.color },
-    { x: body.x, y: body.y + 1, w: 8, h: 6, fill: body.color },
-    ...(body.kind === 'moon' ? [px(body.x + 2, body.y + 2, '#d9d3f0'), { x: body.x + 5, y: body.y + 4, w: 2, h: 1, fill: '#d9d3f0' }] : []),
+    ...(sky.hideBody
+      ? []
+      : [
+          { x: body.x + 1, y: body.y, w: 6, h: 8, fill: body.color },
+          { x: body.x, y: body.y + 1, w: 8, h: 6, fill: body.color },
+          ...(body.kind === 'moon' ? [px(body.x + 2, body.y + 2, '#d9d3f0'), { x: body.x + 5, y: body.y + 4, w: 2, h: 1, fill: '#d9d3f0' }] : []),
+        ]),
     ...CLOUDS.map(([x, y, w, h]) => ({ x, y, w, h, fill: sky.cloud })),
     ...CITY.map(([x, y, w, h]) => ({ x, y, w, h, fill: sky.city })),
     ...(sky.litWindows ? LIT.map(([x, y]) => px(x, y, '#ffd166')) : []),
   ]
+}
+
+/** The same colour with its saturation taken out, nudged a little cool so it reads as cloud, not ash. */
+function grey(hex: string): string {
+  const n = parseInt(hex.slice(1), 16)
+  const l = Math.round(0.3 * (n >> 16) + 0.59 * ((n >> 8) & 255) + 0.11 * (n & 255))
+  return blend('#' + ((1 << 24) + (l << 16) + (l << 8) + l).toString(16).slice(1), '#8890b8', 0.15)
+}
+
+/**
+ * The sky for today's weather: grey and sunless when it is cloudy or anything is falling, a shade
+ * darker in rain, and washed out in fog. Clear weather returns the sky untouched.
+ */
+export function weatherSky(sky: Sky, weather: Weather | undefined): Sky {
+  if (!weather?.overcast) return sky
+  const wet = weather.precip !== 'none' || weather.thunder
+  const tone = (c: string) => {
+    const g = blend(c, grey(c), 0.75)
+    return weather.fog ? blend(g, '#c9ccd8', 0.35) : wet ? shade(g, 0.88) : g
+  }
+  const bands = sky.bands.map(tone) as Sky['bands']
+  return {
+    ...sky,
+    bands,
+    hideBody: true,
+    stars: false,
+    cloud: shade(grey(sky.cloud), 0.9),
+    // Fog swallows the city; what is left of it is a faint outline.
+    city: weather.fog ? blend(sky.city, bands[3], 0.6) : tone(sky.city),
+    outside: weather.fog ? Math.min(sky.outside, 0.85) : sky.outside,
+  }
 }
