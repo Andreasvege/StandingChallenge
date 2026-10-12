@@ -1,0 +1,4 @@
+.sprite { display: block; image-rendering: pixelated; }
+.strip { background-size: var(--strip-w) 100%; background-repeat: no-repeat; animation-name: flip; animation-iteration-count: infinite; }
+@keyframes flip { to { background-position-x: calc(-1 * var(--strip-w)); } }
+@media (prefers-reduced-motion: reduce) { .strip { animation: none; } }

@@ -7,6 +7,7 @@ på pulten (katt, kaktus, kaffekanne …). Tegningene blir automatisk til nye va
 sprites/
 ├── hode/    ← hodeplagg, 26×22 piksler   (eksempel: caps.png)
 ├── pult/    ← ting på pulten, 18×12 piksler (eksempel: katt.png)
+├── scene/   ← pynt i rommet: utsikten fra vinduene, gresskar, løvhauger … (vanlige PNG-er, ingen skript)
 └── mal/     ← maler og palett (lages på nytt hver gang du kjører skriptet)
 ```
 
@@ -41,3 +42,28 @@ sprites/
 - **Få farger** ser best ut: 3–5 farger per ting holder lenge.
 - Lederens krone tegnes alltid oppå hodeplagget. 👑
 - Ikke rediger `lib/sprite-art.generated.ts` for hånd – den lages av skriptet.
+
+## Scenepynt (`scene/`) – vanlige PNG-er, ingen skript
+
+Alt i `scene/` vises **akkurat som du tegner det**, bare forstørret med skarpe piksler. Ingen
+`npm run sprites`, ingen konvertering. Det eneste som trengs er én linje i
+`components/office/scene-art.ts` som sier hvor tegningen skal stå og hvilke måneder den gjelder
+(be Claude om det, eller kopier eksempelet som står der).
+
+**Utsikt fra vinduene** – 60×32 piksler, gjennomsiktig bakgrunn.
+1. Åpne `mal/vindu-mal.png`. Den viser glasset slik det ser ut midt på dagen: himmel, sol, byen og sprossen i midten.
+2. Legg til et **nytt lag** og tegn trærne der. Himmelen og byen kommer fra koden og skifter med
+   klokka, så de skal *ikke* være med i fila di.
+3. Skjul mal-laget og eksporter som PNG (60×32), f.eks. `scene/høst-trær.png`.
+4. Tegn i dagslysfarger: om kvelden blir tegningen automatisk mørkere sammen med himmelen.
+   Sprossen (x 29–30) tegnes alltid oppå, så det du tegner der blir skjult.
+
+**Ting på gulvet og veggene** (gresskar, løvhauge …) – valgfri størrelse.
+1. `mal/gulv-mal.png` er en **målestokk**: en figur med pult i samme skala som rommet
+   (1 piksel = 3 skjermpiksler). Bruk den til å se hvor stort gresskaret skal være.
+2. Tegn på et nytt, gjennomsiktig lerret som er akkurat så stort som tingen (Aseprite: *Sprite → Trim*).
+3. **Animasjon:** legg bildene ved siden av hverandre i én fil, like brede. Et gresskar på 16×14 med
+   to bilder av et flimrende lys blir en fil på 32×14. Si fra hvor mange bilder og hvor raskt.
+
+Same tips som over gjelder: kontur `#120d22`, få farger, og paletten `mal/sta-pa.gpl`.
+Se resultatet på `/dev/room?month=10` (bytt måned for å sjekke andre årstider, `&hour=21` for kveld).

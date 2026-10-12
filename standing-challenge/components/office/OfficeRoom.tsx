@@ -6,15 +6,17 @@ import { useTranslation } from '@/components/useLang'
 import { activeCheers, type Cheer } from '@/lib/cheers'
 import { formatDuration } from '@/lib/format'
 import { DESKTOP_MAX_PER_ROW, MOBILE_MAX_PER_ROW, ROOM_LAYERS, balancedRows, roomMetrics, rowStyles, rowZIndex, type RowStyle } from '@/lib/room-layout'
+import { forMonth } from '@/lib/scene'
 import { SKIES, skyPhase } from '@/lib/sky'
 import type { LiveEmployee } from '@/lib/snapshot'
-import { osloHour } from '@/lib/time'
+import { osloHour, osloParts } from '@/lib/time'
 import { Bubble, type BubbleTone } from './Bubble'
 import { CheerMenu } from './CheerMenu'
 import { HangingPlant, Lights, PixelWindow } from './Decor'
 import { FactPoster } from './FactPoster'
 import { OfficeDog } from './OfficeDog'
 import { OfficePlant } from './OfficePlant'
+import { WINDOW_VIEWS } from './scene-art'
 import { WallClock } from './WallClock'
 import { WallScreen } from './WallScreen'
 import styles from './OfficeRoom.module.css'
@@ -30,6 +32,8 @@ interface OfficeRoomProps {
   onCheer?: (toId: string, emoji: string) => void
   /** Admins only: end a round for somebody who forgot to stop. */
   onSitDown?: (toId: string) => void
+  /** Dev preview only: pretend it is this month (1–12) for the seasonal art. */
+  month?: number
 }
 
 /**
@@ -38,13 +42,14 @@ interface OfficeRoomProps {
  * somewhere else hang on the wall as video screens. Both layouts are rendered and CSS shows one,
  * so the row geometry is handed over as custom properties.
  */
-export function OfficeRoom({ employees, leaderId, now, meId = null, cheers = [], onCheer, onSitDown }: OfficeRoomProps) {
+export function OfficeRoom({ employees, leaderId, now, meId = null, cheers = [], onCheer, onSitDown, month }: OfficeRoomProps) {
   const [openId, setOpenId] = useState<string | null>(null)
   const [factOpen, setFactOpen] = useState(false)
   const remotePeople = employees.filter(e => e.remoteFrom)
   const bySeat = new Map<number, LiveEmployee>()
   for (const e of employees) if (e.seat !== null && !e.remoteFrom) bySeat.set(e.seat, e)
   const sky = SKIES[skyPhase(osloHour(now))]
+  const windowView = forMonth(WINDOW_VIEWS, month ?? osloParts(now).month)?.art
   const fresh = activeCheers(cheers, now)
   const weekTotal = employees.reduce((sum, e) => sum + e.weekSeconds, 0)
   // The wall-screen strip is a stacking context too, so it has to rise for its own menu to clear the poster.
@@ -155,8 +160,8 @@ export function OfficeRoom({ employees, leaderId, now, meId = null, cheers = [],
       }
     >
       <Lights className={styles.lights} />
-      <PixelWindow sky={sky} className={`${styles.window} ${styles.windowLeft}`} />
-      <PixelWindow sky={sky} className={`${styles.window} ${styles.windowRight}`} />
+      <PixelWindow sky={sky} view={windowView} className={`${styles.window} ${styles.windowLeft}`} />
+      <PixelWindow sky={sky} view={windowView} className={`${styles.window} ${styles.windowRight}`} />
       <WallClock />
       <HangingPlant className={styles.hanging} />
       <OfficePlant weekSeconds={weekTotal} />

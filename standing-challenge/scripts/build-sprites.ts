@@ -5,7 +5,8 @@ import { existsSync, mkdirSync, readdirSync, readFileSync, writeFileSync } from 
 import { join } from 'node:path'
 import { PNG } from 'pngjs'
 import { BUILTIN_DESK_ITEMS, DEFAULT_FIGURE, HAIR_COLORS, SHIRT_COLORS, SKIN_COLORS } from '../lib/figure'
-import { DESK_TOP, FACE, SCENE_COLORS, spriteRects, type Rect } from '../lib/sprite'
+import { SKIES, WINDOW_GLASS, WINDOW_MULLION, windowRects } from '../lib/sky'
+import { DESK_TOP, FACE, SCENE_COLORS, SPRITE_H, SPRITE_W, spriteRects, type Rect } from '../lib/sprite'
 import { DESK_CANVAS, HEAD_CANVAS, artNameFromFile, pixelsToRects, rasterize, type ArtPiece } from '../lib/sprite-art'
 
 const ROOT = process.cwd()
@@ -44,6 +45,11 @@ function writePng(path: string, width: number, height: number, data: Uint8Array)
 function writeTemplatesAndPalettes() {
   mkdirSync(MAL, { recursive: true })
   for (const k of KINDS) writePng(join(MAL, `${k.dir}-mal.png`), k.box.w, k.box.h, rasterize(TEMPLATE_FIGURE, k.box))
+  // Templates for sprites/scene/ – a guide to draw over, not something the drawing is compared with.
+  const glass = WINDOW_GLASS
+  writePng(join(MAL, 'vindu-mal.png'), glass.w, glass.h, rasterize([...windowRects(SKIES.day), WINDOW_MULLION], glass))
+  const floor = { x: 0, y: 0, w: SPRITE_W + 32, h: SPRITE_H }
+  writePng(join(MAL, 'gulv-mal.png'), floor.w, floor.h, rasterize(spriteRects(DEFAULT_FIGURE, { pose: 'stand' }), floor))
 
   const seen = new Set<string>()
   const unique = PALETTE.filter(([, c]) => !seen.has(c) && seen.add(c))
