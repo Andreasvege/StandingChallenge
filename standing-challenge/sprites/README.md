@@ -50,13 +50,18 @@ Alt i `scene/` vises **akkurat som du tegner det**, bare forstørret med skarpe 
 `components/office/scene-art.ts` som sier hvor tegningen skal stå og hvilke måneder den gjelder
 (be Claude om det, eller kopier eksempelet som står der).
 
-**Utsikt fra vinduene** – 60×32 piksler, gjennomsiktig bakgrunn.
+**Utsikt fra vinduene** – 60×32 piksler, gjennomsiktig bakgrunn. Hvert vindu kan ha sin egen fil
+(`høst-venstre.png`, `høst-høyre.png`); én fil holder hvis begge skal være like.
 1. Åpne `mal/vindu-mal.png`. Den viser glasset slik det ser ut midt på dagen: himmel, sol, byen og sprossen i midten.
 2. Legg til et **nytt lag** og tegn trærne der. Himmelen og byen kommer fra koden og skifter med
    klokka, så de skal *ikke* være med i fila di.
 3. Skjul mal-laget og eksporter som PNG (60×32), f.eks. `scene/høst-trær.png`.
 4. Tegn i dagslysfarger: om kvelden blir tegningen automatisk mørkere sammen med himmelen.
    Sprossen (x 29–30) tegnes alltid oppå, så det du tegner der blir skjult.
+
+**Vegg og gulv** – fliser som gjentas over hele flaten, fordi rommet ikke har fast størrelse.
+Start fra `mal/vegg-flis-mal.png` (32×32) og `mal/gulv-flis-mal.png` (40×15, én planke), som viser
+rommet slik det er i dag. Kantene må gå i hverandre: tegn i Aseprites *Tiled Mode*.
 
 **Ting på gulvet og veggene** (gresskar, løvhauge …) – valgfri størrelse.
 1. `mal/gulv-mal.png` er en **målestokk**: en figur med pult i samme skala som rommet

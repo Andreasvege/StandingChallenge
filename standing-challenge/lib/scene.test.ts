@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { forMonth, frameSize } from './scene'
+import { ALL_YEAR, forMonth, frameSize, tileStyle } from './scene'
 import { SKIES, WINDOW_GLASS, WINDOW_MULLION, windowRects } from './sky'
 
 describe('forMonth', () => {
@@ -46,5 +46,23 @@ describe('windowRects', () => {
   })
   it('dims what is outside at night', () => {
     expect(SKIES.evening.outside).toBeLessThan(SKIES.day.outside)
+  })
+})
+
+describe('tileStyle', () => {
+  it('repeats the tile at 3×', () => {
+    expect(tileStyle({ src: '/v.png', width: 32, height: 16 })).toMatchObject({
+      backgroundImage: 'url(/v.png)',
+      backgroundSize: '96px 48px',
+      imageRendering: 'pixelated',
+    })
+  })
+  it('leaves the built-in colours alone without a tile', () => {
+    expect(tileStyle(undefined)).toBeUndefined()
+  })
+  it('lets an all-year tile give way to a seasonal one listed above it', () => {
+    const list = [{ id: 'jul', months: [12] }, { id: 'vanlig', months: ALL_YEAR }]
+    expect(forMonth(list, 12)?.id).toBe('jul')
+    expect(forMonth(list, 3)?.id).toBe('vanlig')
   })
 })

@@ -78,6 +78,9 @@
   background: repeating-linear-gradient(90deg, transparent 0 116px, #5e3c3099 116px 120px);
 }
 
+/* A hand-drawn floor tile (sprites/scene/) brings its own planks. */
+.tiled::after { display: none; }
+
 .desktopOnly { display: contents; }
 .mobileOnly { display: none; }
 

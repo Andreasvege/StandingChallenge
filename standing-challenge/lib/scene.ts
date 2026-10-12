@@ -11,6 +11,8 @@ export interface Seasonal {
   months: readonly number[]
 }
 
+export const ALL_YEAR: readonly number[] = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]
+
 /** The first drawing that belongs to this month – or none, and the room looks as it always has. */
 export function forMonth<T extends Seasonal>(list: readonly T[], month: number): T | undefined {
   return list.find(item => item.months.includes(month))
@@ -25,4 +27,15 @@ export function frameSize(width: number, height: number, frames: number, scale =
     throw new Error(`A ${width}px wide strip can't be split into ${frames} equal frames`)
   }
   return { w: (width / frames) * scale, h: height * scale }
+}
+
+/** CSS for a tile repeated over the wall or the floor, scaled like everything else in the room. */
+export function tileStyle(tile: { src: string; width: number; height: number } | undefined, scale = SCENE_SCALE) {
+  if (!tile) return undefined
+  return {
+    backgroundImage: `url(${tile.src})`,
+    backgroundSize: `${tile.width * scale}px ${tile.height * scale}px`,
+    backgroundRepeat: 'repeat',
+    imageRendering: 'pixelated',
+  } as const
 }

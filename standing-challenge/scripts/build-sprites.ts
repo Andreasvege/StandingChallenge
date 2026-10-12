@@ -27,6 +27,7 @@ const RESERVED = new Set<string>(['none', ...BUILTIN_DESK_ITEMS])
 
 const PALETTE: [string, string][] = [
   ...Object.entries(SCENE_COLORS),
+  ['Vegg mørk', '#34295e'], ['Vegg', '#463879'], ['Gulv', '#7a5140'], ['Gulvfuge', '#5e3c30'],
   ...HAIR_COLORS.map((c, i): [string, string] => [`Hår ${i + 1}`, c]),
   ...SKIN_COLORS.map((c, i): [string, string] => [`Hud ${i + 1}`, c]),
   ...SHIRT_COLORS.map((c, i): [string, string] => [`Genser ${i + 1}`, c]),
@@ -42,6 +43,14 @@ function writePng(path: string, width: number, height: number, data: Uint8Array)
   writeFileSync(path, PNG.sync.write(png))
 }
 
+/** Today's wall colour and floor planks (OfficeRoom.module.css) at 1/3 scale: 120px planks with a 4px seam. */
+const WALL_TILE: Rect[] = [{ x: 0, y: 0, w: 32, h: 32, fill: '#463879' }]
+const FLOOR_TILE: Rect[] = [
+  { x: 0, y: 0, w: 40, h: 14, fill: '#7a5140' },
+  { x: 0, y: 14, w: 40, h: 1, fill: '#5e3c30' },
+  { x: 39, y: 0, w: 1, h: 14, fill: '#6c4738' },
+]
+
 function writeTemplatesAndPalettes() {
   mkdirSync(MAL, { recursive: true })
   for (const k of KINDS) writePng(join(MAL, `${k.dir}-mal.png`), k.box.w, k.box.h, rasterize(TEMPLATE_FIGURE, k.box))
@@ -49,6 +58,10 @@ function writeTemplatesAndPalettes() {
   const glass = WINDOW_GLASS
   writePng(join(MAL, 'vindu-mal.png'), glass.w, glass.h, rasterize([...windowRects(SKIES.day), WINDOW_MULLION], glass))
   const floor = { x: 0, y: 0, w: SPRITE_W + 32, h: SPRITE_H }
+  // Starting tiles that repeat into today's wall and floor, to draw over or replace.
+  const tile = (name: string, w: number, h: number, rects: Rect[]) => writePng(join(MAL, `${name}-flis-mal.png`), w, h, rasterize(rects, { x: 0, y: 0, w, h }))
+  tile('vegg', 32, 32, WALL_TILE)
+  tile('gulv', 40, 15, FLOOR_TILE)
   writePng(join(MAL, 'gulv-mal.png'), floor.w, floor.h, rasterize(spriteRects(DEFAULT_FIGURE, { pose: 'stand' }), floor))
 
   const seen = new Set<string>()
