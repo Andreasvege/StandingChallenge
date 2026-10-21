@@ -87,7 +87,7 @@ export const FLOOR_PROPS: FloorProp[] = [
     months: [10],
     spots: [
       { row: 1, after: 1, phone: { row: 1, after: 1 }, scale: 2, flip: true },
-      { row: 1, after: 5, phone: { row: 2, after: 2 }, scale: 2 },
+      { row: 0, after: 3, phone: { row: 3, after: 0 }, scale: 2 },
     ],
   },
   // Fallen leaves, in the trees' colours plus a red and a yellow; flat, so they lie right at the feet.
@@ -107,6 +107,15 @@ export const FLOOR_PROPS: FloorProp[] = [
       { row: 1, after: 4, phone: { row: 2, after: 1 }, scale: 2, flip: true },
     ],
   },
-  // The jack-o'-lantern: dark by day, lit from sunset (the same hours the city's windows light up).
-  { art: lykt, lit: lyktTent, months: [10], spots: [{ row: 0, after: 4, phone: { row: 0, after: 2 }, scale: 2 }] },
+  // The jack-o'-lanterns: dark by day, lit from sunset (the same hours the city's windows light up).
+  {
+    art: lykt,
+    lit: lyktTent,
+    months: [10],
+    spots: [
+      { row: 0, after: 4, phone: { row: 0, after: 2 }, scale: 2 },
+      { row: 1, after: 2, phone: { row: 2, after: 2 }, scale: 2, flip: true },
+      { row: 1, after: 5, scale: 2 },
+    ],
+  },
 ]

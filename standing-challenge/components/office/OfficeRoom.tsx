@@ -175,10 +175,15 @@ export function OfficeRoom({ employees, leaderId, now, meId = null, cheers = [],
               return (
                 <Fragment key={`prop-${i}-${j}`}>
                   {lit && (
-                    // Warm light around a lit lantern, in hard-edged rings like the pixel art, flickering with the flame.
+                    // Soft warm light round a lit lantern, centred on it and flickering with the flame.
                     <span
                       className={styles.glow}
-                      style={{ left, width: prop.art.width * scale * 4, height: prop.art.height * scale * 2.2, bottom: -prop.art.height * scale * 0.5 }}
+                      style={{
+                        left,
+                        width: prop.art.width * scale * 2.4,
+                        height: prop.art.height * scale * 1.8,
+                        bottom: (prop.art.height * scale * (1 - 1.8)) / 2,
+                      }}
                     />
                   )}
                   <SceneSprite
