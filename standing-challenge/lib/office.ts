@@ -22,6 +22,7 @@ export function toSessionRow(s: StandSessionRecord): SessionRow {
     roundEndsAt: s.roundEndsAt.getTime(),
     endedAt: s.endedAt ? s.endedAt.getTime() : null,
     endReason: s.endReason ?? null,
+    startedBy: s.startedBy ?? null,
   }
 }
 

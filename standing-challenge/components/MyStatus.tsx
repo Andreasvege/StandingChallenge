@@ -13,9 +13,13 @@ interface MyStatusProps {
   onStop: () => void
   /** Opens the «stå til klokka» dialog; the round length is worked out there. */
   onStandUntil: () => void
+  /** A colleague started this round for me («start for en kollega»); null when I did it myself. */
+  startedByName?: string | null
+  /** «Jeg satt egentlig»: undo a round somebody else started. */
+  onReject?: () => void
 }
 
-export function MyStatus({ me, now, pending, error, onStart, onStop, onStandUntil }: MyStatusProps) {
+export function MyStatus({ me, now, pending, error, onStart, onStop, onStandUntil, startedByName, onReject }: MyStatusProps) {
   const { t } = useTranslation()
 
   if (me?.session && me.phase === 'standing') {
@@ -32,6 +36,16 @@ export function MyStatus({ me, now, pending, error, onStart, onStop, onStandUnti
         <button type="button" className={styles.pill} onClick={onStop} disabled={pending}>
           {t('status.sitDown')}
         </button>
+        {startedByName && (
+          <span className={styles.startedBy}>
+            {t('proxy.startedBy', { name: startedByName })}
+            {onReject && (
+              <button type="button" className={styles.linkButton} onClick={onReject} disabled={pending}>
+                {t('proxy.reject')}
+              </button>
+            )}
+          </span>
+        )}
         {error && <span className={styles.error}>{error}</span>}
       </div>
     )

@@ -126,3 +126,27 @@ export function planAdminStop(s: StandSession, now: number, grace: number): { en
 export function planExpire(s: StandSession, now: number, grace: number): { endedAt: number; endReason: 'timeout' } | null {
   return phaseAt(s, now, grace) === 'expired' ? { endedAt: s.roundEndsAt, endReason: 'timeout' } : null
 }
+
+/**
+ * «Start for en kollega»: somebody sees a colleague standing without the timer and starts it for
+ * them. Always a short round — the colleague isn't at the screen to answer «Står du fortsatt?», so a
+ * long one would credit time they may have spent sitting — and they take over with «Én runde til».
+ */
+export const PROXY_ROUND_MINUTES = 15
+/** «Har stått i …»: how far back the round may start, for the minutes they already stood. */
+export const PROXY_BACKDATE_OPTIONS = [0, 10, 20, 30] as const
+/** Starts for others per sender per Oslo day — plenty for honest use, too few to farm a friend's total. */
+export const PROXY_DAILY_LIMIT = 3
+
+export function isProxyBackdate(n: unknown): n is (typeof PROXY_BACKDATE_OPTIONS)[number] {
+  return typeof n === 'number' && (PROXY_BACKDATE_OPTIONS as readonly number[]).includes(n)
+}
+
+/**
+ * The round started on someone's behalf. It may reach back `backMinutes`, but never into time they
+ * already have credited, so a round that ended five minutes ago is not counted twice.
+ */
+export function planProxyStart(now: number, backMinutes: number, minute: number, lastEndedAt: number | null) {
+  const startedAt = Math.max(now - backMinutes * minute, lastEndedAt ?? -Infinity)
+  return { startedAt: Math.min(startedAt, now), roundMinutes: PROXY_ROUND_MINUTES, roundEndsAt: now + PROXY_ROUND_MINUTES * minute }
+}

@@ -17,13 +17,14 @@ interface WallScreenProps {
   onToggle: () => void
   onCheer?: (toId: string, emoji: string) => void
   onSitDown?: (toId: string) => void
+  onStartFor?: (toId: string, backMinutes: number) => void
 }
 
 /**
  * A colleague who works somewhere else (`remoteFrom`), shown as a pixel video screen on the office
  * wall — an endless call. Rain falls behind them, because of course it does in Bergen.
  */
-export function WallScreen({ employee: e, isLeader, isMe, open, floats, onToggle, onCheer, onSitDown }: WallScreenProps) {
+export function WallScreen({ employee: e, isLeader, isMe, open, floats, onToggle, onCheer, onSitDown, onStartFor }: WallScreenProps) {
   const { lang, t } = useTranslation()
   const standing = e.phase !== 'sitting'
   const tone: BubbleTone =
@@ -34,7 +35,7 @@ export function WallScreen({ employee: e, isLeader, isMe, open, floats, onToggle
 
   return (
     <div className={classes} style={{ '--s': 2 } as CSSProperties} data-seat>
-      {open && <CheerMenu employee={e} standing={standing} isMe={isMe} onCheer={onCheer} onSitDown={onSitDown} />}
+      {open && <CheerMenu employee={e} standing={standing} isMe={isMe} onCheer={onCheer} onSitDown={onSitDown} onStartFor={onStartFor} />}
       {floats.map((c, i) => (
         <span key={c.id} className={styles.float} style={{ marginLeft: i * 18 }} aria-hidden="true">
           {c.emoji}

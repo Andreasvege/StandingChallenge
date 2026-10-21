@@ -3,7 +3,7 @@
 import { useMemo, useState, useTransition } from 'react'
 import { sitEmployeeDown } from '@/app/actions/admin'
 import { sendCheer } from '@/app/actions/cheer'
-import { extendStanding, startStanding, stopStanding } from '@/app/actions/stand'
+import { extendStanding, rejectStartedForMe, startStanding, startStandingFor, stopStanding } from '@/app/actions/stand'
 import { requestNotificationPermission, warmUpAudio } from '@/lib/alerts'
 import { activeCheers, cheerMessage } from '@/lib/cheers'
 import { liveEmployee, type OfficeSnapshot } from '@/lib/snapshot'
@@ -77,6 +77,21 @@ export function OfficeApp({ initial, meId, isAdmin }: OfficeAppProps) {
     })
   }
 
+  function startFor(toId: string, backMinutes: number) {
+    setError(null)
+    startTransition(async () => {
+      try {
+        const result = await startStandingFor(toId, backMinutes, lang)
+        accept(result.snapshot)
+        if (!result.ok) setError(result.message)
+      } catch {
+        setError(t('app.error.generic'))
+      }
+    })
+  }
+
+  const startedByName = me?.session?.startedById ? (live.find(e => e.id === me.session?.startedById)?.name ?? t('app.someone')) : null
+
   // Admin only: end a round for a colleague who left the desk raised without stopping.
   const sitDown = (toId: string) => run(() => sitEmployeeDown({ employeeId: toId }, lang))
 
@@ -103,6 +118,8 @@ export function OfficeApp({ initial, meId, isAdmin }: OfficeAppProps) {
           onStart={start}
           onStop={() => run(() => stopStanding(lang))}
           onStandUntil={() => setStandUntilOpen(true)}
+          startedByName={startedByName}
+          onReject={() => run(() => rejectStartedForMe(lang))}
         />
       </OfficeHeader>
       <OfficeRoom
@@ -114,6 +131,7 @@ export function OfficeApp({ initial, meId, isAdmin }: OfficeAppProps) {
         weather={snapshot.weather}
         onCheer={cheer}
         onSitDown={isAdmin ? sitDown : undefined}
+        onStartFor={startFor}
       />
       <Leaderboard employees={live} meId={meId} />
       <CheerToasts messages={incoming} />

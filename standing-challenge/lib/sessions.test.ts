@@ -2,7 +2,7 @@ import { describe, it, expect } from 'vitest'
 import {
   isRoundMinutes, isValidRoundMinutes, MAX_ROUND_MINUTES, minutesUntil, nextHalfHour, ROUND_OPTIONS,
   minuteMs, graceMs, phaseAt, creditedSeconds, creditedSecondsBetween, graceSecondsLeft,
-  planStart, planExtend, planStop, planAdminStop, planExpire, type StandSession,
+  planStart, planExtend, planStop, planAdminStop, planExpire, planProxyStart, isProxyBackdate, type StandSession,
 } from './sessions'
 
 const MIN = 60_000
@@ -189,5 +189,26 @@ describe('planAdminStop', () => {
   it('does nothing for expired or already ended sessions', () => {
     expect(planAdminStop(session(), T0 + 70 * MIN, GRACE)).toBeNull()
     expect(planAdminStop(session({ endedAt: T0 + MIN, endReason: 'sat_down' }), T0 + 2 * MIN, GRACE)).toBeNull()
+  })
+})
+
+describe('start for a colleague', () => {
+  const M = 60_000
+  const now = Date.UTC(2026, 9, 21, 9, 0)
+
+  it('runs a fixed 15-minute round from now, reaching back the minutes already stood', () => {
+    expect(planProxyStart(now, 20, M, null)).toEqual({ startedAt: now - 20 * M, roundMinutes: 15, roundEndsAt: now + 15 * M })
+    expect(planProxyStart(now, 0, M, null).startedAt).toBe(now)
+  })
+
+  it('never reaches back into a round that is already credited', () => {
+    expect(planProxyStart(now, 30, M, now - 5 * M).startedAt).toBe(now - 5 * M)
+    expect(planProxyStart(now, 10, M, now - 25 * M).startedAt).toBe(now - 10 * M)
+  })
+
+  it('only offers the listed backdates', () => {
+    expect(isProxyBackdate(30)).toBe(true)
+    expect(isProxyBackdate(45)).toBe(false)
+    expect(isProxyBackdate('10')).toBe(false)
   })
 })

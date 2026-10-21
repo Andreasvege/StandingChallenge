@@ -33,6 +33,8 @@ interface OfficeRoomProps {
   onCheer?: (toId: string, emoji: string) => void
   /** Admins only: end a round for somebody who forgot to stop. */
   onSitDown?: (toId: string) => void
+  /** Start a short round for a colleague who is standing without the timer. */
+  onStartFor?: (toId: string, backMinutes: number) => void
   /** The weather at the office, shown in the windows. */
   weather?: Weather
   /** Dev preview only: pretend it is this month (1–12) for the seasonal art. */
@@ -45,7 +47,7 @@ interface OfficeRoomProps {
  * somewhere else hang on the wall as video screens. Both layouts are rendered and CSS shows one,
  * so the row geometry is handed over as custom properties.
  */
-export function OfficeRoom({ employees, leaderId, now, meId = null, cheers = [], onCheer, onSitDown, month, weather }: OfficeRoomProps) {
+export function OfficeRoom({ employees, leaderId, now, meId = null, cheers = [], onCheer, onSitDown, onStartFor, month, weather }: OfficeRoomProps) {
   const [openId, setOpenId] = useState<string | null>(null)
   const [factOpen, setFactOpen] = useState(false)
   const remotePeople = employees.filter(e => e.remoteFrom)
@@ -98,6 +100,12 @@ export function OfficeRoom({ employees, leaderId, now, meId = null, cheers = [],
         setOpenId(null)
       }
     : undefined
+  const startFor = onStartFor
+    ? (toId: string, backMinutes: number) => {
+        onStartFor(toId, backMinutes)
+        setOpenId(null)
+      }
+    : undefined
   // One pop-up at a time. A row is a single stacking context, so lifting a menu clear of the
   // noticeboard lifts the whole row of name bubbles with it — tidier to put the board away instead.
   const toggle = (id: string) => () => {
@@ -145,6 +153,7 @@ export function OfficeRoom({ employees, leaderId, now, meId = null, cheers = [],
                 onToggle={toggle(e.id)}
                 onCheer={cheer}
                 onSitDown={sitDown}
+                onStartFor={startFor}
               />
             )
           })}
@@ -193,6 +202,7 @@ export function OfficeRoom({ employees, leaderId, now, meId = null, cheers = [],
               onToggle={toggle(e.id)}
               onCheer={cheer}
               onSitDown={sitDown}
+              onStartFor={startFor}
             />
           ))}
         </div>
@@ -218,9 +228,10 @@ interface SeatProps {
   onToggle: () => void
   onCheer?: (toId: string, emoji: string) => void
   onSitDown?: (toId: string) => void
+  onStartFor?: (toId: string, backMinutes: number) => void
 }
 
-function Seat({ employee: e, scale, isLeader, isMe, open, compact, floats, onToggle, onCheer, onSitDown }: SeatProps) {
+function Seat({ employee: e, scale, isLeader, isMe, open, compact, floats, onToggle, onCheer, onSitDown, onStartFor }: SeatProps) {
   const { lang, t } = useTranslation()
   const standing = e.phase !== 'sitting'
   const tone: BubbleTone =
@@ -233,7 +244,7 @@ function Seat({ employee: e, scale, isLeader, isMe, open, compact, floats, onTog
   else label = standing ? `${name} · ${info}` : `${name} ${info}`
   return (
     <div className={classes} style={{ '--s': scale } as CSSProperties} data-seat>
-      {open && <CheerMenu employee={e} standing={standing} isMe={isMe} onCheer={onCheer} onSitDown={onSitDown} />}
+      {open && <CheerMenu employee={e} standing={standing} isMe={isMe} onCheer={onCheer} onSitDown={onSitDown} onStartFor={onStartFor} />}
       {floats.map((c, i) => (
         <span key={c.id} className={styles.float} style={{ marginLeft: i * 18 }} aria-hidden="true">
           {c.emoji}

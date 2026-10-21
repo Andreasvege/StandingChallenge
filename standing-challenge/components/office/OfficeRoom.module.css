@@ -129,6 +129,30 @@
 .emojis button:hover { background: #4d4180; }
 .menuHint { font-size: 10px; color: var(--muted); }
 
+/* «Start for en kollega»: the yellow «go» colour of the round pills, since it starts one. */
+.startFor {
+  padding: 5px 12px;
+  border: 0;
+  border-radius: 999px;
+  font: 700 12px var(--font-body), system-ui, sans-serif;
+  color: var(--bg);
+  background: var(--yellow);
+  cursor: pointer;
+}
+.startFor:hover { background: #ffdd8a; }
+.backdate { display: flex; flex-direction: column; align-items: center; gap: 4px; }
+.backdateChips { display: flex; gap: 4px; }
+.backdateChips button {
+  padding: 5px 9px;
+  border: 0;
+  border-radius: 999px;
+  font: 700 11px var(--font-body), system-ui, sans-serif;
+  color: var(--bg);
+  background: var(--yellow);
+  cursor: pointer;
+}
+.backdateChips button:hover { background: #ffdd8a; }
+
 /* Admin only: sit down somebody who forgot to stop. Arms on the first press, ends the round on the second. */
 .sitDown {
   padding: 4px 12px;

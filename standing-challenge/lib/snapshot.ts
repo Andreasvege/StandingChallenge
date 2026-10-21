@@ -15,9 +15,20 @@ export interface EmployeeRow {
   /** Set for colleagues working somewhere else (e.g. «Bergen»): shown on a screen on the wall. */
   remoteFrom?: string | null
 }
-export interface SessionRow extends StandSession { id: string; employeeId: string }
+export interface SessionRow extends StandSession {
+  id: string
+  employeeId: string
+  /** Who started it, when it was a colleague (see PROXY_ROUND_MINUTES). */
+  startedBy?: string | null
+}
 
-export interface OpenSession { startedAt: number; roundEndsAt: number; roundMinutes: number }
+export interface OpenSession {
+  startedAt: number
+  roundEndsAt: number
+  roundMinutes: number
+  /** The colleague who started this round for them, if it wasn't themselves. */
+  startedById?: string | null
+}
 
 export interface OfficeEmployee {
   id: string
@@ -71,7 +82,7 @@ export function buildSnapshot(
       week += creditedSecondsBetween(s, now, weekStart, dayEnd)
       const phase = phaseAt(s, now, grace)
       if (phase === 'standing' || phase === 'awaiting') {
-        open = { startedAt: s.startedAt, roundEndsAt: s.roundEndsAt, roundMinutes: s.roundMinutes }
+        open = { startedAt: s.startedAt, roundEndsAt: s.roundEndsAt, roundMinutes: s.roundMinutes, startedById: s.startedBy ?? null }
       }
     }
     return {

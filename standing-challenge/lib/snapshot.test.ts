@@ -43,7 +43,7 @@ describe('buildSnapshot', () => {
     expect(byId.c.todaySeconds).toBe(0)
   })
   it('exposes only running sessions', () => {
-    expect(byId.a.session).toEqual({ startedAt: t('2026-09-11T09:30:00Z'), roundEndsAt: t('2026-09-11T10:30:00Z'), roundMinutes: 60 })
+    expect(byId.a.session).toEqual({ startedAt: t('2026-09-11T09:30:00Z'), roundEndsAt: t('2026-09-11T10:30:00Z'), roundMinutes: 60, startedById: null })
     expect(byId.b.session).toBeNull()
   })
   it('credits an expired, unanswered session up to its round end but shows it as sitting', () => {

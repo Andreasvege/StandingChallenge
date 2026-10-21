@@ -30,6 +30,8 @@ export const standSessions = pgTable(
     roundEndsAt: timestamp('round_ends_at', { withTimezone: true }).notNull(),
     endedAt: timestamp('ended_at', { withTimezone: true }),
     endReason: text('end_reason').$type<EndReason>(),
+    /** Set when a colleague started this round for them («start for en kollega»); null when they did it themselves. */
+    startedBy: uuid('started_by').references(() => employees.id, { onDelete: 'set null' }),
   },
   t => [
     // At most one open session per person — makes a double-clicked «Start» harmless.

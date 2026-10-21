@@ -58,3 +58,7 @@
   .showAll { display: inline-block; }
   .board ol:not(.expanded) li:nth-child(n + 6):not(.meRow) { display: none; }
 }
+
+/* «Startet av Even · Jeg satt egentlig» under the timer when a colleague started the round. */
+.startedBy { display: flex; flex-basis: 100%; gap: 8px; align-items: baseline; font-size: 13px; color: var(--muted); }
+.linkButton { padding: 0; border: 0; background: none; font: inherit; font-weight: 700; color: var(--text); text-decoration: underline; cursor: pointer; }
