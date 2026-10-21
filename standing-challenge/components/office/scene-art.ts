@@ -107,7 +107,7 @@ export const FLOOR_PROPS: FloorProp[] = [
     ],
   },
   // The jack-o'-lanterns: by day Andreas' newer face; from sunset (the hours the city's windows used
-  // to light up) his older lit drawing, glowing.
+  // to light up) his lit drawing (Final Pumpkins2V2.png), glowing.
   {
     art: lykt,
     lit: lyktTent,
