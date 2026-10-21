@@ -7,6 +7,8 @@
 import type { StaticImageData } from 'next/image'
 import type { Seasonal } from '@/lib/scene'
 import gresskar from '@/sprites/scene/gresskar.png'
+import gresskarLite from '@/sprites/scene/gresskar-lite.png'
+import gresskarStort from '@/sprites/scene/gresskar-stort.png'
 import høsttrær from '@/sprites/scene/høsttrær.png'
 
 /**
@@ -54,15 +56,9 @@ export interface SillProp extends Seasonal {
 }
 
 export const SILL_PROPS: SillProp[] = [
-  {
-    art: gresskar,
-    months: [10],
-    // In the gaps between the autumn trees (høsttrær.png), so the pumpkins don't hide them.
-    spots: [
-      { window: 'left', x: 10, scale: 3 },
-      { window: 'left', x: 66, scale: 2, flip: true },
-      { window: 'right', x: 13, scale: 2 },
-      { window: 'right', x: 66, scale: 3, flip: true },
-    ],
-  },
+  // Three hand-drawn pumpkins at one scale, so their pixels match; the size difference is in the
+  // drawings. Placed in the gaps between the autumn trees (høsttrær.png) so they don't hide them.
+  { art: gresskarStort, months: [10], spots: [{ window: 'left', x: 10, scale: 2 }, { window: 'right', x: 66, scale: 2, flip: true }] },
+  { art: gresskar, months: [10], spots: [{ window: 'right', x: 13, scale: 2, flip: true }] },
+  { art: gresskarLite, months: [10], spots: [{ window: 'left', x: 66, scale: 2 }] },
 ]
