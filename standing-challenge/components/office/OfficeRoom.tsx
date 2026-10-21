@@ -6,7 +6,7 @@ import { useTranslation } from '@/components/useLang'
 import { activeCheers, type Cheer } from '@/lib/cheers'
 import { formatDuration } from '@/lib/format'
 import { DESKTOP_MAX_PER_ROW, MOBILE_MAX_PER_ROW, ROOM_LAYERS, balancedRows, roomMetrics, rowStyles, rowZIndex, type RowStyle } from '@/lib/room-layout'
-import { fallingLeaves, forMonth, tileStyle } from '@/lib/scene'
+import { fallingLeaves, forMonth, gustLeaves, tileStyle } from '@/lib/scene'
 import { SKIES, skyForWindow, skyPhase, weatherSky } from '@/lib/sky'
 import type { Trophy } from '@/lib/trophy'
 import type { LiveEmployee } from '@/lib/snapshot'
@@ -26,6 +26,8 @@ import styles from './OfficeRoom.module.css'
 
 const LEFT_LEAVES = fallingLeaves('left')
 const RIGHT_LEAVES = fallingLeaves('right')
+const LEFT_GUST = gustLeaves('left')
+const RIGHT_GUST = gustLeaves('right')
 
 interface OfficeRoomProps {
   employees: LiveEmployee[]
@@ -224,8 +226,8 @@ export function OfficeRoom({ employees, leaderId, now, meId = null, cheers = [],
       }
     >
       <Lights className={styles.lights} />
-      <PixelWindow sky={skyForWindow(sky, 'left')} weather={weather} view={windowView?.left} city={windowView?.city ?? true} leaves={windowView?.leaves ? LEFT_LEAVES : undefined} className={`${styles.window} ${styles.windowLeft}`} />
-      <PixelWindow sky={skyForWindow(sky, 'right')} weather={weather} view={windowView?.right ?? windowView?.left} city={windowView?.city ?? true} leaves={windowView?.leaves ? RIGHT_LEAVES : undefined} className={`${styles.window} ${styles.windowRight}`} />
+      <PixelWindow sky={skyForWindow(sky, 'left')} weather={weather} view={windowView?.left} city={windowView?.city ?? true} leaves={windowView?.leaves ? LEFT_LEAVES : undefined} gust={windowView?.leaves ? LEFT_GUST : undefined} className={`${styles.window} ${styles.windowLeft}`} />
+      <PixelWindow sky={skyForWindow(sky, 'right')} weather={weather} view={windowView?.right ?? windowView?.left} city={windowView?.city ?? true} leaves={windowView?.leaves ? RIGHT_LEAVES : undefined} gust={windowView?.leaves ? RIGHT_GUST : undefined} className={`${styles.window} ${styles.windowRight}`} />
       <WallClock />
       <HangingPlant className={styles.hanging} />
       <OfficePlant weekSeconds={weekTotal} />

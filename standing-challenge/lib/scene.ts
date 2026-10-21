@@ -75,3 +75,38 @@ export function fallingLeaves(side: 'left' | 'right', count = 5): FallingLeaf[] 
     }
   })
 }
+
+/**
+ * The leaves that only exist in the gust: `flyer`s wait left of the glass and shoot across it when the
+ * wind comes; `resting` leaves lie on the sill until the same gust takes them (and new ones land).
+ * The gust itself is one shared 12 s CSS animation (Weather.module.css), so it hits both windows at once.
+ */
+export interface GustLeaf {
+  kind: 'flyer' | 'resting'
+  x: number
+  y: number
+  color: string
+}
+
+export function gustLeaves(side: 'left' | 'right'): GustLeaf[] {
+  let seed = side === 'left' ? 31 : 47
+  const rand = () => {
+    seed = (seed * 16807) % 2147483647
+    return (seed - 1) / 2147483646
+  }
+  const flyers = Array.from({ length: 3 }, (_, i): GustLeaf => ({
+    kind: 'flyer',
+    x: -6 + Math.floor(rand() * 4),
+    // one high, one in the middle, one low, so the gust fills the glass
+    y: 4 + i * 9 + Math.floor(rand() * 7),
+    color: LEAF_COLORS[Math.floor(rand() * LEAF_COLORS.length)],
+  }))
+  const resting = Array.from({ length: 2 }, (_, i): GustLeaf => ({
+    kind: 'resting',
+    // one on each pane, clear of the mullion (31–32)
+    x: (i === 0 ? 4 : 36) + Math.floor(rand() * 22),
+    y: 33,
+    color: LEAF_COLORS[Math.floor(rand() * LEAF_COLORS.length)],
+  }))
+  return [...flyers, ...resting]
+}

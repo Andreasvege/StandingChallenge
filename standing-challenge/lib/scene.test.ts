@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { ALL_YEAR, fallingLeaves, forMonth, frameSize, tileStyle } from './scene'
+import { ALL_YEAR, fallingLeaves, forMonth, frameSize, gustLeaves, tileStyle } from './scene'
 import { SKIES, WINDOW_GLASS, WINDOW_MULLION, weatherSky, windowRects } from './sky'
 import { weatherFromSymbol } from './weather'
 
@@ -96,6 +96,30 @@ describe('fallingLeaves', () => {
       expect(leaf.y).toBeGreaterThanOrEqual(2)
       expect(leaf.y).toBeLessThan(34)
       expect(leaf.offset).toBeLessThanOrEqual(leaf.duration)
+    }
+  })
+})
+
+describe('gustLeaves', () => {
+  it('is the same on every render and different in each window', () => {
+    expect(gustLeaves('left')).toEqual(gustLeaves('left'))
+    expect(gustLeaves('left')).not.toEqual(gustLeaves('right'))
+  })
+  it('has three flyers waiting left of the glass and two leaves resting on the sill', () => {
+    const leaves = gustLeaves('left')
+    const flyers = leaves.filter(l => l.kind === 'flyer')
+    const resting = leaves.filter(l => l.kind === 'resting')
+    expect(flyers).toHaveLength(3)
+    expect(resting).toHaveLength(2)
+    for (const f of flyers) {
+      expect(f.x).toBeLessThan(0)
+      expect(f.y).toBeGreaterThanOrEqual(4)
+      expect(f.y).toBeLessThanOrEqual(30)
+    }
+    for (const r of resting) {
+      expect(r.y).toBe(33)
+      expect(r.x).toBeGreaterThanOrEqual(2)
+      expect(r.x + 2).toBeLessThanOrEqual(62)
     }
   })
 })

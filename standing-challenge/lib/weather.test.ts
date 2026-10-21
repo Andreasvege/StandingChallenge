@@ -63,19 +63,40 @@ describe('precipitation', () => {
   it('is the same every time, so polling never reshuffles it', () => {
     expect(precipitation(weatherFromSymbol('snow'))).toEqual(precipitation(weatherFromSymbol('snow')))
   })
-  it('draws rain as drops, snow as flakes and sleet as both', () => {
+  it('draws rain as far drops plus drops on the pane and splashes, snow as flakes only, sleet as all of it', () => {
     const kinds = (s: string) => new Set(precipitation(weatherFromSymbol(s)).map(p => p.kind))
-    expect(kinds('rain')).toEqual(new Set(['drop']))
+    expect(kinds('rain')).toEqual(new Set(['drop', 'pane', 'splash']))
     expect(kinds('snow')).toEqual(new Set(['flake']))
-    expect(kinds('sleet')).toEqual(new Set(['drop', 'flake']))
+    expect(kinds('sleet')).toEqual(new Set(['drop', 'flake', 'pane', 'splash']))
   })
-  it('keeps every particle on the glass, and snow slower than rain', () => {
+  it('puts more drops on the pane and more splashes on the sill the harder it rains', () => {
+    const count = (s: string, kind: string) => precipitation(weatherFromSymbol(s)).filter(p => p.kind === kind).length
+    expect([count('lightrain', 'pane'), count('rain', 'pane'), count('heavyrain', 'pane')]).toEqual([3, 5, 8])
+    expect([count('lightrain', 'splash'), count('rain', 'splash'), count('heavyrain', 'splash')]).toEqual([0, 3, 6])
+    expect(count('heavysnow', 'pane')).toBe(0)
+    expect(count('heavysnow', 'splash')).toBe(0)
+  })
+  it('lands pane drops high enough to slide 12 px, and splashes on the sill', () => {
+    for (const p of precipitation(weatherFromSymbol('heavyrain'))) {
+      if (p.kind === 'pane') {
+        expect(p.y).toBeGreaterThanOrEqual(3)
+        expect(p.y + 12).toBeLessThanOrEqual(33)
+      }
+      if (p.kind === 'splash') {
+        expect(p.y).toBe(33)
+        expect(p.x).toBeGreaterThanOrEqual(3)
+        expect(p.x).toBeLessThanOrEqual(60)
+      }
+    }
+  })
+  it('keeps every particle on the glass, each kind at its own pace', () => {
+    const pace = { drop: [1, 1.5], flake: [3, 6], pane: [4, 7], splash: [1.2, 2] } as const
     for (const p of precipitation(weatherFromSymbol('heavysleet'))) {
       expect(p.x).toBeGreaterThanOrEqual(2)
       expect(p.x).toBeLessThanOrEqual(61)
       expect(p.offset).toBeLessThanOrEqual(p.duration)
-      expect(p.duration).toBeGreaterThan(p.kind === 'flake' ? 3 : 0)
-      expect(p.duration).toBeLessThan(p.kind === 'drop' ? 1 : 10)
+      expect(p.duration).toBeGreaterThanOrEqual(pace[p.kind][0])
+      expect(p.duration).toBeLessThanOrEqual(pace[p.kind][1])
     }
   })
 })

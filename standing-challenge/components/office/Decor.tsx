@@ -7,7 +7,7 @@ import { WINDOW_GLASS, WINDOW_MULLION, windowRects, type Sky } from "@/lib/sky";
 import { OUTLINE, type Rect } from "@/lib/sprite";
 import { precipitation, type Weather } from "@/lib/weather";
 import weatherStyles from "./Weather.module.css";
-import type { FallingLeaf } from "@/lib/scene";
+import type { FallingLeaf, GustLeaf } from "@/lib/scene";
 
 type R = readonly [x: number, y: number, w: number, h: number, fill: string];
 
@@ -44,6 +44,7 @@ export function PixelWindow({
   view,
   city = true,
   leaves = [],
+  gust = [],
   className,
 }: {
   sky: Sky;
@@ -52,6 +53,8 @@ export function PixelWindow({
   city?: boolean;
   /** Autumn leaves blowing past, drawn over the view like the rain. */
   leaves?: readonly FallingLeaf[];
+  /** The extra leaves of the gust: flyers that cross the glass and leaves resting on the sill. */
+  gust?: readonly GustLeaf[];
   className?: string;
 }) {
   const g = WINDOW_GLASS;
@@ -78,49 +81,65 @@ export function PixelWindow({
           }}
         />
       )}
-      {precipitation(weather).map((p, i) => (
-        <rect
-          key={i}
-          x={p.x}
-          y={p.y}
-          width="1"
-          height={p.kind === "drop" ? 3 : 1}
-          fill={p.kind === "drop" ? "#cfe0ff" : "#ffffff"}
-          opacity={p.kind === "drop" ? 0.75 : 0.95}
-          className={
-            p.kind === "drop" ? weatherStyles.drop : weatherStyles.flake
-          }
-          style={
-            {
-              "--py": p.y,
-              animationDuration: `${p.duration}s`,
-              animationDelay: `-${p.offset}s`,
-            } as CSSProperties
-          }
-        />
-      ))}
+      {precipitation(weather).map((p, i) => {
+        const clock = { "--dur": `${p.duration}s`, "--off": `-${p.offset}s` } as CSSProperties;
+        const fall = { ...clock, "--py": p.y } as CSSProperties;
+        switch (p.kind) {
+          case "drop":
+            return (
+              <g key={i} className={weatherStyles.wind} style={{ ...clock, "--w": "2px" } as CSSProperties}>
+                <rect x={p.x} y={p.y} width="1" height="2" fill="#cfe0ff" opacity={0.3} className={weatherStyles.far} style={fall} />
+              </g>
+            );
+          case "flake":
+            return <rect key={i} x={p.x} y={p.y} width="1" height="1" fill="#ffffff" opacity={0.95} className={weatherStyles.flake} style={fall} />;
+          case "pane":
+            return (
+              <g key={i} className={weatherStyles.pane} style={clock}>
+                <rect x={p.x} y={p.y - 2} width="1" height="2" fill="#e4ecff" opacity={0.45} />
+                <rect x={p.x} y={p.y} width="1" height="1" fill="#ffffff" opacity={0.95} />
+              </g>
+            );
+          case "splash":
+            return (
+              <g key={i} opacity={0.6} style={clock}>
+                <rect x={p.x} y={p.y} width="1" height="1" fill="#e3ecff" className={weatherStyles.splashA} />
+                <g className={weatherStyles.splashB}>
+                  <rect x={p.x - 1} y={p.y - 1} width="1" height="1" fill="#e3ecff" />
+                  <rect x={p.x + 1} y={p.y - 1} width="1" height="1" fill="#e3ecff" />
+                </g>
+              </g>
+            );
+        }
+      })}
       <g
         style={{
           filter: sky.outside < 1 ? `brightness(${sky.outside})` : undefined,
         }}
       >
         {leaves.map((leaf, i) => (
-          <rect
-            key={`leaf-${i}`}
-            x={leaf.x}
-            y={leaf.y}
-            width="2"
-            height="1"
-            fill={leaf.color}
-            className={weatherStyles.leaf}
-            style={
-              {
-                "--py": leaf.y,
-                animationDuration: `${leaf.duration}s`,
-                animationDelay: `-${leaf.offset}s`,
-              } as CSSProperties
-            }
-          />
+          <g key={`leaf-${i}`} className={weatherStyles.gust}>
+            <rect
+              x={leaf.x}
+              y={leaf.y}
+              width="2"
+              height="1"
+              fill={leaf.color}
+              className={weatherStyles.drift}
+              style={
+                {
+                  "--py": leaf.y,
+                  "--dur": `${leaf.duration}s`,
+                  "--off": `-${leaf.offset}s`,
+                } as CSSProperties
+              }
+            />
+          </g>
+        ))}
+        {gust.map((leaf, i) => (
+          <g key={`gust-${i}`} className={leaf.kind === "flyer" ? weatherStyles.flyer : weatherStyles.resting}>
+            <rect x={leaf.x} y={leaf.y} width="2" height="1" fill={leaf.color} />
+          </g>
         ))}
       </g>
       {weather?.thunder && (
