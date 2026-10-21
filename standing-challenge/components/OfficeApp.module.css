@@ -24,7 +24,14 @@
 .go { background: var(--yellow); color: var(--bg); box-shadow: 0 3px 0 #b8902e; }
 .progress { width: 140px; height: 8px; background: var(--bg-deep); border-radius: 99px; overflow: hidden; }
 .progress i { display: block; height: 100%; background: linear-gradient(90deg, var(--green), var(--yellow)); }
-.error { width: 100%; color: var(--pink); font-size: 13px; }
+.error { color: var(--pink); font-size: 13px; }
+/* Lines of their own under the pills (.error, .startedBy, .alreadyStood). min-width: 100% puts them on
+   a line of their own, while width: 0 keeps them out of the box's own width: a wrapping flex box sizes
+   itself as if everything sat on one line, so a full-width line would otherwise leave a wide empty
+   strip to the right of the pills. */
+.error,
+.startedBy,
+.alreadyStood { flex: 1 0 0; width: 0; min-width: 100%; }
 
 /* Leaderboards */
 .board { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 16px; padding: 20px 28px 26px; background: var(--bg-deep); }
@@ -60,8 +67,9 @@
 }
 
 /* «Startet av Even · Jeg satt egentlig» under the timer when a colleague started the round. */
-.startedBy { display: flex; flex-basis: 100%; gap: 8px; align-items: baseline; font-size: 13px; color: var(--muted); }
-.alreadyStood { display: flex; flex-basis: 100%; flex-wrap: wrap; gap: 6px; align-items: center; font-size: 13px; color: var(--muted); }
-.stoodChip { padding: 4px 10px; border: 0; border-radius: 999px; font: inherit; font-weight: 700; background: var(--panel-hi); color: var(--text); cursor: pointer; }
-.stoodChipOn { background: var(--yellow); color: var(--bg); }
+.startedBy { display: flex; gap: 8px; align-items: baseline; font-size: 13px; color: var(--muted); }
+.alreadyStood { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; font-size: 13px; color: var(--muted); }
+/* Outlined, so they never pass for the filled round pills above them. */
+.stoodChip { padding: 3px 10px; border: 2px solid var(--panel-hi); border-radius: 999px; font: inherit; font-weight: 700; background: none; color: #c9bfe8; cursor: pointer; }
+.stoodChipOn { border-color: var(--yellow); background: var(--yellow); color: var(--bg); }
 .linkButton { padding: 0; border: 0; background: none; font: inherit; font-weight: 700; color: var(--text); text-decoration: underline; cursor: pointer; }

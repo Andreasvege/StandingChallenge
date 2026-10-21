@@ -1,4 +1,3 @@
-import { useState } from 'react'
 import { formatClock } from '@/lib/format'
 import { BACKDATE_OPTIONS, ROUND_OPTIONS, type RoundMinutes } from '@/lib/sessions'
 import type { LiveEmployee } from '@/lib/snapshot'
@@ -25,7 +24,6 @@ interface MyStatusProps {
 
 export function MyStatus({ me, now, pending, error, onStart, onStop, onStandUntil, startedByName, onReject, alreadyStood = 0, onAlreadyStood }: MyStatusProps) {
   const { t } = useTranslation()
-  const [askingStood, setAskingStood] = useState(false)
 
   if (me?.session && me.phase === 'standing') {
     const { startedAt, roundEndsAt } = me.session
@@ -83,31 +81,24 @@ export function MyStatus({ me, now, pending, error, onStart, onStop, onStandUnti
           {t('status.standUntil')}
         </button>
       </span>
-      {onAlreadyStood &&
-        (askingStood || alreadyStood > 0 ? (
-          <span className={styles.alreadyStood}>
-            {t('status.alreadyStoodFor')}
-            {BACKDATE_OPTIONS.filter(m => m > 0).map(m => (
-              <button
-                key={m}
-                type="button"
-                className={m === alreadyStood ? `${styles.stoodChip} ${styles.stoodChipOn}` : styles.stoodChip}
-                aria-pressed={m === alreadyStood}
-                onClick={() => onAlreadyStood(m === alreadyStood ? 0 : m)}
-                disabled={pending}
-              >
-                {t('format.minutes', { minutes: m })}
-              </button>
-            ))}
-            <span>{alreadyStood > 0 ? t('status.alreadyStoodHint', { minutes: alreadyStood }) : ''}</span>
-          </span>
-        ) : (
-          <span className={styles.alreadyStood}>
-            <button type="button" className={styles.linkButton} onClick={() => setAskingStood(true)}>
-              {t('status.alreadyStood')}
+      {onAlreadyStood && (
+        <span className={styles.alreadyStood}>
+          {t('status.alreadyStood')}
+          {BACKDATE_OPTIONS.filter(m => m > 0).map(m => (
+            <button
+              key={m}
+              type="button"
+              className={m === alreadyStood ? `${styles.stoodChip} ${styles.stoodChipOn}` : styles.stoodChip}
+              aria-pressed={m === alreadyStood}
+              onClick={() => onAlreadyStood(m === alreadyStood ? 0 : m)}
+              disabled={pending}
+            >
+              {t('format.minutes', { minutes: m })}
             </button>
-          </span>
-        ))}
+          ))}
+          {alreadyStood > 0 && <span>{t('status.alreadyStoodHint')}</span>}
+        </span>
+      )}
       {error && <span className={styles.error}>{error}</span>}
     </div>
   )
