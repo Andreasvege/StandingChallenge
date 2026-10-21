@@ -16,12 +16,14 @@ interface PixelPersonProps {
   figure: Figure
   pose: Pose
   crown?: boolean
+  /** Last month's winner: a trophy on the desk. */
+  trophy?: boolean
   /** Screen pixels per sprite pixel. */
   scale?: number
   className?: string
 }
 
-export const PixelPerson = memo(function PixelPerson({ figure, pose, crown = false, scale = 3, className }: PixelPersonProps) {
+export const PixelPerson = memo(function PixelPerson({ figure, pose, crown = false, trophy = false, scale = 3, className }: PixelPersonProps) {
   return (
     <svg
       viewBox={`0 0 ${SPRITE_W} ${SPRITE_H}`}
@@ -31,7 +33,7 @@ export const PixelPerson = memo(function PixelPerson({ figure, pose, crown = fal
       className={className}
       aria-hidden="true"
     >
-      <Rects rects={spriteRects(figure, { pose, crown })} />
+      <Rects rects={spriteRects(figure, { pose, crown, trophy })} />
     </svg>
   )
 })

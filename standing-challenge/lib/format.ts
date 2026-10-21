@@ -20,3 +20,8 @@ export function formatClock(totalSeconds: number): string {
   const sec = String(s % 60).padStart(2, '0')
   return h > 0 ? `${h}:${String(m).padStart(2, '0')}:${sec}` : `${m}:${sec}`
 }
+
+/** «september» / «September»: the month's name (1–12) in the reader's language. */
+export function monthName(month: number, lang: Lang = DEFAULT_LANG): string {
+  return new Intl.DateTimeFormat(lang === 'en' ? 'en-GB' : 'nb-NO', { month: 'long', timeZone: 'UTC' }).format(Date.UTC(2026, month - 1, 15))
+}

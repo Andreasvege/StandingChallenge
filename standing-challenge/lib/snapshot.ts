@@ -5,6 +5,7 @@ import type { Cheer } from './cheers'
 import type { Figure } from './figure'
 import { creditedSecondsBetween, phaseAt, type StandSession } from './sessions'
 import { osloDayStart, osloNextDayStart, osloWeekStart } from './time'
+import type { Trophy } from './trophy'
 import type { Weather } from './weather'
 
 export interface EmployeeRow {
@@ -53,6 +54,8 @@ export interface OfficeSnapshot {
   cheers: Cheer[]
   /** The weather at the office from MET (lib/yr.ts); missing when MET can't be reached. */
   weather?: Weather
+  /** Vandrepokalen: last month's winner (lib/trophy.ts); missing when nobody stood last month. */
+  trophy?: Trophy | null
 }
 
 export function buildSnapshot(

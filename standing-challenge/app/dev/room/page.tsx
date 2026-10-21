@@ -25,6 +25,7 @@ export default async function DevRoomPage({ searchParams }: { searchParams: Prom
         leaderId={room.leaderId}
         now={room.now}
         cheers={room.cheers}
+        trophy={room.trophy}
         month={month === undefined ? undefined : Number(month)}
         weather={weather === undefined ? undefined : weatherFromSymbol(weather)}
       />

@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { useTranslation } from '@/components/useLang'
 import { cheerOptions } from '@/lib/cheers'
-import { formatDuration } from '@/lib/format'
+import { formatDuration, monthName } from '@/lib/format'
 import { PROXY_BACKDATE_OPTIONS, PROXY_ROUND_MINUTES } from '@/lib/sessions'
 import type { LiveEmployee } from '@/lib/snapshot'
 import styles from './OfficeRoom.module.css'
@@ -16,13 +16,15 @@ interface CheerMenuProps {
   onSitDown?: (toId: string) => void
   /** «Start for en kollega»: a short round for someone standing without the timer, reaching back `backMinutes`. */
   onStartFor?: (toId: string, backMinutes: number) => void
+  /** They hold the trophy: the month (1–12) they won. */
+  trophyMonth?: number | null
 }
 
 /**
  * What opens when you tap a colleague — at a desk and on the wall screen alike: today's total,
  * heiarop to send, and for an admin a way to sit down somebody who left with the timer running.
  */
-export function CheerMenu({ employee: e, standing, isMe, onCheer, onSitDown, onStartFor }: CheerMenuProps) {
+export function CheerMenu({ employee: e, standing, isMe, onCheer, onSitDown, onStartFor, trophyMonth = null }: CheerMenuProps) {
   const { lang, t } = useTranslation()
   // Two steps, like removing a colleague in the figure builder: a mis-tap must not end someone's round.
   const [armed, setArmed] = useState(false)
@@ -34,6 +36,7 @@ export function CheerMenu({ employee: e, standing, isMe, onCheer, onSitDown, onS
 
   return (
     <div className={styles.cheerMenu} role="dialog" aria-label={canCheer ? t('room.cheerMenu', { name: e.name }) : e.name}>
+      {trophyMonth !== null && <span className={styles.trophyLine}>{t('room.trophy', { month: monthName(trophyMonth, lang) })}</span>}
       <span>{t('room.todayIs', { name: e.name, duration: formatDuration(e.todaySeconds, lang) })}</span>
       {canCheer && onCheer && (
         <span className={styles.emojis}>

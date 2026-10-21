@@ -48,6 +48,7 @@
   "alert.body": "Du har stått i {minutes} min 🎉 Én runde til?",
 
   "room.cheerMenu": "Heiarop til {name}",
+  "room.trophy": "🏆 Vant {month}",
   "room.todayIs": "{name} · i dag {duration}",
   "room.sendCheer": "Send {emoji} til {name}",
   "room.nudgeHint": "⬆️ = «reis deg!»",

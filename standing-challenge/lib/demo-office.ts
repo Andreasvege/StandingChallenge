@@ -5,7 +5,8 @@ import type { Cheer } from './cheers'
 import type { Figure } from './figure'
 import type { RoundMinutes } from './sessions'
 import { buildSnapshot, liveEmployee, type EmployeeRow, type LiveEmployee, type OfficeSnapshot, type SessionRow } from './snapshot'
-import { osloDayStart } from './time'
+import { osloDayStart, osloParts, osloPrevMonthStart } from './time'
+import type { Trophy } from './trophy'
 
 export interface DemoPerson {
   name: string
@@ -90,11 +91,13 @@ export function demoSnapshot(now: number, grace = 5 * MIN): OfficeSnapshot {
  * Everything <OfficeRoom> needs to show the demo office right now (or at `hour` o'clock Oslo time today).
  * Reads the clock here rather than in page components, which must stay pure (react-hooks/purity).
  */
-export function demoRoom(hour?: number, withCheer = false): { employees: LiveEmployee[]; leaderId: string | null; now: number; cheers: Cheer[] } {
+export function demoRoom(hour?: number, withCheer = false): { employees: LiveEmployee[]; leaderId: string | null; now: number; cheers: Cheer[]; trophy: Trophy } {
   const clock = Date.now()
   const now = hour === undefined || Number.isNaN(hour) ? clock : osloDayStart(clock) + hour * 3_600_000
   const snap = demoSnapshot(now)
   // /dev/room?cheer=1 shows Emma cheering on Even, to preview the floating emoji.
   const cheers: Cheer[] = withCheer ? [{ id: 'demo-cheer', fromId: 'emma@thebrave.no', toId: 'even@thebrave.no', emoji: '🔥', at: now - 500 }] : []
-  return { employees: snap.employees.map(e => liveEmployee(e, now, now, snap.graceMs)), leaderId: snap.leaderId, now, cheers }
+  // Mina won last month in the demo, so the trophy shows on a desk other than the crowned leader's.
+  const trophy: Trophy = { employeeId: 'mina@thebrave.no', month: osloParts(osloPrevMonthStart(now)).month }
+  return { employees: snap.employees.map(e => liveEmployee(e, now, now, snap.graceMs)), leaderId: snap.leaderId, now, cheers, trophy }
 }

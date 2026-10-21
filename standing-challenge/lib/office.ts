@@ -6,7 +6,8 @@ import { cheers, employees, standSessions, type CheerRecord, type EmployeeRecord
 import { CHEER_SHOW_MS, type Cheer } from './cheers'
 import { currentGraceMs } from './clock-config'
 import { buildSnapshot, type EmployeeRow, type OfficeSnapshot, type SessionRow } from './snapshot'
-import { osloWeekStart } from './time'
+import { osloMonthStart, osloPrevMonthStart, osloWeekStart } from './time'
+import { lastMonthTrophy, type Trophy } from './trophy'
 import { loadWeather } from './yr'
 
 export function toEmployeeRow(e: EmployeeRecord): EmployeeRow {
@@ -38,11 +39,25 @@ export async function closeExpiredSessions(now: number, grace: number): Promise<
     .where(and(isNull(standSessions.endedAt), lt(standSessions.roundEndsAt, new Date(now - grace))))
 }
 
+/** Last month's winner. Rounds that touch last month: started before this month, ended (if at all) after last began. */
+async function loadTrophy(now: number): Promise<Trophy | null> {
+  const rows = await db
+    .select()
+    .from(standSessions)
+    .where(
+      and(
+        lt(standSessions.startedAt, new Date(osloMonthStart(now))),
+        or(isNull(standSessions.endedAt), gte(standSessions.endedAt, new Date(osloPrevMonthStart(now)))),
+      ),
+    )
+  return lastMonthTrophy(rows.map(toSessionRow), now)
+}
+
 export async function loadOfficeSnapshot(now = Date.now()): Promise<OfficeSnapshot> {
   const grace = currentGraceMs()
   await closeExpiredSessions(now, grace)
   const weekStart = new Date(osloWeekStart(now))
-  const [employeeRows, sessionRows, cheerRows, weather] = await Promise.all([
+  const [employeeRows, sessionRows, cheerRows, weather, trophy] = await Promise.all([
     db.select().from(employees),
     db
       .select()
@@ -54,7 +69,8 @@ export async function loadOfficeSnapshot(now = Date.now()): Promise<OfficeSnapsh
       .where(gte(cheers.createdAt, new Date(now - CHEER_SHOW_MS)))
       .orderBy(asc(cheers.createdAt)),
     loadWeather(now),
+    loadTrophy(now),
   ])
   const snapshot = buildSnapshot(employeeRows.map(toEmployeeRow), sessionRows.map(toSessionRow), now, grace, cheerRows.map(toCheer))
-  return { ...snapshot, weather }
+  return { ...snapshot, weather, trophy }
 }

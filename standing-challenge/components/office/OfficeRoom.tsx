@@ -8,6 +8,7 @@ import { formatDuration } from '@/lib/format'
 import { DESKTOP_MAX_PER_ROW, MOBILE_MAX_PER_ROW, ROOM_LAYERS, balancedRows, roomMetrics, rowStyles, rowZIndex, type RowStyle } from '@/lib/room-layout'
 import { forMonth, tileStyle } from '@/lib/scene'
 import { SKIES, skyForWindow, skyPhase, weatherSky } from '@/lib/sky'
+import type { Trophy } from '@/lib/trophy'
 import type { LiveEmployee } from '@/lib/snapshot'
 import { osloHour, osloParts } from '@/lib/time'
 import type { Weather } from '@/lib/weather'
@@ -35,6 +36,8 @@ interface OfficeRoomProps {
   onSitDown?: (toId: string) => void
   /** Start a short round for a colleague who is standing without the timer. */
   onStartFor?: (toId: string, backMinutes: number) => void
+  /** Vandrepokalen: last month's winner, with a trophy on their desk. */
+  trophy?: Trophy | null
   /** The weather at the office, shown in the windows. */
   weather?: Weather
   /** Dev preview only: pretend it is this month (1–12) for the seasonal art. */
@@ -47,7 +50,7 @@ interface OfficeRoomProps {
  * somewhere else hang on the wall as video screens. Both layouts are rendered and CSS shows one,
  * so the row geometry is handed over as custom properties.
  */
-export function OfficeRoom({ employees, leaderId, now, meId = null, cheers = [], onCheer, onSitDown, onStartFor, month, weather }: OfficeRoomProps) {
+export function OfficeRoom({ employees, leaderId, now, meId = null, cheers = [], onCheer, onSitDown, onStartFor, month, weather, trophy }: OfficeRoomProps) {
   const [openId, setOpenId] = useState<string | null>(null)
   const [factOpen, setFactOpen] = useState(false)
   const remotePeople = employees.filter(e => e.remoteFrom)
@@ -146,6 +149,7 @@ export function OfficeRoom({ employees, leaderId, now, meId = null, cheers = [],
                 employee={e}
                 scale={row.scale}
                 isLeader={e.id === leaderId}
+                trophyMonth={trophy?.employeeId === e.id ? trophy.month : null}
                 isMe={e.id === meId}
                 open={openId === e.id}
                 compact={compact}
@@ -229,9 +233,11 @@ interface SeatProps {
   onCheer?: (toId: string, emoji: string) => void
   onSitDown?: (toId: string) => void
   onStartFor?: (toId: string, backMinutes: number) => void
+  /** The month they won, when they hold the trophy. */
+  trophyMonth: number | null
 }
 
-function Seat({ employee: e, scale, isLeader, isMe, open, compact, floats, onToggle, onCheer, onSitDown, onStartFor }: SeatProps) {
+function Seat({ employee: e, scale, isLeader, isMe, open, compact, floats, onToggle, onCheer, onSitDown, onStartFor, trophyMonth }: SeatProps) {
   const { lang, t } = useTranslation()
   const standing = e.phase !== 'sitting'
   const tone: BubbleTone =
@@ -244,7 +250,7 @@ function Seat({ employee: e, scale, isLeader, isMe, open, compact, floats, onTog
   else label = standing ? `${name} · ${info}` : `${name} ${info}`
   return (
     <div className={classes} style={{ '--s': scale } as CSSProperties} data-seat>
-      {open && <CheerMenu employee={e} standing={standing} isMe={isMe} onCheer={onCheer} onSitDown={onSitDown} onStartFor={onStartFor} />}
+      {open && <CheerMenu employee={e} standing={standing} isMe={isMe} onCheer={onCheer} onSitDown={onSitDown} onStartFor={onStartFor} trophyMonth={trophyMonth} />}
       {floats.map((c, i) => (
         <span key={c.id} className={styles.float} style={{ marginLeft: i * 18 }} aria-hidden="true">
           {c.emoji}
@@ -258,7 +264,7 @@ function Seat({ employee: e, scale, isLeader, isMe, open, compact, floats, onTog
         title={t('room.seatTitle', { name: e.name, duration: formatDuration(e.todaySeconds, lang) })}
       >
         <Bubble tone={tone}>{label}</Bubble>
-        <PixelPerson figure={e.figure} pose={standing ? 'stand' : 'sit'} crown={isLeader} scale={scale} />
+        <PixelPerson figure={e.figure} pose={standing ? 'stand' : 'sit'} crown={isLeader} trophy={trophyMonth !== null} scale={scale} />
       </button>
     </div>
   )

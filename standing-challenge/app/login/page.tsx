@@ -31,7 +31,7 @@ export default async function LoginPage({ searchParams }: { searchParams: Promis
   return (
     <main className={styles.page}>
       <div className={styles.backdrop} aria-hidden="true">
-        <OfficeRoom employees={room.employees} leaderId={room.leaderId} now={room.now} />
+        <OfficeRoom employees={room.employees} leaderId={room.leaderId} now={room.now} trophy={room.trophy} />
       </div>
       <LoginCard error={error} isDev={isDev} loginWithGoogle={loginWithGoogle} devLogin={devLogin} />
     </main>

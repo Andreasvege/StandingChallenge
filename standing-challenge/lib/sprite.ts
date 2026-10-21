@@ -10,6 +10,8 @@ export interface Rect { x: number; y: number; w: number; h: number; fill: string
 export interface SpriteOptions {
   pose: Pose
   crown?: boolean
+  /** Vandrepokalen: last month's winner has a gold trophy on the desk in place of their desk item. */
+  trophy?: boolean
   /** Leave the desk bare – used for the drawing template in sprites/mal/. */
   hideDeskItem?: boolean
 }
@@ -18,6 +20,8 @@ export const SPRITE_W = 40
 export const SPRITE_H = 48
 export const OUTLINE = '#120d22'
 export const CROWN = '#ffd166'
+const GOLD_DARK = '#d99a2b'
+const GOLD_LIGHT = '#fff1b8'
 export const LENS = '#d4f1ff'
 /** The part of the standing sprite that shows just the head (avatars, favicon). Aspect ratio 18:21. */
 export const HEAD_BOX = { x: 3, y: 4, w: 18, h: 21 } as const
@@ -106,7 +110,22 @@ function painter() {
 }
 type Painter = ReturnType<typeof painter>
 
-function desk({ r, o, art }: Painter, top: number, item: DeskItem | null, laptopOpen: boolean) {
+/** A gold cup with one handle, standing where the desk item would (right of the laptop screen). */
+function trophyOnDesk({ r, o }: Painter, top: number) {
+  const b = top - 2 // the bottom row, resting on the desk's outline
+  r(37, b - 7, 3, 4, OUTLINE) // the handle's outline, under the cup's
+  r(38, b - 6, 1, 2, GOLD_DARK)
+  o(32, b - 7, 5, 4, CROWN) // the cup
+  r(33, b - 6, 1, 2, GOLD_LIGHT) // shine
+  r(32, b - 4, 5, 1, GOLD_DARK)
+  r(33, b - 3, 3, 2, OUTLINE) // the stem
+  r(34, b - 3, 1, 1, GOLD_DARK)
+  o(32, b - 1, 5, 2, CROWN) // the foot
+  r(32, b, 5, 1, GOLD_DARK)
+}
+
+function desk(p: Painter, top: number, item: DeskItem | null, laptopOpen: boolean, trophy = false) {
+  const { r, o, art } = p
   r(22, top + 3, 2, 46 - (top + 3), METAL)
   r(34, top + 3, 2, 46 - (top + 3), METAL)
   r(21, 46, 4, 1, OUTLINE)
@@ -120,6 +139,7 @@ function desk({ r, o, art }: Painter, top: number, item: DeskItem | null, laptop
   } else {
     r(23, top - 3, 8, 2, LAPTOP)
   }
+  if (trophy) return trophyOnDesk(p, top)
   if (item === null) return
   const drawn = DESK_ART.find(a => a.id === item)
   if (drawn) {
@@ -244,13 +264,13 @@ function head(p: Painter, f: Figure, x: number, y: number, awake: boolean, crown
 }
 
 /** A person at their desk: standing at a raised desk, or dozing on a chair at a lowered one. */
-export function spriteRects(f: Figure, { pose, crown = false, hideDeskItem = false }: SpriteOptions): Rect[] {
+export function spriteRects(f: Figure, { pose, crown = false, trophy = false, hideDeskItem = false }: SpriteOptions): Rect[] {
   const p = painter()
   const { r, o } = p
   const shirtShade = shade(f.shirt)
   const item = hideDeskItem ? null : f.deskItem
   if (pose === 'stand') {
-    desk(p, DESK_TOP.stand, item, true)
+    desk(p, DESK_TOP.stand, item, true, trophy)
     o(11, 34, 2, 12, PANTS)
     o(15, 34, 2, 12, PANTS)
     r(11, 46, 3, 1, OUTLINE)
@@ -261,7 +281,7 @@ export function spriteRects(f: Figure, { pose, crown = false, hideDeskItem = fal
     r(21, 24, 2, 2, f.skin)
     head(p, f, FACE.stand.x, FACE.stand.y, true, crown)
   } else {
-    desk(p, DESK_TOP.sit, item, true)
+    desk(p, DESK_TOP.sit, item, true, trophy)
     chair(p)
     o(18, 38, 3, 8, PANTS)
     r(18, 46, 4, 1, OUTLINE)

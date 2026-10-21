@@ -129,6 +129,9 @@
 .emojis button:hover { background: #4d4180; }
 .menuHint { font-size: 10px; color: var(--muted); }
 
+/* «🏆 Vant september» at the top of the trophy holder's menu. */
+.trophyLine { font-weight: 700; color: var(--yellow); }
+
 /* «Start for en kollega»: the yellow «go» colour of the round pills, since it starts one. */
 .startFor {
   padding: 5px 12px;

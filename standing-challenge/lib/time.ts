@@ -70,6 +70,18 @@ export function osloNextDayStart(ms: number): number {
   return osloMidnightOf(p.year, p.month, p.day + 1)
 }
 
+/** The 1st, 00:00 Oslo time, of the month containing `ms`. */
+export function osloMonthStart(ms: number): number {
+  const p = osloParts(ms)
+  return osloMidnightOf(p.year, p.month, 1)
+}
+
+/** The 1st, 00:00 Oslo time, of the month before the one containing `ms` (December for January). */
+export function osloPrevMonthStart(ms: number): number {
+  const p = osloParts(ms)
+  return osloMidnightOf(p.year, p.month - 1, 1)
+}
+
 /** Monday 00:00 Oslo time of the week containing `ms`. */
 export function osloWeekStart(ms: number): number {
   const p = osloParts(ms)

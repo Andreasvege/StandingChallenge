@@ -48,6 +48,7 @@
   "alert.body": "You have stood for {minutes} min 🎉 One more round?",
 
   "room.cheerMenu": "Cheer for {name}",
+  "room.trophy": "🏆 Won {month}",
   "room.todayIs": "{name} · today {duration}",
   "room.sendCheer": "Send {emoji} to {name}",
   "room.nudgeHint": "⬆️ = “stand up!”",
