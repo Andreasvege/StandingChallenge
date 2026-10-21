@@ -6,6 +6,7 @@
 
 import type { StaticImageData } from 'next/image'
 import type { Seasonal } from '@/lib/scene'
+import gresskar from '@/sprites/scene/gresskar.png'
 import høsttrær from '@/sprites/scene/høsttrær.png'
 
 /**
@@ -32,3 +33,36 @@ export const WALL_TILES: Tile[] = [
 ]
 
 export const FLOOR_TILES: Tile[] = []
+
+/**
+ * Where one copy of a windowsill prop stands: on the sill of the left or right window, `x` percent
+ * in from the window's left edge, `scale` screen pixels per drawn pixel (whole numbers only, so the
+ * pixels stay even) and optionally mirrored. The sill moves and shrinks with the window, so props
+ * there never run into a desk, however wide the room or however many rows it has.
+ */
+export interface SillSpot {
+  window: 'left' | 'right'
+  x: number
+  scale: number
+  flip?: boolean
+}
+
+/** Things standing on the windowsills. Unlike the lists above, every prop for the month is shown. */
+export interface SillProp extends Seasonal {
+  art: StaticImageData
+  spots: SillSpot[]
+}
+
+export const SILL_PROPS: SillProp[] = [
+  {
+    art: gresskar,
+    months: [10],
+    // In the gaps between the autumn trees (høsttrær.png), so the pumpkins don't hide them.
+    spots: [
+      { window: 'left', x: 10, scale: 3 },
+      { window: 'left', x: 66, scale: 2, flip: true },
+      { window: 'right', x: 13, scale: 2 },
+      { window: 'right', x: 66, scale: 3, flip: true },
+    ],
+  },
+]

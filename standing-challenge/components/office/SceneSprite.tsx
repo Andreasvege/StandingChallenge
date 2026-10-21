@@ -11,12 +11,14 @@ interface Props {
   frames?: number
   /** Frames per second for an animated strip. */
   fps?: number
+  /** Screen pixels per drawn pixel; keep it a whole number so every pixel stays the same size. */
+  scale?: number
   className?: string
   style?: CSSProperties
 }
 
-export function SceneSprite({ art, frames = 1, fps = 4, className, style }: Props) {
-  const { w, h } = frameSize(art.width, art.height, frames)
+export function SceneSprite({ art, frames = 1, fps = 4, scale, className, style }: Props) {
+  const { w, h } = frameSize(art.width, art.height, frames, scale)
   if (frames === 1) {
     // eslint-disable-next-line @next/next/no-img-element -- next/image would resample the pixels
     return <img src={art.src} width={w} height={h} alt="" aria-hidden="true" className={`${styles.sprite} ${className ?? ''}`} style={style} />
