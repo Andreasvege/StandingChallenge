@@ -29,18 +29,23 @@
 .windowRight { left: 58%; }
 /* This month's floor props (scene-art.ts FLOOR_PROPS), standing in the gaps between the front desks. */
 .floorProp { position: absolute; bottom: 0; pointer-events: none; transform: translateX(-50%) scaleX(var(--flip, 1)); }
-/* The lit lantern's light, centred on it and fading out softly, flickering with the flame (SceneSprite .flicker). */
+/* The lit lantern's light, centred on it and fading out softly. It breathes slowly and unevenly — a
+   little stronger, a little weaker — rather than flickering. */
 .glow {
   position: absolute;
   pointer-events: none;
   transform: translateX(-50%);
   background: radial-gradient(closest-side, #ffcc6299 0%, #ffb24a4d 45%, #ffa03a00 100%);
   mix-blend-mode: screen;
-  animation: glow 2.3s step-end infinite;
+  animation: glow 11s ease-in-out infinite;
 }
 @keyframes glow {
-  0%, 31%, 36%, 63%, 66%, 70%, 88%, 92% { opacity: 1; }
-  29%, 34%, 61%, 64%, 68%, 86%, 90% { opacity: 0.5; }
+  0%, 100% { opacity: 0.85; transform: translateX(-50%) scale(1); }
+  18% { opacity: 1; transform: translateX(-50%) scale(1.04); }
+  34% { opacity: 0.78; transform: translateX(-50%) scale(0.98); }
+  52% { opacity: 0.92; transform: translateX(-50%) scale(1.02); }
+  66% { opacity: 0.72; transform: translateX(-50%) scale(0.97); }
+  84% { opacity: 1; transform: translateX(-50%) scale(1.05); }
 }
 @media (prefers-reduced-motion: reduce) { .glow { animation: none; } }
 /* The clock is also the way into the work timer, so it carries a label and is centred on the wall

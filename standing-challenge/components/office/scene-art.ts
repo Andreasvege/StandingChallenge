@@ -62,8 +62,7 @@ export interface FloorSpot {
 
 /**
  * Things standing on the floor between the desks. Unlike the lists above, every prop for the month
- * is shown. `lit` is a two-frame strip (lit, then a dip) shown instead of `art` once it is dark
- * outside, flickering like a candle.
+ * is shown. `lit` is shown instead of `art` once it is dark outside, with a soft glow round it.
  */
 export interface FloorProp extends Seasonal {
   art: StaticImageData
@@ -108,7 +107,7 @@ export const FLOOR_PROPS: FloorProp[] = [
     ],
   },
   // The jack-o'-lanterns: by day Andreas' newer face; from sunset (the hours the city's windows used
-  // to light up) the older one, flickering between his lit drawing and the same face unlit.
+  // to light up) his older lit drawing, glowing.
   {
     art: lykt,
     lit: lyktTent,

@@ -1,10 +1,4 @@
 .sprite { display: block; image-rendering: pixelated; }
 .strip { background-size: var(--strip-w) 100%; background-repeat: no-repeat; animation-name: flip; animation-iteration-count: infinite; }
 @keyframes flip { to { background-position-x: calc(-1 * var(--strip-w)); } }
-/* A candle: the first frame most of the time, the second in short, uneven dips. */
-.flicker { animation-name: flicker; animation-duration: 2.3s; animation-timing-function: step-end; }
-@keyframes flicker {
-  0%, 31%, 36%, 63%, 66%, 70%, 88%, 92% { background-position-x: 0; }
-  29%, 34%, 61%, 64%, 68%, 86%, 90% { background-position-x: calc(-0.5 * var(--strip-w)); }
-}
 @media (prefers-reduced-motion: reduce) { .strip { animation: none; } }

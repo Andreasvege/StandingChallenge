@@ -13,13 +13,11 @@ interface Props {
   fps?: number
   /** Screen pixels per drawn pixel; keep it a whole number so every pixel stays the same size. */
   scale?: number
-  /** A two-frame strip that mostly holds the first frame and dips to the second at uneven moments, like a candle. */
-  flicker?: boolean
   className?: string
   style?: CSSProperties
 }
 
-export function SceneSprite({ art, frames = 1, fps = 4, scale, flicker = false, className, style }: Props) {
+export function SceneSprite({ art, frames = 1, fps = 4, scale, className, style }: Props) {
   const { w, h } = frameSize(art.width, art.height, frames, scale)
   if (frames === 1) {
     // eslint-disable-next-line @next/next/no-img-element -- next/image would resample the pixels
@@ -28,7 +26,7 @@ export function SceneSprite({ art, frames = 1, fps = 4, scale, flicker = false, 
   return (
     <div
       aria-hidden="true"
-      className={`${styles.sprite} ${styles.strip} ${flicker ? styles.flicker : ''} ${className ?? ''}`}
+      className={`${styles.sprite} ${styles.strip} ${className ?? ''}`}
       style={
         {
           ...style,
@@ -36,7 +34,8 @@ export function SceneSprite({ art, frames = 1, fps = 4, scale, flicker = false, 
           height: h,
           backgroundImage: `url(${art.src})`,
           '--strip-w': `${w * frames}px`,
-          ...(flicker ? {} : { animationTimingFunction: `steps(${frames})`, animationDuration: `${frames / fps}s` }),
+          animationTimingFunction: `steps(${frames})`,
+          animationDuration: `${frames / fps}s`,
         } as CSSProperties
       }
     />

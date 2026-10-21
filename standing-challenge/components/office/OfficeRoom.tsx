@@ -175,11 +175,13 @@ export function OfficeRoom({ employees, leaderId, now, meId = null, cheers = [],
               return (
                 <Fragment key={`prop-${i}-${j}`}>
                   {lit && (
-                    // Soft warm light round a lit lantern, centred on it and flickering with the flame.
+                    // Soft warm light round a lit lantern, centred on it, slowly growing and fading. Each
+                    // lantern starts at a different point of the cycle so they don't breathe in step.
                     <span
                       className={styles.glow}
                       style={{
                         left,
+                        animationDelay: `-${((i * 3 + j) * 2.9) % 11}s`,
                         width: prop.art.width * scale * 2.4,
                         height: prop.art.height * scale * 1.8,
                         bottom: (prop.art.height * scale * (1 - 1.8)) / 2,
@@ -187,7 +189,7 @@ export function OfficeRoom({ employees, leaderId, now, meId = null, cheers = [],
                     />
                   )}
                   <SceneSprite
-                    {...(lit ? { art: prop.lit!, frames: 2, flicker: true } : { art: prop.art })}
+                    art={lit ? prop.lit! : prop.art}
                     // Phone gaps are narrower: one step smaller.
                     scale={scale}
                     className={styles.floorProp}
