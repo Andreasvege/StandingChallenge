@@ -6,6 +6,7 @@
 
 import type { StaticImageData } from 'next/image'
 import type { Seasonal } from '@/lib/scene'
+import høsttrær from '@/sprites/scene/høsttrær.png'
 
 /**
  * What is seen through the windows, drawn over the sky and city: 60×32 with a transparent
@@ -22,8 +23,8 @@ export interface Tile extends Seasonal {
 }
 
 export const WINDOW_VIEWS: WindowView[] = [
-  // { left: høstVenstre, right: høstHøyre, months: [9, 10, 11] },
-  //   ← with `import høstVenstre from '@/sprites/scene/høst-venstre.png'` (and høyre) at the top
+  // Orange trees in front of the city, drawn on vindu-mal.png; the same drawing serves both windows.
+  { left: høsttrær, months: [9, 10, 11] },
 ]
 
 export const WALL_TILES: Tile[] = [

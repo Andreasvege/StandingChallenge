@@ -15,8 +15,8 @@ export function skyPhase(osloHour: number): SkyPhase {
 export interface Sky {
   /** Five horizontal colour bands, top to bottom (the window viewBox is 64×36). */
   bands: [string, string, string, string, string]
-  /** Top-left corner of the 8×8 sun or moon inside the window. */
-  body: { kind: 'sun' | 'moon'; x: number; y: number; color: string }
+  /** Top-left corner of the 8×8 sun or moon inside the window. `core` paints a warmer middle on the sun. */
+  body: { kind: 'sun' | 'moon'; x: number; y: number; color: string; core?: string }
   stars: boolean
   /** Lit windows in the city silhouette. */
   litWindows: boolean
@@ -40,7 +40,7 @@ export const SKIES: Record<SkyPhase, Sky> = {
   },
   day: {
     bands: ['#6fb6ff', '#83c2ff', '#9dcfff', '#b8dcff', '#d4ebff'],
-    body: { kind: 'sun', x: 44, y: 5, color: '#fff9d6' },
+    body: { kind: 'sun', x: 44, y: 5, color: '#fff9d6', core: '#ffd166' },
     stars: false,
     litWindows: false,
     cloud: '#ffffff',
@@ -77,7 +77,16 @@ const BAND_H = [7, 6, 6, 6, 7]
 const CITY = [[2, 27, 5, 7], [7, 24, 4, 10], [11, 29, 6, 5], [17, 25, 5, 9], [22, 28, 7, 6], [34, 27, 5, 7], [39, 29, 4, 5], [43, 23, 5, 11], [48, 28, 6, 6], [54, 25, 8, 9]] as const
 const LIT = [[8, 26], [18, 27], [24, 30], [44, 25], [46, 28], [56, 27]] as const
 const STARS = [[4, 4], [24, 3], [58, 3], [14, 8], [38, 6], [60, 11]] as const
-const CLOUDS = [[8, 7, 10, 2], [10, 5, 5, 2], [36, 11, 8, 2], [38, 9, 3, 2]] as const
+// Redrawn by Andreas on the window template (sprites/mal/Vindu_mal2.png): more and fuller clouds.
+const CLOUDS = [
+  [10, 5, 5, 2], [7, 7, 11, 2],
+  [23, 9, 4, 2], [19, 11, 10, 2],
+  [37, 11, 5, 2], [34, 13, 10, 2],
+  [60, 8, 2, 1], [58, 9, 4, 2],
+  [2, 12, 1, 1], [2, 13, 2, 1], [2, 14, 4, 2],
+] as const
+/** The sun's warm middle, as [x, y, width] rows from the body's top-left corner. */
+const SUN_CORE = [[3, 1, 2], [2, 2, 4], [1, 3, 6], [1, 4, 6], [2, 5, 4], [3, 6, 2]] as const
 
 /** Everything seen through the glass – sky, sun or moon, clouds and city – back to front, without frame or mullion. */
 export function windowRects(sky: Sky): Rect[] {
@@ -91,6 +100,7 @@ export function windowRects(sky: Sky): Rect[] {
       : [
           { x: body.x + 1, y: body.y, w: 6, h: 8, fill: body.color },
           { x: body.x, y: body.y + 1, w: 8, h: 6, fill: body.color },
+          ...(body.kind === 'sun' && body.core ? SUN_CORE.map(([x, y, w]) => ({ x: body.x + x, y: body.y + y, w, h: 1, fill: body.core! })) : []),
           ...(body.kind === 'moon' ? [px(body.x + 2, body.y + 2, '#d9d3f0'), { x: body.x + 5, y: body.y + 4, w: 2, h: 1, fill: '#d9d3f0' }] : []),
         ]),
     ...CLOUDS.map(([x, y, w, h]) => ({ x, y, w, h, fill: sky.cloud })),
