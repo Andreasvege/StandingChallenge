@@ -32,6 +32,8 @@ export function OfficeApp({ initial, meId, isAdmin }: OfficeAppProps) {
   const [pending, startTransition] = useTransition()
   const [error, setError] = useState<string | null>(null)
   const [standUntilOpen, setStandUntilOpen] = useState(false)
+  // «Har du stått en stund allerede?»: minutes to count from before the next start, then back to 0.
+  const [alreadyStood, setAlreadyStood] = useState(0)
 
   const live = useMemo(
     () => snapshot.employees.map(e => liveEmployee(e, snapshot.now, now, snapshot.graceMs)),
@@ -61,7 +63,9 @@ export function OfficeApp({ initial, meId, isAdmin }: OfficeAppProps) {
   function start(minutes: number) {
     warmUpAudio() // unlock audio from this click so the pling can play when the round ends
     void requestNotificationPermission()
-    run(() => startStanding(minutes, lang))
+    const back = alreadyStood
+    setAlreadyStood(0)
+    run(() => startStanding(minutes, lang, back))
   }
 
   function cheer(toId: string, emoji: string) {
@@ -118,6 +122,8 @@ export function OfficeApp({ initial, meId, isAdmin }: OfficeAppProps) {
           onStart={start}
           onStop={() => run(() => stopStanding(lang))}
           onStandUntil={() => setStandUntilOpen(true)}
+          alreadyStood={alreadyStood}
+          onAlreadyStood={setAlreadyStood}
           startedByName={startedByName}
           onReject={() => run(() => rejectStartedForMe(lang))}
         />

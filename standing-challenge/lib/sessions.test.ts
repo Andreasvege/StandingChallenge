@@ -2,7 +2,7 @@ import { describe, it, expect } from 'vitest'
 import {
   isRoundMinutes, isValidRoundMinutes, MAX_ROUND_MINUTES, minutesUntil, nextHalfHour, ROUND_OPTIONS,
   minuteMs, graceMs, phaseAt, creditedSeconds, creditedSecondsBetween, graceSecondsLeft,
-  planStart, planExtend, planStop, planAdminStop, planExpire, planProxyStart, isProxyBackdate, type StandSession,
+  planStart, planExtend, planStop, planAdminStop, planExpire, planProxyStart, isBackdate, type StandSession,
 } from './sessions'
 
 const MIN = 60_000
@@ -207,8 +207,21 @@ describe('start for a colleague', () => {
   })
 
   it('only offers the listed backdates', () => {
-    expect(isProxyBackdate(30)).toBe(true)
-    expect(isProxyBackdate(45)).toBe(false)
-    expect(isProxyBackdate('10')).toBe(false)
+    expect(isBackdate(30)).toBe(true)
+    expect(isBackdate(45)).toBe(false)
+    expect(isBackdate('10')).toBe(false)
+  })
+})
+
+describe('planStart with minutes already stood', () => {
+  const now = T0
+  const M = MIN
+  it('moves the start back and still runs the whole round from now', () => {
+    expect(planStart(now, 30, M, 10, null)).toEqual({ startedAt: now - 10 * M, roundMinutes: 30, roundEndsAt: now + 30 * M })
+    expect(planStart(now, 30, M)).toEqual({ startedAt: now, roundMinutes: 30, roundEndsAt: now + 30 * M })
+  })
+  it('never reaches back into a round that is already credited', () => {
+    expect(planStart(now, 60, M, 30, now - 12 * M).startedAt).toBe(now - 12 * M)
+    expect(planStart(now, 60, M, 20, now + M).startedAt).toBe(now)
   })
 })

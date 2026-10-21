@@ -94,8 +94,17 @@ export function graceSecondsLeft(s: StandSession, now: number, grace: number): n
   return Math.max(0, Math.ceil((s.roundEndsAt + grace - now) / 1000))
 }
 
-export function planStart(now: number, minutes: number, minute: number) {
-  return { startedAt: now, roundMinutes: minutes, roundEndsAt: now + minutes * minute }
+/**
+ * A new round. `backMinutes` counts minutes already stood before the start was pressed («Har du stått
+ * en stund allerede?»): the start moves back, the round still runs its full length from now.
+ */
+export function planStart(now: number, minutes: number, minute: number, backMinutes = 0, lastEndedAt: number | null = null) {
+  return { startedAt: backdatedStart(now, backMinutes, minute, lastEndedAt), roundMinutes: minutes, roundEndsAt: now + minutes * minute }
+}
+
+/** Reaching back `backMinutes`, but never into time already credited, so a round that ended five minutes ago is not counted twice. */
+export function backdatedStart(now: number, backMinutes: number, minute: number, lastEndedAt: number | null): number {
+  return Math.min(Math.max(now - backMinutes * minute, lastEndedAt ?? -Infinity), now)
 }
 
 /** «Én runde til»: only while awaiting an answer. The new round continues from the old round's end. */
@@ -133,20 +142,16 @@ export function planExpire(s: StandSession, now: number, grace: number): { ended
  * long one would credit time they may have spent sitting — and they take over with «Én runde til».
  */
 export const PROXY_ROUND_MINUTES = 15
-/** «Har stått i …»: how far back the round may start, for the minutes they already stood. */
-export const PROXY_BACKDATE_OPTIONS = [0, 10, 20, 30] as const
+/** «Har stått i …»: how far back a round may start, for minutes already stood — for yourself or a colleague. */
+export const BACKDATE_OPTIONS = [0, 10, 20, 30] as const
 /** Starts for others per sender per Oslo day — plenty for honest use, too few to farm a friend's total. */
 export const PROXY_DAILY_LIMIT = 3
 
-export function isProxyBackdate(n: unknown): n is (typeof PROXY_BACKDATE_OPTIONS)[number] {
-  return typeof n === 'number' && (PROXY_BACKDATE_OPTIONS as readonly number[]).includes(n)
+export function isBackdate(n: unknown): n is (typeof BACKDATE_OPTIONS)[number] {
+  return typeof n === 'number' && (BACKDATE_OPTIONS as readonly number[]).includes(n)
 }
 
-/**
- * The round started on someone's behalf. It may reach back `backMinutes`, but never into time they
- * already have credited, so a round that ended five minutes ago is not counted twice.
- */
+/** The round started on someone's behalf: a fixed short round, reaching back like planStart. */
 export function planProxyStart(now: number, backMinutes: number, minute: number, lastEndedAt: number | null) {
-  const startedAt = Math.max(now - backMinutes * minute, lastEndedAt ?? -Infinity)
-  return { startedAt: Math.min(startedAt, now), roundMinutes: PROXY_ROUND_MINUTES, roundEndsAt: now + PROXY_ROUND_MINUTES * minute }
+  return planStart(now, PROXY_ROUND_MINUTES, minute, backMinutes, lastEndedAt)
 }

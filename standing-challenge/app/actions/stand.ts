@@ -9,7 +9,7 @@ import { getCurrentEmployee } from '@/lib/current-employee'
 import { t, toLang, type Lang } from '@/lib/i18n'
 import { closeExpiredSessions, loadOfficeSnapshot, toSessionRow } from '@/lib/office'
 import {
-  isProxyBackdate, isValidRoundMinutes, planExtend, planProxyStart, planStart, planStop, PROXY_DAILY_LIMIT, PROXY_ROUND_MINUTES,
+  isBackdate, isValidRoundMinutes, planExtend, planProxyStart, planStart, planStop, PROXY_DAILY_LIMIT, PROXY_ROUND_MINUTES,
 } from '@/lib/sessions'
 import { APP_URL, dmByEmail } from '@/lib/slack'
 import type { OfficeSnapshot } from '@/lib/snapshot'
@@ -31,13 +31,18 @@ async function openSession(employeeId: string) {
   return row
 }
 
-export async function startStanding(minutes: number, lang?: string): Promise<OfficeSnapshot> {
+export async function startStanding(minutes: number, lang?: string, backMinutes = 0): Promise<OfficeSnapshot> {
   const language = toLang(lang)
   const employeeId = await currentEmployeeId(language)
-  if (!isValidRoundMinutes(minutes)) throw new Error(t(language, 'error.badRound'))
+  if (!isValidRoundMinutes(minutes) || !isBackdate(backMinutes)) throw new Error(t(language, 'error.badRound'))
   const now = Date.now()
   await closeExpiredSessions(now, currentGraceMs())
-  const plan = planStart(now, minutes, currentMinuteMs())
+  let lastEnded: number | null = null
+  if (backMinutes > 0) {
+    const [row] = await db.select({ lastEnded: max(standSessions.endedAt) }).from(standSessions).where(eq(standSessions.employeeId, employeeId))
+    lastEnded = row?.lastEnded ? new Date(row.lastEnded).getTime() : null
+  }
+  const plan = planStart(now, minutes, currentMinuteMs(), backMinutes, lastEnded)
   await db
     .insert(standSessions)
     .values({
@@ -101,7 +106,7 @@ export async function startStandingFor(toId: string, backMinutes: number, lang?:
 
   if (typeof toId !== 'string' || !UUID.test(toId)) return refuse(t(language, 'error.personNotFound'))
   if (toId === me.id) return refuse(t(language, 'proxy.self'))
-  if (!isProxyBackdate(backMinutes)) return refuse(t(language, 'error.badRound'))
+  if (!isBackdate(backMinutes)) return refuse(t(language, 'error.badRound'))
   const [target] = await db.select({ name: employees.name, email: employees.email }).from(employees).where(eq(employees.id, toId))
   if (!target) return refuse(t(language, 'error.personNotFound'))
 

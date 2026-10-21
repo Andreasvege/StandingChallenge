@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { useTranslation } from '@/components/useLang'
 import { cheerOptions } from '@/lib/cheers'
 import { formatDuration, monthName } from '@/lib/format'
-import { PROXY_BACKDATE_OPTIONS, PROXY_ROUND_MINUTES } from '@/lib/sessions'
+import { BACKDATE_OPTIONS, PROXY_ROUND_MINUTES } from '@/lib/sessions'
 import type { LiveEmployee } from '@/lib/snapshot'
 import styles from './OfficeRoom.module.css'
 
@@ -57,7 +57,7 @@ export function CheerMenu({ employee: e, standing, isMe, onCheer, onSitDown, onS
         <span className={styles.backdate}>
           <span className={styles.menuHint}>{t('proxy.stoodFor')}</span>
           <span className={styles.backdateChips}>
-            {PROXY_BACKDATE_OPTIONS.map(back => (
+            {BACKDATE_OPTIONS.map(back => (
               <button key={back} type="button" onClick={() => onStartFor(e.id, back)}>
                 {back === 0 ? t('proxy.now') : t('format.minutes', { minutes: back })}
               </button>
