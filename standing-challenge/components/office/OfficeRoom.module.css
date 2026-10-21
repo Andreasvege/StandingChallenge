@@ -40,7 +40,7 @@
 }
 @keyframes glow {
   0%, 31%, 36%, 63%, 66%, 70%, 88%, 92% { opacity: 1; }
-  29%, 34%, 61%, 64%, 68%, 86%, 90% { opacity: 0.75; }
+  29%, 34%, 61%, 64%, 68%, 86%, 90% { opacity: 0.5; }
 }
 @media (prefers-reduced-motion: reduce) { .glow { animation: none; } }
 /* The clock is also the way into the work timer, so it carries a label and is centred on the wall
