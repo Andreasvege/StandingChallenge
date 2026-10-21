@@ -7,7 +7,7 @@ import { activeCheers, type Cheer } from '@/lib/cheers'
 import { formatDuration } from '@/lib/format'
 import { DESKTOP_MAX_PER_ROW, MOBILE_MAX_PER_ROW, ROOM_LAYERS, balancedRows, roomMetrics, rowStyles, rowZIndex, type RowStyle } from '@/lib/room-layout'
 import { forMonth, tileStyle } from '@/lib/scene'
-import { SKIES, skyPhase, weatherSky } from '@/lib/sky'
+import { SKIES, skyForWindow, skyPhase, weatherSky } from '@/lib/sky'
 import type { LiveEmployee } from '@/lib/snapshot'
 import { osloHour, osloParts } from '@/lib/time'
 import type { Weather } from '@/lib/weather'
@@ -167,8 +167,8 @@ export function OfficeRoom({ employees, leaderId, now, meId = null, cheers = [],
       }
     >
       <Lights className={styles.lights} />
-      <PixelWindow sky={sky} weather={weather} view={windowView?.left} className={`${styles.window} ${styles.windowLeft}`} />
-      <PixelWindow sky={sky} weather={weather} view={windowView?.right ?? windowView?.left} className={`${styles.window} ${styles.windowRight}`} />
+      <PixelWindow sky={skyForWindow(sky, 'left')} weather={weather} view={windowView?.left} className={`${styles.window} ${styles.windowLeft}`} />
+      <PixelWindow sky={skyForWindow(sky, 'right')} weather={weather} view={windowView?.right ?? windowView?.left} className={`${styles.window} ${styles.windowRight}`} />
       <WallClock />
       <HangingPlant className={styles.hanging} />
       <OfficePlant weekSeconds={weekTotal} />

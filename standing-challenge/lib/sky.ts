@@ -139,3 +139,12 @@ export function weatherSky(sky: Sky, weather: Weather | undefined): Sky {
     outside: weather.fog ? Math.min(sky.outside, 0.85) : sky.outside,
   }
 }
+
+/**
+ * The room has two windows onto the same sky, but only one sun: it shows in the window on its side
+ * of the sky (the low morning sun on the left, the day sun and the moon on the right).
+ */
+export function skyForWindow(sky: Sky, side: 'left' | 'right'): Sky {
+  const bodySide = sky.body.x + 4 < 32 ? 'left' : 'right'
+  return bodySide === side ? sky : { ...sky, hideBody: true }
+}

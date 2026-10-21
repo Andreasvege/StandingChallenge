@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { SKIES, skyPhase } from './sky'
+import { SKIES, skyForWindow, skyPhase } from './sky'
 
 describe('skyPhase', () => {
   it('maps Oslo hours to phases at the boundaries', () => {
@@ -27,5 +27,19 @@ describe('SKIES', () => {
       expect(sky.body.x + 8).toBeLessThanOrEqual(62)
       expect(sky.body.y + 8).toBeLessThanOrEqual(34)
     }
+  })
+})
+
+describe('skyForWindow', () => {
+  it('puts the sun or moon in one window only', () => {
+    for (const sky of Object.values(SKIES)) {
+      const shown = (['left', 'right'] as const).filter(side => !skyForWindow(sky, side).hideBody)
+      expect(shown).toHaveLength(1)
+    }
+    expect(skyForWindow(SKIES.morning, 'left').hideBody).toBeFalsy()
+    expect(skyForWindow(SKIES.day, 'right').hideBody).toBeFalsy()
+  })
+  it('keeps clouds hiding it in both', () => {
+    expect(skyForWindow({ ...SKIES.day, hideBody: true }, 'right').hideBody).toBe(true)
   })
 })
