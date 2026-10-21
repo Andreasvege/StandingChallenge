@@ -37,28 +37,29 @@ export const WALL_TILES: Tile[] = [
 export const FLOOR_TILES: Tile[] = []
 
 /**
- * Where one copy of a windowsill prop stands: on the sill of the left or right window, `x` percent
- * in from the window's left edge, `scale` screen pixels per drawn pixel (whole numbers only, so the
- * pixels stay even) and optionally mirrored. The sill moves and shrinks with the window, so props
- * there never run into a desk, however wide the room or however many rows it has.
+ * Where one copy of a floor prop stands: on the floor of the front desk row, in the gap after desk
+ * `after` (0 = the leftmost desk). The rows follow the office, so a spot is tied to a gap rather
+ * than a pixel position: it moves with the desks and is skipped when the row is too short to have
+ * that gap. Phones have only four desks a row, so they get their own gap (`phoneAfter`; left out =
+ * not shown on phones). `scale` is screen pixels per drawn pixel (whole numbers only, so the pixels
+ * stay even); phones draw one step smaller, since their gaps are narrower.
  */
-export interface SillSpot {
-  window: 'left' | 'right'
-  x: number
+export interface FloorSpot {
+  after: number
+  phoneAfter?: number
   scale: number
   flip?: boolean
 }
 
-/** Things standing on the windowsills. Unlike the lists above, every prop for the month is shown. */
-export interface SillProp extends Seasonal {
+/** Things standing on the floor between the desks. Unlike the lists above, every prop for the month is shown. */
+export interface FloorProp extends Seasonal {
   art: StaticImageData
-  spots: SillSpot[]
+  spots: FloorSpot[]
 }
 
-export const SILL_PROPS: SillProp[] = [
-  // Three hand-drawn pumpkins at one scale, so their pixels match; the size difference is in the
-  // drawings. Placed in the gaps between the autumn trees (høsttrær.png) so they don't hide them.
-  { art: gresskarStort, months: [10], spots: [{ window: 'left', x: 10, scale: 2 }, { window: 'right', x: 66, scale: 2, flip: true }] },
-  { art: gresskar, months: [10], spots: [{ window: 'right', x: 13, scale: 2, flip: true }] },
-  { art: gresskarLite, months: [10], spots: [{ window: 'left', x: 66, scale: 2 }] },
+export const FLOOR_PROPS: FloorProp[] = [
+  // Three hand-drawn pumpkins at one scale, so their pixels match; the size difference is in the drawings.
+  { art: gresskarStort, months: [10], spots: [{ after: 1, phoneAfter: 1, scale: 2 }, { after: 6, scale: 2, flip: true }] },
+  { art: gresskar, months: [10], spots: [{ after: 3, phoneAfter: 0, scale: 2, flip: true }] },
+  { art: gresskarLite, months: [10], spots: [{ after: 4, phoneAfter: 2, scale: 2 }] },
 ]

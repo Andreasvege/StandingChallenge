@@ -18,7 +18,7 @@ import { HangingPlant, Lights, PixelWindow } from './Decor'
 import { FactPoster } from './FactPoster'
 import { OfficeDog } from './OfficeDog'
 import { OfficePlant } from './OfficePlant'
-import { FLOOR_TILES, SILL_PROPS, WALL_TILES, WINDOW_VIEWS } from './scene-art'
+import { FLOOR_PROPS, FLOOR_TILES, WALL_TILES, WINDOW_VIEWS } from './scene-art'
 import { SceneSprite } from './SceneSprite'
 import { WallClock } from './WallClock'
 import { WallScreen } from './WallScreen'
@@ -162,6 +162,29 @@ export function OfficeRoom({ employees, leaderId, now, meId = null, cheers = [],
               />
             )
           })}
+          {depth === 0 &&
+            FLOOR_PROPS.filter(prop => prop.months.includes(sceneMonth)).flatMap((prop, i) =>
+              prop.spots.map((spot, j) => {
+                const after = compact ? spot.phoneAfter : spot.after
+                if (after === undefined || after >= seats.length - 1) return null
+                return (
+                  <SceneSprite
+                    key={`prop-${i}-${j}`}
+                    art={prop.art}
+                    // Phone gaps are narrower: one step smaller.
+                    scale={compact ? Math.max(1, spot.scale - 1) : spot.scale}
+                    className={styles.floorProp}
+                    style={
+                      {
+                        // The boundary between two grid columns, i.e. between this desk and the next.
+                        left: `${((after + 1) / seats.length) * 100}%`,
+                        '--flip': spot.flip ? -1 : 1,
+                      } as CSSProperties
+                    }
+                  />
+                )
+              }),
+            )}
         </div>
       )
     })
@@ -183,31 +206,6 @@ export function OfficeRoom({ employees, leaderId, now, meId = null, cheers = [],
       <Lights className={styles.lights} />
       <PixelWindow sky={skyForWindow(sky, 'left')} weather={weather} view={windowView?.left} className={`${styles.window} ${styles.windowLeft}`} />
       <PixelWindow sky={skyForWindow(sky, 'right')} weather={weather} view={windowView?.right ?? windowView?.left} className={`${styles.window} ${styles.windowRight}`} />
-      {(['left', 'right'] as const).map(side => (
-        <div key={side} className={`${styles.window} ${side === 'left' ? styles.windowLeft : styles.windowRight} ${styles.sill}`}>
-          {SILL_PROPS.filter(prop => prop.months.includes(sceneMonth)).flatMap((prop, i) =>
-            prop.spots
-              .filter(spot => spot.window === side)
-              .map((spot, j) => (
-                <SceneSprite
-                  key={`${i}-${j}`}
-                  art={prop.art}
-                  scale={spot.scale}
-                  className={styles.sillProp}
-                  style={
-                    {
-                      left: `${spot.x}%`,
-                      transform: spot.flip ? 'scaleX(-1)' : undefined,
-                      // Phone windows are 144px, not 240: one step smaller keeps the same size against the glass.
-                      '--phone-w': `${prop.art.width * Math.max(1, spot.scale - 1)}px`,
-                      '--phone-h': `${prop.art.height * Math.max(1, spot.scale - 1)}px`,
-                    } as CSSProperties
-                  }
-                />
-              )),
-          )}
-        </div>
-      ))}
       <WallClock />
       <HangingPlant className={styles.hanging} />
       <OfficePlant weekSeconds={weekTotal} />
