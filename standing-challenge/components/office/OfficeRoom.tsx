@@ -162,29 +162,28 @@ export function OfficeRoom({ employees, leaderId, now, meId = null, cheers = [],
               />
             )
           })}
-          {depth === 0 &&
-            FLOOR_PROPS.filter(prop => prop.months.includes(sceneMonth)).flatMap((prop, i) =>
-              prop.spots.map((spot, j) => {
-                const after = compact ? spot.phoneAfter : spot.after
-                if (after === undefined || after >= seats.length - 1) return null
-                return (
-                  <SceneSprite
-                    key={`prop-${i}-${j}`}
-                    art={prop.art}
-                    // Phone gaps are narrower: one step smaller.
-                    scale={compact ? Math.max(1, spot.scale - 1) : spot.scale}
-                    className={styles.floorProp}
-                    style={
-                      {
-                        // The boundary between two grid columns, i.e. between this desk and the next.
-                        left: `${((after + 1) / seats.length) * 100}%`,
-                        '--flip': spot.flip ? -1 : 1,
-                      } as CSSProperties
-                    }
-                  />
-                )
-              }),
-            )}
+          {FLOOR_PROPS.filter(prop => prop.months.includes(sceneMonth)).flatMap((prop, i) =>
+            prop.spots.map((spot, j) => {
+              const place = compact ? spot.phone : spot
+              if (!place || place.row !== depth || place.after >= seats.length - 1) return null
+              return (
+                <SceneSprite
+                  key={`prop-${i}-${j}`}
+                  art={prop.art}
+                  // Phone gaps are narrower: one step smaller.
+                  scale={compact ? Math.max(1, spot.scale - 1) : spot.scale}
+                  className={styles.floorProp}
+                  style={
+                    {
+                      // The boundary between two grid columns, i.e. between this desk and the next.
+                      left: `${((place.after + 1) / seats.length) * 100}%`,
+                      '--flip': spot.flip ? -1 : 1,
+                    } as CSSProperties
+                  }
+                />
+              )
+            }),
+          )}
         </div>
       )
     })
@@ -204,8 +203,8 @@ export function OfficeRoom({ employees, leaderId, now, meId = null, cheers = [],
       }
     >
       <Lights className={styles.lights} />
-      <PixelWindow sky={skyForWindow(sky, 'left')} weather={weather} view={windowView?.left} className={`${styles.window} ${styles.windowLeft}`} />
-      <PixelWindow sky={skyForWindow(sky, 'right')} weather={weather} view={windowView?.right ?? windowView?.left} className={`${styles.window} ${styles.windowRight}`} />
+      <PixelWindow sky={skyForWindow(sky, 'left')} weather={weather} view={windowView?.left} city={windowView?.city ?? true} className={`${styles.window} ${styles.windowLeft}`} />
+      <PixelWindow sky={skyForWindow(sky, 'right')} weather={weather} view={windowView?.right ?? windowView?.left} city={windowView?.city ?? true} className={`${styles.window} ${styles.windowRight}`} />
       <WallClock />
       <HangingPlant className={styles.hanging} />
       <OfficePlant weekSeconds={weekTotal} />

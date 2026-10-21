@@ -7,17 +7,18 @@
 import type { StaticImageData } from 'next/image'
 import type { Seasonal } from '@/lib/scene'
 import gresskar from '@/sprites/scene/gresskar.png'
-import gresskarLite from '@/sprites/scene/gresskar-lite.png'
 import gresskarStort from '@/sprites/scene/gresskar-stort.png'
 import høsttrær from '@/sprites/scene/høsttrær.png'
 
 /**
  * What is seen through the windows, drawn over the sky and city: 60×32 with a transparent
- * background. `right` defaults to `left`, so one drawing can serve both windows.
+ * background. `right` defaults to `left`, so one drawing can serve both windows. `city: false`
+ * leaves the buildings out, for a drawing that fills the view on its own.
  */
 export interface WindowView extends Seasonal {
   left: StaticImageData
   right?: StaticImageData
+  city?: boolean
 }
 
 /** A tile repeated across the wall or the floor in place of the built-in colours. */
@@ -26,8 +27,9 @@ export interface Tile extends Seasonal {
 }
 
 export const WINDOW_VIEWS: WindowView[] = [
-  // Orange trees in front of the city, drawn on vindu-mal.png; the same drawing serves both windows.
-  { left: høsttrær, months: [9, 10, 11] },
+  // Big orange trees and no city: the tree pixels of Andreas' Vindumedtre3.png, the sky left to the
+  // code so it still follows the time of day and the weather. The same drawing serves both windows.
+  { left: høsttrær, months: [9, 10, 11], city: false },
 ]
 
 export const WALL_TILES: Tile[] = [
@@ -37,16 +39,17 @@ export const WALL_TILES: Tile[] = [
 export const FLOOR_TILES: Tile[] = []
 
 /**
- * Where one copy of a floor prop stands: on the floor of the front desk row, in the gap after desk
- * `after` (0 = the leftmost desk). The rows follow the office, so a spot is tied to a gap rather
- * than a pixel position: it moves with the desks and is skipped when the row is too short to have
- * that gap. Phones have only four desks a row, so they get their own gap (`phoneAfter`; left out =
- * not shown on phones). `scale` is screen pixels per drawn pixel (whole numbers only, so the pixels
- * stay even); phones draw one step smaller, since their gaps are narrower.
+ * Where one copy of a floor prop stands: in desk row `row` (0 = the front row), in the gap after
+ * desk `after` (0 = the leftmost desk). The rows follow the office, so a spot is tied to a gap
+ * rather than a pixel position: it moves with the desks and is skipped when the room has no such
+ * gap. Phones have only four desks a row, so they get their own spot (`phone`; left out = not shown
+ * on phones). `scale` is screen pixels per drawn pixel (whole numbers only, so the pixels stay even);
+ * phones draw one step smaller, since their gaps are narrower.
  */
 export interface FloorSpot {
+  row: number
   after: number
-  phoneAfter?: number
+  phone?: { row: number; after: number }
   scale: number
   flip?: boolean
 }
@@ -58,8 +61,23 @@ export interface FloorProp extends Seasonal {
 }
 
 export const FLOOR_PROPS: FloorProp[] = [
-  // Three hand-drawn pumpkins at one scale, so their pixels match; the size difference is in the drawings.
-  { art: gresskarStort, months: [10], spots: [{ after: 1, phoneAfter: 1, scale: 2 }, { after: 6, scale: 2, flip: true }] },
-  { art: gresskar, months: [10], spots: [{ after: 3, phoneAfter: 0, scale: 2, flip: true }] },
-  { art: gresskarLite, months: [10], spots: [{ after: 4, phoneAfter: 2, scale: 2 }] },
+  // Two hand-drawn pumpkins at one scale, so their pixels match; the size difference is in the
+  // drawings. Big ones by the front desks, small ones further back, which also reads as depth.
+  {
+    art: gresskarStort,
+    months: [10],
+    spots: [
+      { row: 0, after: 1, phone: { row: 0, after: 1 }, scale: 2 },
+      { row: 0, after: 6, scale: 2, flip: true },
+    ],
+  },
+  {
+    art: gresskar,
+    months: [10],
+    spots: [
+      { row: 0, after: 4, phone: { row: 0, after: 2 }, scale: 2 },
+      { row: 1, after: 1, phone: { row: 1, after: 1 }, scale: 2, flip: true },
+      { row: 1, after: 5, phone: { row: 2, after: 2 }, scale: 2 },
+    ],
+  },
 ]

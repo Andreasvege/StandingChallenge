@@ -37,12 +37,12 @@ const FRAME: Rect[] = [
  * A window onto the Oslo sky: the weather-tinted sky and city, this month's hand-drawn view (if any),
  * then rain or snow from MET falling past it, and the frame and mullion on top.
  */
-export function PixelWindow({ sky, weather, view, className }: { sky: Sky; weather?: Weather; view?: StaticImageData; className?: string }) {
+export function PixelWindow({ sky, weather, view, city = true, className }: { sky: Sky; weather?: Weather; view?: StaticImageData; city?: boolean; className?: string }) {
   const g = WINDOW_GLASS
   return (
     <svg viewBox="0 0 64 36" className={className} shapeRendering="crispEdges" aria-hidden="true">
       <rect width="64" height="36" fill={OUTLINE} />
-      <Rects rects={windowRects(sky)} />
+      <Rects rects={windowRects(sky, city)} />
       {view && (
         <image
           href={view.src}

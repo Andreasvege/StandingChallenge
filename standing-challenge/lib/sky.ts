@@ -88,8 +88,11 @@ const CLOUDS = [
 /** The sun's warm middle, as [x, y, width] rows from the body's top-left corner. */
 const SUN_CORE = [[3, 1, 2], [2, 2, 4], [1, 3, 6], [1, 4, 6], [2, 5, 4], [3, 6, 2]] as const
 
-/** Everything seen through the glass – sky, sun or moon, clouds and city – back to front, without frame or mullion. */
-export function windowRects(sky: Sky): Rect[] {
+/**
+ * Everything seen through the glass – sky, sun or moon, clouds and city – back to front, without frame
+ * or mullion. `city: false` leaves the buildings out, for a hand-drawn view that replaces them.
+ */
+export function windowRects(sky: Sky, city = true): Rect[] {
   const { body } = sky
   const px = (x: number, y: number, fill: string): Rect => ({ x, y, w: 1, h: 1, fill })
   return [
@@ -104,8 +107,8 @@ export function windowRects(sky: Sky): Rect[] {
           ...(body.kind === 'moon' ? [px(body.x + 2, body.y + 2, '#d9d3f0'), { x: body.x + 5, y: body.y + 4, w: 2, h: 1, fill: '#d9d3f0' }] : []),
         ]),
     ...CLOUDS.map(([x, y, w, h]) => ({ x, y, w, h, fill: sky.cloud })),
-    ...CITY.map(([x, y, w, h]) => ({ x, y, w, h, fill: sky.city })),
-    ...(sky.litWindows ? LIT.map(([x, y]) => px(x, y, '#ffd166')) : []),
+    ...(city ? CITY.map(([x, y, w, h]) => ({ x, y, w, h, fill: sky.city })) : []),
+    ...(city && sky.litWindows ? LIT.map(([x, y]) => px(x, y, '#ffd166')) : []),
   ]
 }
 
