@@ -9,6 +9,8 @@ import type { Seasonal } from '@/lib/scene'
 import gresskar from '@/sprites/scene/gresskar.png'
 import gresskarStort from '@/sprites/scene/gresskar-stort.png'
 import høsttrær from '@/sprites/scene/høsttrær.png'
+import lykt from '@/sprites/scene/lykt.png'
+import lyktTent from '@/sprites/scene/lykt-tent.png'
 
 /**
  * What is seen through the windows, drawn over the sky and city: 60×32 with a transparent
@@ -54,15 +56,20 @@ export interface FloorSpot {
   flip?: boolean
 }
 
-/** Things standing on the floor between the desks. Unlike the lists above, every prop for the month is shown. */
+/**
+ * Things standing on the floor between the desks. Unlike the lists above, every prop for the month
+ * is shown. `lit` is a two-frame strip (lit, dimmer) shown instead of `art` once it is dark outside,
+ * flickering like a candle.
+ */
 export interface FloorProp extends Seasonal {
   art: StaticImageData
+  lit?: StaticImageData
   spots: FloorSpot[]
 }
 
 export const FLOOR_PROPS: FloorProp[] = [
-  // Two hand-drawn pumpkins at one scale, so their pixels match; the size difference is in the
-  // drawings. Big ones by the front desks, small ones further back, which also reads as depth.
+  // Andreas' FinalPumpkins1/2.png, all at one scale so their pixels match; the size difference is in
+  // the drawings. Big ones by the front desks, small ones further back, which also reads as depth.
   {
     art: gresskarStort,
     months: [10],
@@ -75,9 +82,10 @@ export const FLOOR_PROPS: FloorProp[] = [
     art: gresskar,
     months: [10],
     spots: [
-      { row: 0, after: 4, phone: { row: 0, after: 2 }, scale: 2 },
       { row: 1, after: 1, phone: { row: 1, after: 1 }, scale: 2, flip: true },
       { row: 1, after: 5, phone: { row: 2, after: 2 }, scale: 2 },
     ],
   },
+  // The jack-o'-lantern: dark by day, lit from sunset (the same hours the city's windows light up).
+  { art: lykt, lit: lyktTent, months: [10], spots: [{ row: 0, after: 4, phone: { row: 0, after: 2 }, scale: 2 }] },
 ]

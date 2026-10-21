@@ -169,7 +169,7 @@ export function OfficeRoom({ employees, leaderId, now, meId = null, cheers = [],
               return (
                 <SceneSprite
                   key={`prop-${i}-${j}`}
-                  art={prop.art}
+                  {...(prop.lit && sky.litWindows ? { art: prop.lit, frames: 2, flicker: true } : { art: prop.art })}
                   // Phone gaps are narrower: one step smaller.
                   scale={compact ? Math.max(1, spot.scale - 1) : spot.scale}
                   className={styles.floorProp}
