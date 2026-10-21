@@ -17,13 +17,16 @@ export interface Trophy {
  */
 export function lastMonthTrophy(sessions: readonly SessionRow[], now: number): Trophy | null {
   const from = osloPrevMonthStart(now)
-  const to = osloMonthStart(now)
+  const [best] = rankBetween(sessions, now, from, osloMonthStart(now))
+  return best ? { employeeId: best.employeeId, month: osloParts(from).month } : null
+}
+
+/** Everyone who stood in [from, to), most seconds first. Ties keep `sessions` order. */
+export function rankBetween(sessions: readonly SessionRow[], now: number, from: number, to: number): { employeeId: string; seconds: number }[] {
   const totals = new Map<string, number>()
   for (const s of sessions) {
     const seconds = creditedSecondsBetween(s, now, from, to)
     if (seconds > 0) totals.set(s.employeeId, (totals.get(s.employeeId) ?? 0) + seconds)
   }
-  let best: [string, number] | null = null
-  for (const entry of totals) if (!best || entry[1] > best[1]) best = entry
-  return best ? { employeeId: best[0], month: osloParts(from).month } : null
+  return [...totals].map(([employeeId, seconds]) => ({ employeeId, seconds })).sort((a, b) => b.seconds - a.seconds)
 }
