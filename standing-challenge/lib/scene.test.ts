@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { ALL_YEAR, forMonth, frameSize, tileStyle } from './scene'
+import { ALL_YEAR, fallingLeaves, forMonth, frameSize, tileStyle } from './scene'
 import { SKIES, WINDOW_GLASS, WINDOW_MULLION, weatherSky, windowRects } from './sky'
 import { weatherFromSymbol } from './weather'
 
@@ -81,5 +81,21 @@ describe('weatherSky', () => {
   })
   it('puts out the stars behind clouds', () => {
     expect(weatherSky(SKIES.evening, weatherFromSymbol('cloudy')).stars).toBe(false)
+  })
+})
+
+describe('fallingLeaves', () => {
+  it('is the same on every render and different in each window', () => {
+    expect(fallingLeaves('left')).toEqual(fallingLeaves('left'))
+    expect(fallingLeaves('left')).not.toEqual(fallingLeaves('right'))
+  })
+  it('keeps every leaf on the glass and starts each part-way through its fall', () => {
+    for (const leaf of [...fallingLeaves('left', 20), ...fallingLeaves('right', 20)]) {
+      expect(leaf.x).toBeGreaterThanOrEqual(0)
+      expect(leaf.x + 6 + 2).toBeLessThanOrEqual(64)
+      expect(leaf.y).toBeGreaterThanOrEqual(2)
+      expect(leaf.y).toBeLessThan(34)
+      expect(leaf.offset).toBeLessThanOrEqual(leaf.duration)
+    }
   })
 })

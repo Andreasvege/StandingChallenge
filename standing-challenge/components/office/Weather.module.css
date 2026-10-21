@@ -18,6 +18,17 @@
   100% { transform: translate(0, calc(36px - 1px * var(--py))); }
 }
 
+/* Autumn leaves: slower than snow, and blown to the right in uneven swings on the way down. */
+.leaf { animation-name: blow; animation-timing-function: steps(12); animation-iteration-count: infinite; }
+@keyframes blow {
+  0% { transform: translate(0, calc(-1px * var(--py) - 1px)); }
+  20% { transform: translate(3px, calc(6px - 1px * var(--py))); }
+  40% { transform: translate(1px, calc(13px - 1px * var(--py))); }
+  60% { transform: translate(5px, calc(20px - 1px * var(--py))); }
+  80% { transform: translate(3px, calc(28px - 1px * var(--py))); }
+  100% { transform: translate(6px, calc(36px - 1px * var(--py))); }
+}
+
 /* Thunder: two quick flashes every nine seconds, in both windows at once. */
 .flash { opacity: 0; animation: flash 9s infinite; }
 @keyframes flash {
@@ -30,6 +41,6 @@
 
 /* Without motion the rain hangs still where it is, and the lightning keeps away. */
 @media (prefers-reduced-motion: reduce) {
-  .drop, .flake { animation: none; }
+  .drop, .flake, .leaf { animation: none; }
   .flash { display: none; }
 }

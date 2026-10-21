@@ -39,3 +39,39 @@ export function tileStyle(tile: { src: string; width: number; height: number } |
     imageRendering: 'pixelated',
   } as const
 }
+
+/** One leaf blowing past the window: a 2×1 pixel at `x, y` (window viewBox), looping every `duration` s. */
+export interface FallingLeaf {
+  x: number
+  y: number
+  color: string
+  duration: number
+  /** How far into its fall it starts, so the leaves don't all set off together. */
+  offset: number
+}
+
+const LEAF_COLORS = ['#f78e00', '#f76200', '#f7af00', '#d2401c'] as const
+
+/**
+ * A handful of leaves drifting down and sideways past one window. A fixed pseudo-random sequence
+ * (seeded per side) rather than Math.random, so polling and re-rendering never reshuffle them and
+ * the two windows don't show the same leaves.
+ */
+export function fallingLeaves(side: 'left' | 'right', count = 5): FallingLeaf[] {
+  let seed = side === 'left' ? 11 : 23
+  const rand = () => {
+    seed = (seed * 16807) % 2147483647
+    return (seed - 1) / 2147483646
+  }
+  return Array.from({ length: count }, (_, i) => {
+    const duration = Math.round((6 + rand() * 3) * 100) / 100
+    return {
+      // The leaves blow 6px to the right on the way down, so they start a little to the left.
+      x: Math.floor(rand() * 56),
+      y: 2 + Math.floor(rand() * 30),
+      color: LEAF_COLORS[i % LEAF_COLORS.length],
+      duration,
+      offset: Math.round(rand() * duration * 100) / 100,
+    }
+  })
+}

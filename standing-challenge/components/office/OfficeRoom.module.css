@@ -29,6 +29,20 @@
 .windowRight { left: 58%; }
 /* This month's floor props (scene-art.ts FLOOR_PROPS), standing in the gaps between the front desks. */
 .floorProp { position: absolute; bottom: 0; pointer-events: none; transform: translateX(-50%) scaleX(var(--flip, 1)); }
+/* The lit lantern's light: hard-edged rings, so it reads as pixel light rather than a blur, flickering with the flame (SceneSprite .flicker). */
+.glow {
+  position: absolute;
+  pointer-events: none;
+  transform: translateX(-50%);
+  background: radial-gradient(closest-side, #ffcf5c80 0 28%, #ffb8404d 28% 52%, #ffa03026 52% 78%, transparent 78%);
+  mix-blend-mode: screen;
+  animation: glow 2.3s step-end infinite;
+}
+@keyframes glow {
+  0%, 31%, 36%, 63%, 66%, 70%, 88%, 92% { opacity: 1; }
+  29%, 34%, 61%, 64%, 68%, 86%, 90% { opacity: 0.7; }
+}
+@media (prefers-reduced-motion: reduce) { .glow { animation: none; } }
 /* The clock is also the way into the work timer, so it carries a label and is centred on the wall
    as a column — the label is wider than the dial, so centring beats a fixed left offset. */
 /* Same `top` as the poster, so the two labels share a line and the dial lines up with the corkboard. */

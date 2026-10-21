@@ -1,12 +1,12 @@
 'use client'
 
-import { useEffect, useState, type CSSProperties, type ReactNode } from 'react'
+import { Fragment, useEffect, useState, type CSSProperties, type ReactNode } from 'react'
 import { EmptyDesk, PixelPerson } from '@/components/PixelPerson'
 import { useTranslation } from '@/components/useLang'
 import { activeCheers, type Cheer } from '@/lib/cheers'
 import { formatDuration } from '@/lib/format'
 import { DESKTOP_MAX_PER_ROW, MOBILE_MAX_PER_ROW, ROOM_LAYERS, balancedRows, roomMetrics, rowStyles, rowZIndex, type RowStyle } from '@/lib/room-layout'
-import { forMonth, tileStyle } from '@/lib/scene'
+import { fallingLeaves, forMonth, tileStyle } from '@/lib/scene'
 import { SKIES, skyForWindow, skyPhase, weatherSky } from '@/lib/sky'
 import type { Trophy } from '@/lib/trophy'
 import type { LiveEmployee } from '@/lib/snapshot'
@@ -23,6 +23,9 @@ import { SceneSprite } from './SceneSprite'
 import { WallClock } from './WallClock'
 import { WallScreen } from './WallScreen'
 import styles from './OfficeRoom.module.css'
+
+const LEFT_LEAVES = fallingLeaves('left')
+const RIGHT_LEAVES = fallingLeaves('right')
 
 interface OfficeRoomProps {
   employees: LiveEmployee[]
@@ -166,21 +169,32 @@ export function OfficeRoom({ employees, leaderId, now, meId = null, cheers = [],
             prop.spots.map((spot, j) => {
               const place = compact ? spot.phone : spot
               if (!place || place.row !== depth || place.after >= seats.length - 1) return null
+              const lit = prop.lit !== undefined && sky.litWindows
+              const left = `${((place.after + 1) / seats.length) * 100}%`
+              const scale = compact ? Math.max(1, spot.scale - 1) : spot.scale
               return (
-                <SceneSprite
-                  key={`prop-${i}-${j}`}
-                  {...(prop.lit && sky.litWindows ? { art: prop.lit, frames: 2, flicker: true } : { art: prop.art })}
-                  // Phone gaps are narrower: one step smaller.
-                  scale={compact ? Math.max(1, spot.scale - 1) : spot.scale}
-                  className={styles.floorProp}
-                  style={
-                    {
-                      // The boundary between two grid columns, i.e. between this desk and the next.
-                      left: `${((place.after + 1) / seats.length) * 100}%`,
-                      '--flip': spot.flip ? -1 : 1,
-                    } as CSSProperties
-                  }
-                />
+                <Fragment key={`prop-${i}-${j}`}>
+                  {lit && (
+                    // Warm light around a lit lantern, in hard-edged rings like the pixel art, flickering with the flame.
+                    <span
+                      className={styles.glow}
+                      style={{ left, width: prop.art.width * scale * 4, height: prop.art.height * scale * 2.2, bottom: -prop.art.height * scale * 0.5 }}
+                    />
+                  )}
+                  <SceneSprite
+                    {...(lit ? { art: prop.lit!, frames: 2, flicker: true } : { art: prop.art })}
+                    // Phone gaps are narrower: one step smaller.
+                    scale={scale}
+                    className={styles.floorProp}
+                    style={
+                      {
+                        // The boundary between two grid columns, i.e. between this desk and the next.
+                        left,
+                        '--flip': spot.flip ? -1 : 1,
+                      } as CSSProperties
+                    }
+                  />
+                </Fragment>
               )
             }),
           )}
@@ -203,8 +217,8 @@ export function OfficeRoom({ employees, leaderId, now, meId = null, cheers = [],
       }
     >
       <Lights className={styles.lights} />
-      <PixelWindow sky={skyForWindow(sky, 'left')} weather={weather} view={windowView?.left} city={windowView?.city ?? true} className={`${styles.window} ${styles.windowLeft}`} />
-      <PixelWindow sky={skyForWindow(sky, 'right')} weather={weather} view={windowView?.right ?? windowView?.left} city={windowView?.city ?? true} className={`${styles.window} ${styles.windowRight}`} />
+      <PixelWindow sky={skyForWindow(sky, 'left')} weather={weather} view={windowView?.left} city={windowView?.city ?? true} leaves={windowView?.leaves ? LEFT_LEAVES : undefined} className={`${styles.window} ${styles.windowLeft}`} />
+      <PixelWindow sky={skyForWindow(sky, 'right')} weather={weather} view={windowView?.right ?? windowView?.left} city={windowView?.city ?? true} leaves={windowView?.leaves ? RIGHT_LEAVES : undefined} className={`${styles.window} ${styles.windowRight}`} />
       <WallClock />
       <HangingPlant className={styles.hanging} />
       <OfficePlant weekSeconds={weekTotal} />

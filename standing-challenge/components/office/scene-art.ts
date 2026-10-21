@@ -11,6 +11,8 @@ import gresskarStort from '@/sprites/scene/gresskar-stort.png'
 import høsttrær from '@/sprites/scene/høsttrær.png'
 import lykt from '@/sprites/scene/lykt.png'
 import lyktTent from '@/sprites/scene/lykt-tent.png'
+import løv1 from '@/sprites/scene/løv-1.png'
+import løv2 from '@/sprites/scene/løv-2.png'
 
 /**
  * What is seen through the windows, drawn over the sky and city: 60×32 with a transparent
@@ -21,6 +23,8 @@ export interface WindowView extends Seasonal {
   left: StaticImageData
   right?: StaticImageData
   city?: boolean
+  /** Leaves blowing past the glass. */
+  leaves?: boolean
 }
 
 /** A tile repeated across the wall or the floor in place of the built-in colours. */
@@ -31,7 +35,7 @@ export interface Tile extends Seasonal {
 export const WINDOW_VIEWS: WindowView[] = [
   // Big orange trees and no city: the tree pixels of Andreas' Vindumedtre3.png, the sky left to the
   // code so it still follows the time of day and the weather. The same drawing serves both windows.
-  { left: høsttrær, months: [9, 10, 11], city: false },
+  { left: høsttrær, months: [9, 10, 11], city: false, leaves: true },
 ]
 
 export const WALL_TILES: Tile[] = [
@@ -84,6 +88,23 @@ export const FLOOR_PROPS: FloorProp[] = [
     spots: [
       { row: 1, after: 1, phone: { row: 1, after: 1 }, scale: 2, flip: true },
       { row: 1, after: 5, phone: { row: 2, after: 2 }, scale: 2 },
+    ],
+  },
+  // Fallen leaves, in the trees' colours plus a red and a yellow; flat, so they lie right at the feet.
+  {
+    art: løv1,
+    months: [9, 10, 11],
+    spots: [
+      { row: 0, after: 2, phone: { row: 1, after: 0 }, scale: 2 },
+      { row: 1, after: 3, phone: { row: 3, after: 1 }, scale: 2, flip: true },
+    ],
+  },
+  {
+    art: løv2,
+    months: [9, 10, 11],
+    spots: [
+      { row: 0, after: 5, phone: { row: 0, after: 0 }, scale: 2 },
+      { row: 1, after: 4, phone: { row: 2, after: 1 }, scale: 2, flip: true },
     ],
   },
   // The jack-o'-lantern: dark by day, lit from sunset (the same hours the city's windows light up).
