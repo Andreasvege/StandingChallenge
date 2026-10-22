@@ -27,8 +27,10 @@
    exactly 5× the 64-pixel drawing, so at full size every pixel in the view is the same size; they
    hang a little higher than the other wall props so they end just above the back row's name tags. */
 .window { position: absolute; top: calc(20% - 22px); width: min(320px, 23%); aspect-ratio: 64 / 36; }
-.windowLeft { left: 10%; }
-.windowRight { left: 58%; }
+/* Nudged 20px right on full-size screens; the nudge fades out below a ~960px room, where the right
+   window would otherwise run into the wall screen. */
+.windowLeft { left: calc(10% + clamp(0px, (100% - 760px) / 10, 20px)); }
+.windowRight { left: calc(58% + clamp(0px, (100% - 760px) / 10, 20px)); }
 /* This month's floor props (scene-art.ts FLOOR_PROPS), standing in the gaps between the front desks. */
 .floorProp { position: absolute; bottom: 0; pointer-events: none; transform: translateX(-50%) scaleX(var(--flip, 1)); }
 /* The lit lantern's light, centred on it and fading out softly. It breathes slowly and unevenly — a
