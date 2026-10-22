@@ -26,7 +26,7 @@
    the phone breakpoint. Keep the 64:36 of the pixel art rather than a second fixed number. 320px is
    exactly 5× the 64-pixel drawing, so at full size every pixel in the view is the same size; they
    hang a little higher than the other wall props so they end just above the back row's name tags. */
-.window { position: absolute; top: calc(20% - 22px); width: min(320px, 23%); aspect-ratio: 64 / 36; }
+.window { position: absolute; top: calc(20% - 28px); width: min(320px, 23%); aspect-ratio: 64 / 36; }
 /* Nudged 20px right on full-size screens; the nudge fades out below a ~960px room, where the right
    window would otherwise run into the wall screen. */
 .windowLeft { left: calc(10% + clamp(0px, (100% - 760px) / 10, 20px)); }
