@@ -23,8 +23,10 @@
 /* Fixed-px props in a %-positioned band grow into each other as the room narrows: a 240px window at
    10% reached past the poster at 30% on anything under ~1200px, which is every iPad. The windows now
    shrink with the room, and the poster and clock sit in gaps that stay open at every width down to
-   the phone breakpoint. Keep the 64:36 of the pixel art rather than a second fixed number. */
-.window { position: absolute; top: 20%; width: min(240px, 23%); aspect-ratio: 64 / 36; }
+   the phone breakpoint. Keep the 64:36 of the pixel art rather than a second fixed number. 320px is
+   exactly 5× the 64-pixel drawing, so at full size every pixel in the view is the same size; they
+   hang a little higher than the other wall props so they end just above the back row's name tags. */
+.window { position: absolute; top: calc(20% - 22px); width: min(320px, 23%); aspect-ratio: 64 / 36; }
 .windowLeft { left: 10%; }
 .windowRight { left: 58%; }
 /* This month's floor props (scene-art.ts FLOOR_PROPS), standing in the gaps between the front desks. */
