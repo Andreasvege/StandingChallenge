@@ -3,7 +3,7 @@
 // coordinates to 4 decimals. Every tab polls /api/office every 5 s, so the response goes through
 // Next's data cache and MET sees one request per REVALIDATE_S, not one per poll.
 
-import { OFFICE_LOCATION, currentSymbol, weatherFromSymbol, type Weather } from './weather'
+import { OFFICE_LOCATION, currentConditions, weatherFromSymbol, type Weather } from './weather'
 
 const REVALIDATE_S = 15 * 60
 const USER_AGENT = 'sta-pa/1.0 github.com/Andreasvege/StandingChallenge'
@@ -18,8 +18,8 @@ export async function loadWeather(now = Date.now()): Promise<Weather | undefined
       signal: AbortSignal.timeout(3000),
     })
     if (!res.ok) return undefined
-    const symbol = currentSymbol(await res.json(), now)
-    return symbol ? weatherFromSymbol(symbol) : undefined
+    const now_ = currentConditions(await res.json(), now)
+    return now_ ? weatherFromSymbol(now_.symbol, now_.windSpeed) : undefined
   } catch {
     return undefined
   }

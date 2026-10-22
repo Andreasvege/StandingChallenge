@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { ALL_YEAR, fallingLeaves, forMonth, frameSize, gustLeaves, tileStyle } from './scene'
+import { ALL_YEAR, fallingLeaves, forMonth, frameSize, gustLeaves, gustPeriod, tileStyle } from './scene'
 import { SKIES, WINDOW_GLASS, WINDOW_MULLION, weatherSky, windowRects } from './sky'
 import { weatherFromSymbol } from './weather'
 
@@ -121,5 +121,13 @@ describe('gustLeaves', () => {
       expect(r.x).toBeGreaterThanOrEqual(2)
       expect(r.x + 2).toBeLessThanOrEqual(62)
     }
+  })
+})
+
+describe('gustPeriod', () => {
+  it('blows twice as often in a gale', () => {
+    expect(gustPeriod(0)).toBe(12)
+    expect(gustPeriod(1)).toBe(9)
+    expect(gustPeriod(2)).toBe(6)
   })
 })

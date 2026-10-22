@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { CLEAR, currentSymbol, precipitation, weatherFromSymbol } from './weather'
+import { CLEAR, PANE_SLIDE, currentConditions, precipitation, weatherFromSymbol, windLevel } from './weather'
 
 describe('weatherFromSymbol', () => {
   it('reads clear and partly cloudy skies as clear', () => {
@@ -28,25 +28,48 @@ describe('weatherFromSymbol', () => {
   })
 })
 
-describe('currentSymbol', () => {
+describe('windLevel', () => {
+  it('follows the Beaufort steps: frisk bris from 8 m/s, liten kuling from 10,8', () => {
+    expect(windLevel(0)).toBe(0)
+    expect(windLevel(7.9)).toBe(0)
+    expect(windLevel(8)).toBe(1)
+    expect(windLevel(10.7)).toBe(1)
+    expect(windLevel(10.8)).toBe(2)
+    expect(windLevel(25)).toBe(2)
+  })
+  it('reads no wind as calm', () => {
+    expect(windLevel(undefined)).toBe(0)
+    expect(weatherFromSymbol('rain').wind).toBe(0)
+    expect(weatherFromSymbol('rain', 12).wind).toBe(2)
+    expect(CLEAR.wind).toBe(0)
+  })
+})
+
+describe('currentConditions', () => {
   const at = (iso: string) => Date.parse(iso)
-  const step = (time: string, symbol_code: string) => ({ time, data: { next_1_hours: { summary: { symbol_code } } } })
+  const step = (time: string, symbol_code: string, wind_speed?: number) => ({
+    time,
+    data: { instant: { details: wind_speed === undefined ? {} : { wind_speed } }, next_1_hours: { summary: { symbol_code } } },
+  })
   const forecast = {
     properties: {
-      timeseries: [step('2026-10-12T10:00:00Z', 'cloudy'), step('2026-10-12T11:00:00Z', 'lightrain'), step('2026-10-12T12:00:00Z', 'rain')],
+      timeseries: [step('2026-10-12T10:00:00Z', 'cloudy', 3.2), step('2026-10-12T11:00:00Z', 'lightrain', 9.1), step('2026-10-12T12:00:00Z', 'rain')],
     },
   }
-  it('picks the hour that now falls in', () => {
-    expect(currentSymbol(forecast, at('2026-10-12T10:59:59Z'))).toBe('cloudy')
-    expect(currentSymbol(forecast, at('2026-10-12T11:00:00Z'))).toBe('lightrain')
+  it('picks the hour that now falls in, with its wind', () => {
+    expect(currentConditions(forecast, at('2026-10-12T10:59:59Z'))).toEqual({ symbol: 'cloudy', windSpeed: 3.2 })
+    expect(currentConditions(forecast, at('2026-10-12T11:00:00Z'))).toEqual({ symbol: 'lightrain', windSpeed: 9.1 })
   })
   it('uses the next hour when the forecast starts after now', () => {
-    expect(currentSymbol(forecast, at('2026-10-12T09:30:00Z'))).toBe('cloudy')
+    expect(currentConditions(forecast, at('2026-10-12T09:30:00Z'))?.symbol).toBe('cloudy')
+  })
+  it('copes with an hour without wind', () => {
+    expect(currentConditions(forecast, at('2026-10-12T12:30:00Z'))).toEqual({ symbol: 'rain', windSpeed: undefined })
   })
   it('gives null for a response it does not understand', () => {
-    expect(currentSymbol(null, 0)).toBeNull()
-    expect(currentSymbol({ properties: {} }, 0)).toBeNull()
-    expect(currentSymbol({ properties: { timeseries: [{ time: '2026-10-12T10:00:00Z', data: {} }] } }, at('2026-10-12T10:30:00Z'))).toBeNull()
+    expect(currentConditions(null, 0)).toBeNull()
+    expect(currentConditions({ properties: {} }, 0)).toBeNull()
+    expect(currentConditions({ properties: { timeseries: [{ time: '2026-10-12T10:00:00Z', data: {} }] } }, at('2026-10-12T10:30:00Z'))).toBeNull()
   })
 })
 
@@ -97,6 +120,32 @@ describe('precipitation', () => {
       expect(p.offset).toBeLessThanOrEqual(p.duration)
       expect(p.duration).toBeGreaterThanOrEqual(pace[p.kind][0])
       expect(p.duration).toBeLessThanOrEqual(pace[p.kind][1])
+    }
+  })
+  it('turns the rain up with the wind: more of it, more on the pane, more splash', () => {
+    const count = (s: string, wind: number, kind: string) => precipitation(weatherFromSymbol(s, wind)).filter(p => p.kind === kind).length
+    expect([count('rain', 0, 'drop'), count('rain', 9, 'drop'), count('rain', 12, 'drop')]).toEqual([10, 8, 14])
+    expect([count('rain', 0, 'pane'), count('rain', 9, 'pane'), count('rain', 12, 'pane')]).toEqual([5, 6, 8])
+    expect([count('rain', 0, 'splash'), count('rain', 9, 'splash'), count('rain', 12, 'splash')]).toEqual([3, 5, 6])
+    // even light rain splashes in a gale
+    expect(count('lightrain', 12, 'splash')).toBe(2)
+  })
+  it('in a gale, every third drop is near and the drops may start left of the glass', () => {
+    const drops = precipitation(weatherFromSymbol('rain', 12)).filter(p => p.kind === 'drop')
+    expect(drops.filter(p => p.near).length).toBe(5)
+    expect(drops.filter(p => !p.near).length).toBe(9)
+    for (const p of drops) {
+      expect(p.x).toBeGreaterThanOrEqual(-8)
+      expect(p.x).toBeLessThanOrEqual(71)
+      expect(p.duration).toBeLessThan(1.1)
+    }
+    expect(precipitation(weatherFromSymbol('rain', 9)).some(p => p.near)).toBe(false)
+  })
+  it('lands the pane drops high enough for the longer slide in wind', () => {
+    for (const wind of [0, 1, 2] as const) {
+      for (const p of precipitation(weatherFromSymbol('heavyrain', [0, 9, 12][wind]))) {
+        if (p.kind === 'pane') expect(p.y + PANE_SLIDE[wind]).toBeLessThanOrEqual(33)
+      }
     }
   })
 })

@@ -6,6 +6,7 @@ import type { StaticImageData } from "next/image";
 import { WINDOW_GLASS, WINDOW_MULLION, windowRects, type Sky } from "@/lib/sky";
 import { OUTLINE, type Rect } from "@/lib/sprite";
 import { precipitation, type Weather } from "@/lib/weather";
+import { gustPeriod } from "@/lib/scene";
 import weatherStyles from "./Weather.module.css";
 import type { FallingLeaf, GustLeaf } from "@/lib/scene";
 
@@ -58,12 +59,15 @@ export function PixelWindow({
   className?: string;
 }) {
   const g = WINDOW_GLASS;
+  const wind = weather?.wind ?? 0;
+  const windClass = wind === 2 ? weatherStyles.gale : wind === 1 ? weatherStyles.breeze : "";
   return (
     <svg
       viewBox="0 0 64 36"
       className={className}
       shapeRendering="crispEdges"
       aria-hidden="true"
+      style={{ "--gust": `${gustPeriod(wind)}s` } as CSSProperties}
     >
       <rect width="64" height="36" fill={OUTLINE} />
       <Rects rects={windowRects(sky, city)} />
@@ -86,23 +90,37 @@ export function PixelWindow({
         const fall = { ...clock, "--py": p.y } as CSSProperties;
         switch (p.kind) {
           case "drop":
+            if (wind === 2) {
+              // a diagonal that crosses as far as it falls: 3 px near, 2 px far
+              const n = p.near ? 3 : 2;
+              const fill = p.near ? "#e8f0ff" : "#cfe0ff";
+              return (
+                <g key={i} className={`${weatherStyles.wind} ${p.near ? weatherStyles.galeNear : weatherStyles.gale}`} style={clock}>
+                  <g className={p.near ? weatherStyles.near : weatherStyles.far} style={fall} opacity={p.near ? 0.85 : 0.5}>
+                    {Array.from({ length: n }, (_, k) => (
+                      <rect key={k} x={p.x + k} y={p.y + k} width="1" height="1" fill={fill} />
+                    ))}
+                  </g>
+                </g>
+              );
+            }
             return (
-              <g key={i} className={weatherStyles.wind} style={{ ...clock, "--w": "2px" } as CSSProperties}>
-                <rect x={p.x} y={p.y} width="1" height="2" fill="#cfe0ff" opacity={0.3} className={weatherStyles.far} style={fall} />
+              <g key={i} className={`${weatherStyles.wind} ${windClass}`} style={clock}>
+                <rect x={p.x} y={p.y} width="1" height="2" fill="#cfe0ff" opacity={wind === 1 ? 0.4 : 0.3} className={weatherStyles.far} style={fall} />
               </g>
             );
           case "flake":
             return <rect key={i} x={p.x} y={p.y} width="1" height="1" fill="#ffffff" opacity={0.95} className={weatherStyles.flake} style={fall} />;
           case "pane":
             return (
-              <g key={i} className={weatherStyles.pane} style={clock}>
+              <g key={i} className={`${weatherStyles.pane} ${windClass}`} style={clock}>
                 <rect x={p.x} y={p.y - 2} width="1" height="2" fill="#e4ecff" opacity={0.45} />
                 <rect x={p.x} y={p.y} width="1" height="1" fill="#ffffff" opacity={0.95} />
               </g>
             );
           case "splash":
             return (
-              <g key={i} opacity={0.6} style={clock}>
+              <g key={i} opacity={[0.6, 0.7, 0.8][wind]} style={clock}>
                 <rect x={p.x} y={p.y} width="1" height="1" fill="#e3ecff" className={weatherStyles.splashA} />
                 <g className={weatherStyles.splashB}>
                   <rect x={p.x - 1} y={p.y - 1} width="1" height="1" fill="#e3ecff" />
@@ -112,6 +130,21 @@ export function PixelWindow({
             );
         }
       })}
+      {wind === 2 && weather?.precip !== "none" && weather?.precip !== "snow" && (
+        <>
+          <rect x={g.x} y={g.y} width={g.w} height={g.h} fill="#ffffff" opacity={0.06} />
+          {[0, -1.3].map((off) => (
+            <polygon
+              key={off}
+              points="-30,2 -24,2 8,34 2,34"
+              fill="#ffffff"
+              opacity={0.07}
+              className={weatherStyles.sheet}
+              style={{ "--dur": "2.4s", "--off": `${off}s` } as CSSProperties}
+            />
+          ))}
+        </>
+      )}
       <g
         style={{
           filter: sky.outside < 1 ? `brightness(${sky.outside})` : undefined,

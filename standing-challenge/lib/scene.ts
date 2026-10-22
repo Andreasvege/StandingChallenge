@@ -2,6 +2,8 @@
 // The list of drawings lives in components/office/scene-art.ts, because a PNG import only works
 // inside the Next build; the rules for picking one live here so they can be tested.
 
+import type { WindLevel } from './weather'
+
 /** Scene props (pumpkins, leaf piles …) are drawn at the same scale as the figures: 1 drawn pixel = 3 screen pixels. */
 export const SCENE_SCALE = 3
 
@@ -109,4 +111,9 @@ export function gustLeaves(side: 'left' | 'right'): GustLeaf[] {
     color: LEAF_COLORS[Math.floor(rand() * LEAF_COLORS.length)],
   }))
   return [...flyers, ...resting]
+}
+
+/** Seconds between gusts through the leaves: every 12 s when calm, 9 in a frisk bris, 6 in a liten kuling. */
+export function gustPeriod(wind: WindLevel): number {
+  return [12, 9, 6][wind]
 }

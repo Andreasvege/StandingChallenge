@@ -3,17 +3,29 @@
    lets an outer <g> (the wind) and an inner rect (the fall) share one clock. A particle's resting
    row is --py; the fall carries it from just above the glass to just below it, and the frame drawn
    over the glass afterwards hides the ends. */
-.wind, .far, .flake, .pane, .drift { animation-duration: var(--dur); animation-delay: var(--off); animation-iteration-count: infinite; }
+.wind, .far, .near, .flake, .pane, .drift { animation-duration: var(--dur); animation-delay: var(--off); animation-iteration-count: infinite; }
 
-/* Rain far behind the glass: 1×2, slow, and nudged sideways by the wind on the <g> around it. */
-.wind { animation-name: wind; animation-timing-function: steps(6); }
-@keyframes wind {
-  from { transform: translateX(calc(-1 * var(--w))); }
-  to   { transform: translateX(var(--w)); }
-}
+/* Rain far behind the glass: 1×2, slow, and nudged sideways by the wind on the <g> around it.
+   The wind steps from whole pixel to whole pixel in time with the fall: ±2 px when calm; 1 px
+   sideways per 2 px down in a frisk bris; and in a liten kuling as far sideways as down (3+3 for
+   the near drops, 2+2 for the far ones), a true 45°. */
+.wind { animation-name: calm; animation-timing-function: steps(6); }
+.wind.breeze  { animation-name: breeze; animation-timing-function: steps(18); }
+.wind.gale    { animation-name: gale;   animation-timing-function: steps(19); }
+.wind.galeNear { animation-name: galeNear; animation-timing-function: steps(13); }
+@keyframes calm     { from { transform: translateX(-2px); }  to { transform: translateX(2px); } }
+@keyframes breeze   { from { transform: translateX(-9px); }  to { transform: translateX(9px); } }
+@keyframes gale     { from { transform: translateX(-18px); } to { transform: translateX(20px); } }
+@keyframes galeNear { from { transform: translateX(-18px); } to { transform: translateX(21px); } }
 .far { animation-name: fall; animation-timing-function: steps(19); }
 @keyframes fall {
   from { transform: translateY(calc(-1px * var(--py) - 2px)); }
+  to   { transform: translateY(calc(36px - 1px * var(--py))); }
+}
+/* A near drop in a gale is three pixels long, so it falls 3 px a step. */
+.near { animation-name: fallNear; animation-timing-function: steps(13); }
+@keyframes fallNear {
+  from { transform: translateY(calc(-1px * var(--py) - 3px)); }
   to   { transform: translateY(calc(36px - 1px * var(--py))); }
 }
 .flake { animation-name: drift; animation-timing-function: steps(9); }
@@ -25,14 +37,33 @@
   100% { transform: translate(0, calc(36px - 1px * var(--py))); }
 }
 
-/* A drop on the pane: lands, waits, slides 12 px (PANE_SLIDE) one pixel at a time, is gone, lands again. */
+/* A drop on the pane: lands, waits, slides PANE_SLIDE px one pixel at a time, is gone, lands again.
+   In wind it waits less and the slide leans: 2 px sideways in a breeze, 6 in a gale. */
 .pane { animation-name: pane; animation-timing-function: steps(1, end); }
 @keyframes pane {
-  0%   { transform: translateY(0); opacity: 1; }
-  40%  { transform: translateY(0); opacity: 1; animation-timing-function: steps(12); }
-  72%  { transform: translateY(12px); opacity: 1; }
-  72.01%, 100% { transform: translateY(12px); opacity: 0; }
+  0%   { transform: translate(0, 0); opacity: 1; }
+  40%  { transform: translate(0, 0); opacity: 1; animation-timing-function: steps(12); }
+  72%  { transform: translate(0, 12px); opacity: 1; }
+  72.01%, 100% { transform: translate(0, 12px); opacity: 0; }
 }
+.pane.breeze { animation-name: paneBreeze; }
+@keyframes paneBreeze {
+  0%   { transform: translate(0, 0); opacity: 1; }
+  30%  { transform: translate(0, 0); opacity: 1; animation-timing-function: steps(14); }
+  66%  { transform: translate(2px, 14px); opacity: 1; }
+  66.01%, 100% { transform: translate(2px, 14px); opacity: 0; }
+}
+.pane.gale { animation-name: paneGale; }
+@keyframes paneGale {
+  0%   { transform: translate(0, 0); opacity: 1; }
+  15%  { transform: translate(0, 0); opacity: 1; animation-timing-function: steps(18); }
+  55%  { transform: translate(6px, 18px); opacity: 1; }
+  55.01%, 100% { transform: translate(6px, 18px); opacity: 0; }
+}
+
+/* A gale only: sheets of rain sweeping across the glass at the same 45°, over a thin haze. */
+.sheet { animation: sheet var(--dur) var(--off) infinite steps(26); }
+@keyframes sheet { from { transform: translateX(0); } to { transform: translateX(104px); } }
 
 /* A splash on the sill: one pixel, then two pixels either side, then nothing until the next. */
 .splashA, .splashB { opacity: 0; animation: splashA var(--dur) var(--off) infinite steps(1, end); }
@@ -51,24 +82,25 @@
   100% { transform: translate(6px, calc(36px - 1px * var(--py))); }
 }
 
-/* The gust: one shared 12 s clock with no delay, so it hits every leaf in both windows at once.
-   The drifting leaves lurch 10 px right and wander back; the flyers cross the glass from the left;
-   the leaves resting on the sill are blown off (and lie there again when the clock comes round). */
-.gust { animation: gust 12s infinite steps(1, end); }
+/* The gust: one shared clock with no delay, so it hits every leaf in both windows at once. Its
+   period is --gust on the window (gustPeriod: 12 s calm, 9 in a breeze, 6 in a gale). The drifting
+   leaves lurch 10 px right and wander back; the flyers cross the glass from the left; the leaves
+   resting on the sill are blown off (and lie there again when the clock comes round). */
+.gust { animation: gust var(--gust, 12s) infinite steps(1, end); }
 @keyframes gust {
   0%, 60% { transform: translate(0, 0); animation-timing-function: steps(5); }
   66%     { transform: translate(10px, -2px); animation-timing-function: steps(1, end); }
   76%     { transform: translate(10px, -2px); animation-timing-function: steps(10); }
   100%    { transform: translate(0, 0); }
 }
-.flyer { opacity: 0; animation: fly 12s infinite steps(1, end); }
+.flyer { opacity: 0; animation: fly var(--gust, 12s) infinite steps(1, end); }
 @keyframes fly {
   0%, 60%  { transform: translate(0, 0); opacity: 0; }
   60.01%   { transform: translate(0, 0); opacity: 1; animation-timing-function: steps(14); }
   72%      { transform: translate(70px, -3px); opacity: 1; }
   72.01%, 100% { transform: translate(70px, -3px); opacity: 0; }
 }
-.resting { animation: resting 12s infinite steps(1, end); }
+.resting { animation: resting var(--gust, 12s) infinite steps(1, end); }
 @keyframes resting {
   0%, 60%  { transform: translate(0, 0); opacity: 1; animation-timing-function: steps(8); }
   66%      { transform: translate(34px, -8px); opacity: 1; }
@@ -88,6 +120,7 @@
 /* Without motion the rain hangs still where it is, the pane drops sit, the sill stays dry, the
    flyers stay out of sight, and the lightning keeps away. */
 @media (prefers-reduced-motion: reduce) {
-  .wind, .far, .flake, .pane, .splashA, .splashB, .drift, .gust, .flyer, .resting { animation: none; }
+  .wind, .far, .near, .flake, .pane, .splashA, .splashB, .sheet, .drift, .gust, .flyer, .resting { animation: none; }
+  .sheet { display: none; }
   .flash { display: none; }
 }
