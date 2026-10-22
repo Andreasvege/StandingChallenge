@@ -26,14 +26,51 @@ export function Lights({ className }: { className?: string }) {
   return <div className={className} aria-hidden="true" />;
 }
 
-/** The window frame, drawn last so falling rain and snow never spill over it. */
+const WOOD = "#a86f42";
+const WOOD_HI = "#c98d5a";
+/** Lavender curtains: fill, the fold's shadow and its highlight — the walls' and chairs' purple, lighter. */
+const CURTAIN = ["#8e7cc9", "#6a5aa3", "#b3a4e6"] as const;
+/** How wide each curtain is, two rows per entry from the rod down: gathered at the tie, fuller at the hem. */
+const CURTAIN_WIDTHS = [6, 6, 5, 5, 5, 4, 4, 4, 5, 5, 5, 6, 6, 6, 7, 7, 7, 7];
+
+/** One curtain hanging from the rod: `x0` is its outer edge, `dir` 1 for the left one, −1 for the right. */
+function curtain(x0: number, dir: 1 | -1): Rect[] {
+  const [fill, shadow, light] = CURTAIN;
+  const px = (x: number, y: number, w: number, c: string): Rect => ({ x, y, w, h: 1, fill: c });
+  return Array.from({ length: 35 }, (_, y) => {
+    const w = CURTAIN_WIDTHS[Math.min(CURTAIN_WIDTHS.length - 1, Math.floor(y / 2))];
+    const x = dir > 0 ? x0 : x0 - w + 1;
+    return [
+      px(x, y, w, fill),
+      px(dir > 0 ? x + w - 1 : x, y, 1, OUTLINE),
+      px(dir > 0 ? x + 2 : x + w - 3, y, 1, shadow),
+      px(dir > 0 ? x + 1 : x + w - 2, y, 1, light),
+    ];
+  }).flat();
+}
+
+/**
+ * The window frame, drawn last so falling rain and snow never spill over it: a wooden frame with a
+ * dark outline, the wooden mullion, and curtains on a rod reaching past the frame on both sides.
+ */
 const FRAME: Rect[] = [
-  { x: 0, y: 0, w: 64, h: 2, fill: OUTLINE },
-  { x: 0, y: 34, w: 64, h: 2, fill: OUTLINE },
-  { x: 0, y: 0, w: 2, h: 36, fill: OUTLINE },
-  { x: 62, y: 0, w: 2, h: 36, fill: OUTLINE },
-  WINDOW_MULLION,
+  { x: 1, y: 1, w: 62, h: 1, fill: WOOD_HI },
+  { x: 1, y: 34, w: 62, h: 1, fill: WOOD },
+  { x: 1, y: 1, w: 1, h: 34, fill: WOOD_HI },
+  { x: 62, y: 1, w: 1, h: 34, fill: WOOD },
+  { ...WINDOW_MULLION, fill: WOOD },
+  { x: WINDOW_MULLION.x, y: WINDOW_MULLION.y, w: 1, h: WINDOW_MULLION.h, fill: WOOD_HI },
+  { x: 0, y: 0, w: 64, h: 1, fill: OUTLINE },
+  { x: 0, y: 35, w: 64, h: 1, fill: OUTLINE },
+  { x: 0, y: 0, w: 1, h: 36, fill: OUTLINE },
+  { x: 63, y: 0, w: 1, h: 36, fill: OUTLINE },
+  ...curtain(-2, 1),
+  ...curtain(65, -1),
+  { x: -3, y: -2, w: 70, h: 2, fill: OUTLINE },
+  { x: -2, y: -1, w: 68, h: 1, fill: WOOD },
 ];
+/** The drawing reaches 3 past the frame at the sides (curtains) and 2 above it (the rod); see .window. */
+const WINDOW_VIEWBOX = "-3 -2 70 38";
 
 /**
  * A window onto the Oslo sky: the weather-tinted sky and city, this month's hand-drawn view (if any),
@@ -63,7 +100,7 @@ export function PixelWindow({
   const windClass = wind === 2 ? weatherStyles.gale : wind === 1 ? weatherStyles.breeze : "";
   return (
     <svg
-      viewBox="0 0 64 36"
+      viewBox={WINDOW_VIEWBOX}
       className={className}
       shapeRendering="crispEdges"
       aria-hidden="true"

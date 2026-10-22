@@ -27,6 +27,10 @@
    exactly 5× the 64-pixel drawing, so at full size every pixel in the view is the same size; they
    hang a little higher than the other wall props so they end just above the back row's name tags. */
 .window { position: absolute; top: calc(20% - 28px); width: min(320px, 23%); aspect-ratio: 64 / 36; }
+/* The window svg also holds the curtains and rod, 3 units past the 64-wide frame at each side and 2
+   above it (a 70×38 drawing). It is drawn that much bigger and pulled back up-left by the same
+   share of its own size, so the frame itself stays exactly where the box above puts it. */
+svg.window { width: min(350px, 25.156%); aspect-ratio: 70 / 38; transform: translate(-4.2857%, -5.2632%); }
 /* Nudged 20px right on full-size screens; the nudge fades out below a ~960px room, where the right
    window would otherwise run into the wall screen. */
 .windowLeft { left: calc(10% + clamp(0px, (100% - 760px) / 10, 20px)); }
@@ -264,14 +268,18 @@
   .desktopOnly { display: none; }
   .mobileOnly { display: contents; }
   .window { top: 30px; bottom: auto; width: 144px; height: 81px; }
+  /* Phones keep the whole drawing, curtains and all, inside the old 144px window box: the plant shelf
+     sits between the windows and there is no room for the curtains to reach past them. */
+  svg.window { width: 144px; height: auto; transform: none; }
   .windowLeft { left: 8%; }
   .windowRight { left: 56%; }
   .clock,
   .hanging { display: none; }
   /* Kontorplanten sits between the two windows on phones; tap it for the numbers. */
-  .plant { left: calc(50% - 17px); top: 24px; bottom: auto; }
+  /* Centred in the gap between the windows (8% + 144px … 56%), whose middle is 32% + 72px. */
+  .plant { left: calc(32% + 72px - 12px); top: 24px; bottom: auto; }
   .plantSvg { width: 30px; height: 48px; }
-  .shelf { width: 34px; height: 4px; }
+  .shelf { width: 24px; height: 4px; }
   .plantSign { display: none; }
   .floor { height: var(--floor-h-mobile, 320px); }
   .bubble { font-size: 10px; padding: 1px 5px 2px; }
