@@ -1,12 +1,12 @@
 import { describe, it, expect } from 'vitest'
-import { DEFAULT_FIGURE, DESK_ITEMS, HEADWEAR, isFigure, randomFigure } from './figure'
+import { DEFAULT_FIGURE, DESK_ITEMS, EYEWEAR, HEADWEAR, SHIRT_COLORS, TOPS, isFigure, randomFigure } from './figure'
 
 describe('isFigure', () => {
   it('accepts the default figure', () => {
     expect(isFigure(DEFAULT_FIGURE)).toBe(true)
   })
   it('accepts every eyewear, beard and mustache combination', () => {
-    for (const eyewear of ['none', 'glasses', 'sunglasses'] as const) {
+    for (const eyewear of EYEWEAR) {
       for (const beard of ['none', 'stubble', 'full'] as const) {
         for (const mustache of [false, true]) expect(isFigure({ ...DEFAULT_FIGURE, eyewear, beard, mustache })).toBe(true)
       }
@@ -30,6 +30,14 @@ describe('isFigure', () => {
   })
   it('rejects head art that does not exist', () => {
     expect(isFigure({ ...DEFAULT_FIGURE, headwear: 'tiara' })).toBe(false)
+  })
+  it('accepts every top with any under colour, and figures saved before tops existed', () => {
+    expect('top' in DEFAULT_FIGURE).toBe(false)
+    for (const top of TOPS) for (const under of SHIRT_COLORS) expect(isFigure({ ...DEFAULT_FIGURE, top, under })).toBe(true)
+  })
+  it('rejects unknown tops and under colours outside the palette', () => {
+    expect(isFigure({ ...DEFAULT_FIGURE, top: 'poncho' })).toBe(false)
+    expect(isFigure({ ...DEFAULT_FIGURE, top: 'blazer', under: '#123456' })).toBe(false)
   })
   it('rejects non-objects', () => {
     expect(isFigure(null)).toBe(false)

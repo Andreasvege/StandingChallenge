@@ -2,7 +2,7 @@ import { useState, useTransition, type ReactNode } from 'react'
 import { deleteEmployee, placeEmployee, saveEmployee } from '@/app/actions/admin'
 import { PixelHead, PixelPerson } from '@/components/PixelPerson'
 import { useTranslation } from '@/components/useLang'
-import { BEARDS, DESK_ITEMS, EYEWEAR, HAIR_COLORS, HAIR_STYLES, HEADWEAR, SHIRT_COLORS, SKIN_COLORS, randomFigure, type Figure } from '@/lib/figure'
+import { BEARDS, DEFAULT_UNDER, DESK_ITEMS, EYEWEAR, HAIR_COLORS, HAIR_STYLES, HEADWEAR, OPEN_TOPS, SHIRT_COLORS, SKIN_COLORS, TOPS, randomFigure, type Figure, type Top } from '@/lib/figure'
 import { DEFAULT_LANG, t as translate, type Lang, type MessageKey, type MessageParams } from '@/lib/i18n'
 import { DESKTOP_MAX_PER_ROW, MAX_SEATS, balancedRows, seatRowName } from '@/lib/room-layout'
 import { DESK_ART, HEAD_ART } from '@/lib/sprite-art.generated'
@@ -22,11 +22,19 @@ const EYEWEAR_KEYS: Record<Figure['eyewear'], MessageKey> = {
   none: 'figure.eyewear.none',
   glasses: 'figure.eyewear.glasses',
   sunglasses: 'figure.eyewear.sunglasses',
+  aviators: 'figure.eyewear.aviators',
+  sport: 'figure.eyewear.sport',
 }
 const BEARD_KEYS: Record<Figure['beard'], MessageKey> = {
   none: 'figure.beard.none',
   stubble: 'figure.beard.stubble',
   full: 'figure.beard.full',
+}
+const TOP_KEYS: Record<Top, MessageKey> = {
+  sweater: 'figure.top.sweater',
+  hoodie: 'figure.top.hoodie',
+  cardigan: 'figure.top.cardigan',
+  blazer: 'figure.top.blazer',
 }
 const BUILTIN_ITEM_KEYS: Record<string, MessageKey> = { mug: 'figure.item.mug', plant: 'figure.item.plant' }
 
@@ -106,13 +114,14 @@ export function FigureBuilder({ employee, employees, isMe, onRemoved }: FigureBu
     )
   }
 
-  function swatches(key: 'hair' | 'skin' | 'shirt', colors: readonly string[]) {
+  function swatches(key: 'hair' | 'skin' | 'shirt' | 'under', colors: readonly string[]) {
+    const current = key === 'under' ? (figure.under ?? DEFAULT_UNDER) : figure[key]
     return colors.map(c => (
       <button
         key={c}
         type="button"
         aria-label={c}
-        className={`${styles.swatch} ${figure[key] === c ? styles.swatchOn : ''}`}
+        className={`${styles.swatch} ${current === c ? styles.swatchOn : ''}`}
         style={{ background: c }}
         onClick={() => update({ [key]: c })}
       />
@@ -125,6 +134,7 @@ export function FigureBuilder({ employee, employees, isMe, onRemoved }: FigureBu
   const seatChoices = Math.min(MAX_SEATS, usedSeats + 1)
   const seatRows = balancedRows(seatChoices, DESKTOP_MAX_PER_ROW)
   const headwear = figure.headwear ?? 'none'
+  const top = figure.top ?? 'sweater'
 
   return (
     <div className={styles.builder}>
@@ -226,7 +236,20 @@ export function FigureBuilder({ employee, employees, isMe, onRemoved }: FigureBu
             </select>
           </Group>
         </div>
+        <Group title={t('figure.group.top')}>
+          {TOPS.map(v => (
+            <button
+              key={v}
+              type="button"
+              className={`${styles.chip} ${styles.chipText} ${top === v ? styles.chipOn : ''}`}
+              onClick={() => update({ top: v })}
+            >
+              {t(TOP_KEYS[v])}
+            </button>
+          ))}
+        </Group>
         <Group title={t('figure.group.shirt')}>{swatches('shirt', SHIRT_COLORS)}</Group>
+        {OPEN_TOPS.includes(top) && <Group title={t('figure.group.under')}>{swatches('under', SHIRT_COLORS)}</Group>}
 
         <div className={styles.actions}>
           <button type="button" className={styles.btn} onClick={() => update(randomFigure())}>

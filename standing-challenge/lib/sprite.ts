@@ -1,7 +1,7 @@
 // Pixel sprites as plain rectangles on a 40×48 grid (figure + desk), ported from the approved
 // figure-builder prototype. Render with shape-rendering="crispEdges".
 
-import type { DeskItem, Figure } from './figure'
+import { DEFAULT_UNDER, type DeskItem, type Figure } from './figure'
 import { DESK_CANVAS, HEAD_CANVAS } from './sprite-art'
 import { DESK_ART, HEAD_ART } from './sprite-art.generated'
 
@@ -44,6 +44,11 @@ const LEAF_LIGHT = '#7dcf76'
 const BLUSH = '#ff8fa3'
 const EYE_SHINE = '#ffffff'
 const SUNGLASS_GLINT = '#7d6fc0'
+const SHADE_LENS = '#2c2350'
+const SHADE_GLINT = '#b9b0ff'
+const MIRROR_BLUE = '#5b8cff'
+const MIRROR_PURPLE = '#b46bff'
+const MIRROR_GLINT = '#d8f0ff'
 
 /** Named scene colours, for the drawing palette in sprites/mal/. */
 export const SCENE_COLORS: Record<string, string> = {
@@ -220,8 +225,8 @@ function head(p: Painter, f: Figure, x: number, y: number, awake: boolean, crown
     r(x + 10, y + 8, 3, 1, f.hair)
     r(x + 8, y + 9, 5, 1, f.hair)
   }
-  // Mouth.
-  if (!f.mustache && f.beard !== 'full') r(x + 11, y + 9, 1, 1, OUTLINE)
+  // Mouth: two pixels a row below the glasses' frame, so it can't read as a tail hanging off it.
+  if (!f.mustache && f.beard !== 'full') r(x + 10, y + 10, 2, 1, OUTLINE)
 
   // Eyes and eyewear.
   const eye = () => {
@@ -239,11 +244,10 @@ function head(p: Painter, f: Figure, x: number, y: number, awake: boolean, crown
     r(x + 7, y + 8, 5, 1, OUTLINE)
     r(x + 7, y + 5, 1, 3, OUTLINE)
     r(x + 11, y + 5, 1, 3, OUTLINE)
+    r(x + 12, y + 5, 1, 1, OUTLINE) // the bridge, running on to the far lens round the face
     r(x + 3, y + 5, 4, 1, OUTLINE)
-  } else if (f.eyewear === 'sunglasses') {
-    r(x + 7, y + 4, 6, 4, OUTLINE)
-    r(x + 8, y + 5, 1, 1, SUNGLASS_GLINT)
-    r(x + 3, y + 5, 4, 1, OUTLINE)
+  } else if (f.eyewear === 'sunglasses' || f.eyewear === 'aviators' || f.eyewear === 'sport') {
+    sunglasses(p, f.eyewear, x, y)
   } else {
     eye()
   }
@@ -263,6 +267,86 @@ function head(p: Painter, f: Figure, x: number, y: number, awake: boolean, crown
   }
 }
 
+function sunglasses({ r }: Painter, kind: 'sunglasses' | 'aviators' | 'sport', x: number, y: number) {
+  r(x + 3, y + 5, 4, 1, OUTLINE) // the arm to the ear
+  if (kind === 'sunglasses') {
+    // Wayfarer: thick top bar, a dark lens with a diagonal glint, the bridge running on round the face.
+    r(x + 7, y + 4, 6, 1, OUTLINE)
+    r(x + 7, y + 5, 5, 2, OUTLINE)
+    r(x + 8, y + 7, 3, 1, OUTLINE)
+    r(x + 8, y + 5, 3, 2, SHADE_LENS)
+    r(x + 9, y + 7, 1, 1, OUTLINE)
+    r(x + 8, y + 5, 1, 1, SHADE_GLINT)
+    r(x + 9, y + 6, 1, 1, SUNGLASS_GLINT)
+    r(x + 12, y + 5, 1, 1, OUTLINE)
+  } else if (kind === 'aviators') {
+    // Aviator: thin gold frame, a teardrop lens that hangs lower toward the nose.
+    r(x + 7, y + 4, 6, 1, GOLD_DARK)
+    r(x + 3, y + 5, 4, 1, GOLD_DARK)
+    r(x + 7, y + 5, 5, 2, SHADE_LENS)
+    r(x + 8, y + 7, 4, 1, SHADE_LENS)
+    r(x + 7, y + 7, 1, 1, OUTLINE)
+    r(x + 8, y + 8, 3, 1, OUTLINE)
+    r(x + 11, y + 7, 1, 1, OUTLINE)
+    r(x + 8, y + 5, 2, 1, SHADE_GLINT)
+    r(x + 12, y + 5, 1, 1, GOLD_DARK)
+  } else {
+    // Sporty visor: one wide mirrored band in a cool gradient, straight across.
+    r(x + 7, y + 4, 6, 4, OUTLINE)
+    r(x + 7, y + 5, 6, 1, MIRROR_BLUE)
+    r(x + 7, y + 6, 6, 1, MIRROR_PURPLE)
+    r(x + 8, y + 5, 1, 1, MIRROR_GLINT)
+  }
+}
+
+/**
+ * The upper body: a box with the front (the side facing the desk) on the right. Both poses share the
+ * same layout relative to it; only the height differs, and the sitting legs cover the bottom.
+ */
+function torso({ r, o }: Painter, f: Figure, x: number, y: number, w: number, h: number) {
+  const top = f.top ?? 'sweater'
+  const under = f.under ?? DEFAULT_UNDER
+  const dark = shade(f.shirt)
+  const darker = shade(f.shirt, 0.62)
+  const front = x + w - 2
+
+  o(x, y, w, h, f.shirt)
+  if (top === 'hoodie') {
+    r(front - 1, y, 1, 2, lighten(f.shirt, 0.6)) // drawstrings
+    r(front + 1, y, 1, 3, lighten(f.shirt, 0.6))
+    r(x + 3, y + 5, w - 4, 1, dark) // the pocket's top seam
+    r(x, y + h - 1, w, 1, dark) // ribbed hem
+  } else if (top === 'cardigan') {
+    r(front, y, 2, h, under) // the shirt showing down the open front
+    r(front - 1, y, 1, h, darker) // the cardigan's edge
+    r(front - 1, y + 4, 1, 1, lighten(f.shirt, 0.5)) // buttons
+    r(front - 1, y + 6, 1, 1, lighten(f.shirt, 0.5))
+    r(x, y + h - 1, front - 1 - x, 1, dark) // ribbed hem
+  } else if (top === 'blazer') {
+    r(front, y, 2, h, under) // the shirt
+    r(front + 1, y + 1, 1, h - 2, shade(under, 0.45)) // a tie
+    r(front - 1, y, 1, 2, darker) // the lapel's fold, widening toward the shoulder
+    r(front - 2, y, 1, 1, darker)
+    r(front - 1, y + 2, 1, h - 2, darker) // the closed front
+    r(front - 1, y + 5, 1, 1, lighten(f.shirt, 0.45)) // a button
+  }
+}
+
+/**
+ * The hood lies on the back of the neck, drawn after the head so long hair tucks into it. (x, y) is
+ * the torso's top-left.
+ */
+function hood({ r, o }: Painter, f: Figure, x: number, y: number) {
+  const dark = shade(f.shirt)
+  o(x - 4, y - 3, 4, 5, f.shirt)
+  r(x - 4, y - 4, 2, 1, OUTLINE) // rounded top
+  r(x - 5, y - 3, 1, 1, OUTLINE)
+  r(x - 4, y - 3, 1, 1, OUTLINE)
+  r(x - 1, y - 2, 1, 4, dark) // the opening's shadow
+  r(x - 1, y + 2, 1, 1, f.shirt) // joined to the back, no line between
+  r(x, y - 1, 1, 1, f.shirt)
+}
+
 /** A person at their desk: standing at a raised desk, or dozing on a chair at a lowered one. */
 export function spriteRects(f: Figure, { pose, crown = false, trophy = false, hideDeskItem = false }: SpriteOptions): Rect[] {
   const p = painter()
@@ -275,21 +359,25 @@ export function spriteRects(f: Figure, { pose, crown = false, trophy = false, hi
     o(15, 34, 2, 12, PANTS)
     r(11, 46, 3, 1, OUTLINE)
     r(15, 46, 3, 1, OUTLINE)
-    o(9, 25, 9, 9, f.shirt)
+    torso(p, f, 9, 25, 9, 9)
     r(15, 27, 4, 2, shirtShade)
     r(19, 25, 2, 2, shirtShade)
+    if (f.top === 'blazer') r(20, 25, 1, 2, f.under ?? DEFAULT_UNDER) // shirt cuff
     r(21, 24, 2, 2, f.skin)
     head(p, f, FACE.stand.x, FACE.stand.y, true, crown)
+    if (f.top === 'hoodie') hood(p, f, 9, 25)
   } else {
     desk(p, DESK_TOP.sit, item, true, trophy)
     chair(p)
     o(18, 38, 3, 8, PANTS)
     r(18, 46, 4, 1, OUTLINE)
-    o(9, 30, 8, 8, f.shirt)
+    torso(p, f, 9, 30, 8, 8)
     o(12, 36, 8, 2, PANTS)
     r(16, 32, 5, 2, shirtShade)
+    if (f.top === 'blazer') r(20, 32, 1, 2, f.under ?? DEFAULT_UNDER) // shirt cuff
     r(21, 32, 2, 2, f.skin)
     head(p, f, FACE.sit.x, FACE.sit.y, false, crown)
+    if (f.top === 'hoodie') hood(p, f, 9, 30)
   }
   return p.rects
 }

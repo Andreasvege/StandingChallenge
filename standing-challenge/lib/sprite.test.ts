@@ -9,7 +9,7 @@ const deskTop = (rects: Rect[]) => rects.find(r => r.fill === '#d49a64' && r.w =
 const has = (rects: Rect[], match: Partial<Rect>) =>
   rects.some(r => Object.entries(match).every(([k, v]) => r[k as keyof Rect] === v))
 // Standing head is drawn at (7, 11); the mouth pixel sits at (x + 11, y + 9).
-const MOUTH = { x: 18, y: 20, w: 1, h: 1, fill: OUTLINE }
+const MOUTH = { x: 17, y: 21, w: 2, h: 1, fill: OUTLINE }
 
 function inBounds(rects: Rect[]) {
   return rects.every(r => r.x >= 0 && r.y >= 0 && r.x + r.w <= SPRITE_W && r.y + r.h <= SPRITE_H)
@@ -47,10 +47,12 @@ describe('spriteRects', () => {
     expect(count(stand(DEFAULT_FIGURE))).toBe(0)
     expect(count(stand(DEFAULT_FIGURE, true))).toBe(4)
   })
-  it('draws glasses as a frame of five outline rects around a light lens', () => {
+  it('draws glasses as a frame of five outline rects plus a bridge round the face, around a light lens', () => {
     const glasses = stand({ ...DEFAULT_FIGURE, eyewear: 'glasses' })
+    // The bridge runs to the face's far edge (x + 12), toward the lens we can't see.
+    expect(has(glasses, { x: FACE.stand.x + 12, y: FACE.stand.y + 5, w: 1, h: 1, fill: OUTLINE })).toBe(true)
     const outlines = (rects: Rect[]) => rects.filter(r => r.fill === OUTLINE).length
-    expect(outlines(glasses) - outlines(stand(DEFAULT_FIGURE))).toBe(5)
+    expect(outlines(glasses) - outlines(stand(DEFAULT_FIGURE))).toBe(6)
     expect(has(glasses, { fill: LENS, w: 3, h: 3 })).toBe(true)
   })
   // The face is drawn in profile, so there is one eye. Closed, it used to be 3px wide — exactly the
@@ -67,8 +69,20 @@ describe('spriteRects', () => {
     expect(closed?.x).toBe(open?.x)
   })
 
-  it('draws sunglasses as a solid dark block', () => {
-    expect(has(stand({ ...DEFAULT_FIGURE, eyewear: 'sunglasses' }), { x: 14, y: 15, w: 6, h: 4, fill: OUTLINE })).toBe(true)
+  it('draws three kinds of sunglasses, each with an arm to the ear and none covering the mouth', () => {
+    const arm = { x: FACE.stand.x + 3, y: FACE.stand.y + 5, w: 4, h: 1 }
+    for (const eyewear of ['sunglasses', 'aviators', 'sport'] as const) {
+      const rects = stand({ ...DEFAULT_FIGURE, eyewear })
+      expect(has(rects, arm)).toBe(true)
+      expect(has(rects, MOUTH)).toBe(true)
+    }
+    // Pilots hang lower than the others, in a gold frame.
+    expect(has(stand({ ...DEFAULT_FIGURE, eyewear: 'aviators' }), { y: FACE.stand.y + 8, fill: OUTLINE, w: 3 })).toBe(true)
+  })
+  // The mouth used to sit directly under the frame's corner and read as a stray pixel hanging off it.
+  it('keeps a row of skin between the glasses and the mouth', () => {
+    const frameBottom = Math.max(...stand({ ...DEFAULT_FIGURE, eyewear: 'glasses' }).filter(r => r.fill === LENS).map(r => r.y + r.h))
+    expect(MOUTH.y).toBeGreaterThan(frameBottom + 1)
   })
   it('hides the mouth under a mustache or full beard, but not under stubble', () => {
     expect(has(stand(DEFAULT_FIGURE), MOUTH)).toBe(true)
