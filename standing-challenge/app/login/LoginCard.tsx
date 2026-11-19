@@ -5,7 +5,7 @@ import { useTranslation } from '@/components/useLang'
 import type { MessageKey } from '@/lib/i18n'
 import styles from './login.module.css'
 
-const ERROR_KEYS: Record<string, MessageKey> = { AccessDenied: 'login.error.accessDenied' }
+const ERROR_KEYS: Record<string, MessageKey> = { AccessDenied: 'login.error.accessDenied', Archived: 'login.archived' }
 
 interface LoginCardProps {
   error?: string

@@ -1,6 +1,9 @@
 import NextAuth from 'next-auth'
 import Credentials from 'next-auth/providers/credentials'
 import Google from 'next-auth/providers/google'
+import { eq } from 'drizzle-orm'
+import { db } from '@/db/client'
+import { employees } from '@/db/schema'
 import { isAllowedEmail, normalizeEmail } from '@/lib/access'
 
 // Local development can log in as any @thebrave.no address without Google.
@@ -25,10 +28,13 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
   ],
   pages: { signIn: '/login', error: '/login' },
   callbacks: {
-    signIn({ account, profile, user }) {
+    async signIn({ account, profile, user }) {
       // `hd` only hints Google's account picker; this check is what actually enforces the domain.
-      if (account?.provider === 'google') return profile?.email_verified === true && isAllowedEmail(profile.email)
-      return isAllowedEmail(user.email)
+      const email = account?.provider === 'google' ? (profile?.email_verified === true ? profile.email : null) : user.email
+      if (!email || !isAllowedEmail(email)) return false
+      // Archived people have left: no new sessions (-> /login?error=AccessDenied).
+      const [row] = await db.select({ archivedAt: employees.archivedAt }).from(employees).where(eq(employees.email, normalizeEmail(email)))
+      return !row?.archivedAt
     },
   },
 })

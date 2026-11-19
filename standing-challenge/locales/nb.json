@@ -101,6 +101,7 @@
   "login.email": "E-post",
   "login.dev": "Dev-innlogging",
   "login.error.accessDenied": "Bare for @thebrave.no-kontoer.",
+  "login.archived": "Du er ikke lenger med i Stå på!. Spør en admin hvis det er feil.",
   "login.error.generic": "Innloggingen feilet. Prøv igjen.",
 
   "admin.title": "Figurbygger",

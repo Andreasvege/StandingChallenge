@@ -1,6 +1,6 @@
 'use server'
 
-import { and, desc, eq } from 'drizzle-orm'
+import { and, desc, eq, isNull } from 'drizzle-orm'
 import { db } from '@/db/client'
 import { cheers, employees } from '@/db/schema'
 import { canCheer, isCheerEmoji } from '@/lib/cheers'
@@ -29,7 +29,7 @@ export async function sendCheer(toId: string, emoji: string, lang?: string): Pro
 
   if (!isCheerEmoji(emoji)) return refuse(t(language, 'error.unknownCheer'))
   if (typeof toId !== 'string' || !UUID.test(toId)) return refuse(t(language, 'error.personNotFound'))
-  const [target] = await db.select({ id: employees.id }).from(employees).where(eq(employees.id, toId))
+  const [target] = await db.select({ id: employees.id }).from(employees).where(and(eq(employees.id, toId), isNull(employees.archivedAt)))
   if (!target) return refuse(t(language, 'error.personNotFound'))
 
   const [last] = await db

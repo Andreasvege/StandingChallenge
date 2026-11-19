@@ -58,7 +58,7 @@ export async function loadOfficeSnapshot(now = Date.now()): Promise<OfficeSnapsh
   await closeExpiredSessions(now, grace)
   const weekStart = new Date(osloWeekStart(now))
   const [employeeRows, sessionRows, cheerRows, weather, trophy] = await Promise.all([
-    db.select().from(employees),
+    db.select().from(employees).where(isNull(employees.archivedAt)),
     db
       .select()
       .from(standSessions)

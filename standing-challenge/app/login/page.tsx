@@ -2,14 +2,16 @@ import { AuthError } from 'next-auth'
 import { redirect } from 'next/navigation'
 import { signIn } from '@/auth'
 import { OfficeRoom } from '@/components/office/OfficeRoom'
-import { getSessionEmail } from '@/lib/current-employee'
+import { getCurrentEmployee, getSessionEmail } from '@/lib/current-employee'
 import { demoRoom } from '@/lib/demo-office'
 import { LoginCard } from './LoginCard'
 import styles from './login.module.css'
 
 export default async function LoginPage({ searchParams }: { searchParams: Promise<{ error?: string }> }) {
-  if (await getSessionEmail()) redirect('/')
-  const { error } = await searchParams
+  // Only redirect when there is a live employee: an archived person with a valid cookie would otherwise loop between / and /login.
+  if (await getCurrentEmployee()) redirect('/')
+  const { error: queryError } = await searchParams
+  const error = queryError ?? ((await getSessionEmail()) ? 'Archived' : undefined)
   const isDev = process.env.NODE_ENV === 'development'
   const room = demoRoom()
 

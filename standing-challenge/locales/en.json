@@ -101,6 +101,7 @@
   "login.email": "E-mail",
   "login.dev": "Dev sign-in",
   "login.error.accessDenied": "Only for @thebrave.no accounts.",
+  "login.archived": "You are no longer part of Stå på!. Ask an admin if that is wrong.",
   "login.error.generic": "Sign-in failed. Try again.",
 
   "admin.title": "Figure builder",

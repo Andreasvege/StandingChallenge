@@ -107,7 +107,7 @@ export async function startStandingFor(toId: string, backMinutes: number, lang?:
   if (typeof toId !== 'string' || !UUID.test(toId)) return refuse(t(language, 'error.personNotFound'))
   if (toId === me.id) return refuse(t(language, 'proxy.self'))
   if (!isBackdate(backMinutes)) return refuse(t(language, 'error.badRound'))
-  const [target] = await db.select({ name: employees.name, email: employees.email }).from(employees).where(eq(employees.id, toId))
+  const [target] = await db.select({ name: employees.name, email: employees.email }).from(employees).where(and(eq(employees.id, toId), isNull(employees.archivedAt)))
   if (!target) return refuse(t(language, 'error.personNotFound'))
 
   const [{ started }] = await db

@@ -33,7 +33,8 @@ export async function getCurrentEmployee(): Promise<EmployeeRecord | null> {
   const session = await auth()
   const email = session?.user?.email
   if (!email || !isAllowedEmail(email)) return null
-  return ensureEmployee(email, session.user?.name)
+  const me = await ensureEmployee(email, session.user?.name)
+  return me.archivedAt ? null : me
 }
 
 export async function requireEmployee(): Promise<EmployeeRecord> {
