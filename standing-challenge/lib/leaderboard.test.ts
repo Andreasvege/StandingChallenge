@@ -56,3 +56,11 @@ describe('podiumTop', () => {
     expect(podiumTop([])).toEqual([])
   })
 })
+
+describe('rankBy month ties', () => {
+  it('goes to the lower id like podiumTop, not to the alphabet', () => {
+    const tied = [p('b', 'Aase', 0, 0, 500), p('a', 'Zoe', 0, 0, 500)]
+    expect(rankBy(tied, 'monthSeconds', null).map(r => r.name)).toEqual(['Zoe', 'Aase'])
+    expect(rankBy(tied, 'monthSeconds', null).map(r => r.id)).toEqual(podiumTop(tied).map(e => e.id))
+  })
+})

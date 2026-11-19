@@ -44,6 +44,8 @@
 .meRow { outline: 2px solid var(--pink); }
 .empty { margin: 0; color: var(--muted); font-size: 14px; }
 /* Phones only: the list is cut to five rows (plus my own) until «Vis alle». */
+.pastMonths { margin-top: 10px; padding: 8px 14px; font-size: 14px; font-weight: 600; color: var(--text); background: #262040; border: 0; border-radius: 999px; }
+.monthDialog { width: min(440px, 100%); max-height: calc(100dvh - 32px); overflow-y: auto; overflow-x: hidden; display: flex; flex-direction: column; gap: 12px; }
 .showAll { display: none; margin-top: 8px; padding: 4px 0; font-size: 13px; color: var(--muted); background: none; border: 0; text-decoration: underline; text-underline-offset: 3px; }
 
 /* «Står du fortsatt?» */

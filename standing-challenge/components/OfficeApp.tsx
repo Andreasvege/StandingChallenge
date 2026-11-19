@@ -33,6 +33,8 @@ export function OfficeApp({ initial, meId, isAdmin }: OfficeAppProps) {
   const [pending, startTransition] = useTransition()
   const [error, setError] = useState<string | null>(null)
   const [standUntilOpen, setStandUntilOpen] = useState(false)
+  // Until the room has measured itself the podium counts as shown: that is what the server rendered.
+  const [podiumShown, setPodiumShown] = useState(true)
   // «Har du stått en stund allerede?»: minutes to count from before the next start, then back to 0.
   const [alreadyStood, setAlreadyStood] = useState(0)
 
@@ -141,8 +143,9 @@ export function OfficeApp({ initial, meId, isAdmin }: OfficeAppProps) {
         onSitDown={isAdmin ? sitDown : undefined}
         onStartFor={startFor}
         loadMonth={loadMonthBoard}
+        onPodiumShown={setPodiumShown}
       />
-      <Leaderboard employees={live} meId={meId} />
+      <Leaderboard employees={live} meId={meId} now={now} podiumShown={podiumShown} loadMonth={loadMonthBoard} />
       <CheerToasts messages={incoming} />
       {standUntilOpen && (
         <StandUntilDialog

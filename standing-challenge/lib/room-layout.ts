@@ -155,3 +155,13 @@ export function podiumMinRoomWidth(screens: number): number {
   while (!podiumFits(w, screens) && w < 10_000) w++
   return w
 }
+
+/**
+ * Whether the wall podium is drawn in a room `roomWidth` px wide with `screens` wall screens — the
+ * same answer as the `@container room` rules in OfficeRoom.module.css (six screens or more: never).
+ * Whatever is shown instead of the podium (the month list under the leaderboard) follows this.
+ * Phones need no extra case: a room under 701px is always narrower than the narrowest podium room.
+ */
+export function podiumShown(roomWidth: number, screens: number): boolean {
+  return screens < 6 && podiumFits(roomWidth, screens)
+}

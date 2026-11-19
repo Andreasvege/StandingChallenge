@@ -1,12 +1,12 @@
 'use client'
 
-import { Fragment, useEffect, useMemo, useState, type CSSProperties, type ReactNode } from 'react'
+import { Fragment, useEffect, useMemo, useRef, useState, type CSSProperties, type ReactNode } from 'react'
 import { EmptyDesk, PixelPerson } from '@/components/PixelPerson'
 import { useTranslation } from '@/components/useLang'
 import { activeCheers, type Cheer } from '@/lib/cheers'
 import { formatDuration } from '@/lib/format'
 import { podiumTop } from '@/lib/leaderboard'
-import { DESKTOP_MAX_PER_ROW, MOBILE_MAX_PER_ROW, ROOM_LAYERS, balancedRows, roomMetrics, rowStyles, rowZIndex, screensWidth, type RowStyle } from '@/lib/room-layout'
+import { DESKTOP_MAX_PER_ROW, MOBILE_MAX_PER_ROW, ROOM_LAYERS, balancedRows, roomMetrics, rowStyles, podiumShown, rowZIndex, screensWidth, type RowStyle } from '@/lib/room-layout'
 import { fallingLeaves, forMonth, gustLeaves, tileStyle } from '@/lib/scene'
 import { SKIES, skyForWindow, skyPhase, weatherSky } from '@/lib/sky'
 import type { Trophy } from '@/lib/trophy'
@@ -52,6 +52,8 @@ interface OfficeRoomProps {
   weather?: Weather
   /** Månedens ståere: where the podium's panel gets its months. Without it (the login backdrop) the podium is only a picture. */
   loadMonth?: MonthLoader
+  /** Told whenever the wall podium appears or disappears (the room narrows), so the leaderboard can offer the month where the wall can't. */
+  onPodiumShown?: (shown: boolean) => void
   /** Dev preview only: pretend it is this month (1–12) for the seasonal art. */
   month?: number
 }
@@ -62,8 +64,9 @@ interface OfficeRoomProps {
  * somewhere else hang on the wall as video screens. Both layouts are rendered and CSS shows one,
  * so the row geometry is handed over as custom properties.
  */
-export function OfficeRoom({ employees, leaderId, now, meId = null, cheers = [], onCheer, onSitDown, onStartFor, month, weather, trophy, loadMonth }: OfficeRoomProps) {
+export function OfficeRoom({ employees, leaderId, now, meId = null, cheers = [], onCheer, onSitDown, onStartFor, month, weather, trophy, loadMonth, onPodiumShown }: OfficeRoomProps) {
   const { t } = useTranslation()
+  const roomRef = useRef<HTMLDivElement>(null)
   const [openId, setOpenId] = useState<string | null>(null)
   const [factOpen, setFactOpen] = useState(false)
   const [monthOpen, setMonthOpen] = useState(false)
@@ -90,6 +93,19 @@ export function OfficeRoom({ employees, leaderId, now, meId = null, cheers = [],
   const mobileStyles = rowStyles(mobileSeats.length, 'mobile')
   const desktop = roomMetrics(desktopStyles, 'desktop', remotePeople.length)
   const mobile = roomMetrics(mobileStyles, 'mobile', remotePeople.length)
+
+  // The same decision the `@container room` rules make, reported upward: the room's content width is
+  // what a container query measures. Until measured the podium counts as shown (what SSR assumes).
+  const screenCount = remotePeople.length
+  useEffect(() => {
+    const el = roomRef.current
+    if (!el || !onPodiumShown) return
+    const report = (width: number) => onPodiumShown(podiumShown(width, screenCount))
+    const observer = new ResizeObserver(entries => report(entries[0].contentRect.width))
+    observer.observe(el)
+    report(el.clientWidth - parseFloat(getComputedStyle(el).paddingLeft) - parseFloat(getComputedStyle(el).paddingRight))
+    return () => observer.disconnect()
+  }, [onPodiumShown, screenCount])
 
   // Close the month panel on a click outside it and the podium, or on Escape.
   useEffect(() => {
@@ -243,6 +259,7 @@ export function OfficeRoom({ employees, leaderId, now, meId = null, cheers = [],
 
   return (
     <div
+      ref={roomRef}
       className={styles.room}
       // Which podium threshold applies (OfficeRoom.module.css, podiumMinRoomWidth); 6 means six or more.
       data-screens={Math.min(remotePeople.length, 6)}

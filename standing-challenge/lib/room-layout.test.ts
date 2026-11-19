@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { DESKTOP_MAX_PER_ROW, MOBILE_MAX_PER_ROW, ROOM_LAYERS, balancedRows, roomMetrics, rowStyles, podiumFits, podiumMinRoomWidth, rowZIndex, seatRowName } from './room-layout'
+import { DESKTOP_MAX_PER_ROW, MOBILE_MAX_PER_ROW, ROOM_LAYERS, balancedRows, roomMetrics, rowStyles, podiumFits, podiumMinRoomWidth, podiumShown, rowZIndex, seatRowName } from './room-layout'
 
 const sizes = (rows: number[][]) => rows.map(r => r.length)
 
@@ -133,5 +133,19 @@ describe('the podium thresholds in OfficeRoom.module.css', () => {
     const css = readFileSync(new URL('../components/office/OfficeRoom.module.css', import.meta.url), 'utf8')
     const found = [...css.matchAll(/@container room \(width < (\d+)px\) \{ \.room\[data-screens='(\d)'\] \.podium/g)].map(m => [Number(m[2]), Number(m[1])])
     expect(found).toEqual([0, 1, 2, 3, 4, 5].map(n => [n, podiumMinRoomWidth(n)]))
+  })
+})
+
+describe('podiumShown', () => {
+  it('flips at podiumMinRoomWidth and never shows with six screens', () => {
+    for (const n of [0, 1, 2, 3, 4, 5]) {
+      expect(podiumShown(podiumMinRoomWidth(n) - 1, n)).toBe(false)
+      expect(podiumShown(podiumMinRoomWidth(n), n)).toBe(true)
+    }
+    expect(podiumShown(5000, 6)).toBe(false)
+  })
+  it('is hidden at phone widths', () => {
+    expect(podiumShown(390, 0)).toBe(false)
+    expect(podiumShown(700, 0)).toBe(false)
   })
 })

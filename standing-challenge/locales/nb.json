@@ -33,6 +33,8 @@
 
   "board.today": "I dag",
   "board.week": "Denne uka",
+  "board.month": "Denne måneden",
+  "board.pastMonths": "Tidligere måneder",
   "board.empty": "Ingen har stått ennå – bli den første! 🌱",
   "board.showFewer": "Vis færre",
   "board.showAll": "Vis alle ({count})",

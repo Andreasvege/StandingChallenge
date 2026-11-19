@@ -33,6 +33,8 @@
 
   "board.today": "Today",
   "board.week": "This week",
+  "board.month": "This month",
+  "board.pastMonths": "Past months",
   "board.empty": "Nobody has stood yet – be the first! 🌱",
   "board.showFewer": "Show fewer",
   "board.showAll": "Show all ({count})",
