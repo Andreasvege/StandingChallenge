@@ -3,6 +3,7 @@
 import { useMemo, useState, useTransition } from 'react'
 import { sitEmployeeDown } from '@/app/actions/admin'
 import { sendCheer } from '@/app/actions/cheer'
+import { loadMonthBoard } from '@/app/actions/month'
 import { extendStanding, rejectStartedForMe, startStanding, startStandingFor, stopStanding } from '@/app/actions/stand'
 import { requestNotificationPermission, warmUpAudio } from '@/lib/alerts'
 import { activeCheers, cheerMessage } from '@/lib/cheers'
@@ -139,6 +140,7 @@ export function OfficeApp({ initial, meId, isAdmin }: OfficeAppProps) {
         onCheer={cheer}
         onSitDown={isAdmin ? sitDown : undefined}
         onStartFor={startFor}
+        loadMonth={loadMonthBoard}
       />
       <Leaderboard employees={live} meId={meId} />
       <CheerToasts messages={incoming} />

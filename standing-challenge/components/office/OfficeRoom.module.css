@@ -468,3 +468,102 @@ svg.window { width: min(310px, 22.281%); aspect-ratio: 62 / 34; transform: trans
   .factPanel { left: 0; width: min(250px, 74vw); padding: 10px 12px; transform: none; }
   .factText { font-size: 12px; }
 }
+
+/* Månedens ståere: the winner's podium, hung 40px right of the right window and centred on it. The
+   box is the window's own box (same top, width and 64:36), so centring in it centres on the window;
+   only the picture inside takes clicks, since the empty rest of the box reaches over the wall screens. */
+.podium {
+  position: absolute;
+  top: calc(20% - 28px);
+  left: calc(58% + clamp(0px, (100% - 760px) / 10, 20px) + min(320px, 23%) + 40px);
+  width: min(320px, 23%);
+  aspect-ratio: 64 / 36;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: flex-start;
+  pointer-events: none;
+}
+.podiumButton {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: inherit;
+  pointer-events: auto;
+}
+button.podiumButton { cursor: pointer; }
+button.podiumButton:hover svg { filter: brightness(1.12); }
+.podiumButton svg { display: block; }
+
+/* The month panel opens inside the room, level with the windows' top and right-aligned to the podium
+   (it starts with the podium at 3×, so covering the small one is fine). The room clips everything,
+   so it scrolls rather than run out of the bottom. */
+.monthPanel {
+  position: absolute;
+  top: max(8px, calc(20% - 28px));
+  right: max(8px, calc(100% - var(--podium-right) + var(--wall-shift)));
+  width: min(360px, calc(100% - 16px));
+  max-height: calc(100% - max(8px, calc(20% - 28px)) - 12px);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scrollbar-width: thin;
+  scrollbar-color: var(--panel-hi) transparent;
+  box-sizing: border-box;
+  display: grid;
+  gap: 12px;
+  padding: 16px;
+  border-radius: 16px;
+  background: var(--panel);
+  box-shadow: 0 0 0 3px var(--outline), 0 10px 0 0 #00000040;
+}
+.monthClose {
+  justify-self: end;
+  padding: 4px 12px;
+  border: 0;
+  border-radius: 999px;
+  font: 600 11px var(--font-body), system-ui, sans-serif;
+  color: var(--text);
+  background: var(--panel-hi);
+  cursor: pointer;
+}
+.monthClose:hover { background: #4d4180; }
+
+/* Narrow rooms: the podium needs its 40px + 102px right of the right window, clear of the hanging
+   plant (16px gap) and the wall screens (32px gap; `--screens-w` is set by OfficeRoom). Windows,
+   poster, clock and podium all slide left by just that much — `translate`, not `transform`, which
+   the clock and the window svg already use. `cqw` rather than `%`, because a % inside `translate` is
+   of the element's own width, not the room's. The slide stops with the left window 8px from the
+   wall; below that the podium no longer fits and is hidden (thresholds below). */
+.room {
+  container: room / inline-size;
+  --wall-nudge: clamp(0px, (100cqw - 760px) / 10, 20px);
+  --podium-right: calc(58cqw + var(--wall-nudge) + min(320px, 23cqw) + 40px + 102px);
+  --wall-need: max(0px, calc(var(--podium-right) - (100cqw - max(2cqw + 64px, 30px + var(--screens-w, 0px) + 32px))));
+  --wall-shift: min(var(--wall-need), calc(10cqw + var(--wall-nudge) - 8px));
+}
+.window,
+.poster,
+.clock,
+.podium { translate: calc(-1 * var(--wall-shift, 0px)) 0; }
+
+/* Where the slide runs out (room widths solved from the formulas above, rounded up): no podium. */
+@container room (max-width: 800px) { .podium[data-screens='0'] { display: none; } }
+@container room (max-width: 1030px) { .podium[data-screens='1'] { display: none; } }
+@container room (max-width: 1365px) { .podium[data-screens='2'] { display: none; } }
+@container room (max-width: 1615px) { .podium[data-screens='3'] { display: none; } }
+@container room (max-width: 1760px) { .podium[data-screens='4'] { display: none; } }
+.podium[data-screens='5'] { display: none; }
+
+/* Phones keep their own fixed wall (see the earlier phone blocks) and no podium: re-asserted here,
+   since these late rules would otherwise win over the earlier @media blocks. */
+@media (max-width: 700px) {
+  .window,
+  .poster,
+  .clock { translate: none; }
+  .podium,
+  .monthPanel { display: none; }
+}

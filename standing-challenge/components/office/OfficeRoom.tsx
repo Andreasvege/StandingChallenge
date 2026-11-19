@@ -1,21 +1,25 @@
 'use client'
 
-import { Fragment, useEffect, useState, type CSSProperties, type ReactNode } from 'react'
+import { Fragment, useEffect, useMemo, useState, type CSSProperties, type ReactNode } from 'react'
 import { EmptyDesk, PixelPerson } from '@/components/PixelPerson'
 import { useTranslation } from '@/components/useLang'
 import { activeCheers, type Cheer } from '@/lib/cheers'
 import { formatDuration } from '@/lib/format'
+import { podiumTop } from '@/lib/leaderboard'
 import { DESKTOP_MAX_PER_ROW, MOBILE_MAX_PER_ROW, ROOM_LAYERS, balancedRows, roomMetrics, rowStyles, rowZIndex, type RowStyle } from '@/lib/room-layout'
 import { fallingLeaves, forMonth, gustLeaves, tileStyle } from '@/lib/scene'
 import { SKIES, skyForWindow, skyPhase, weatherSky } from '@/lib/sky'
 import type { Trophy } from '@/lib/trophy'
 import type { LiveEmployee } from '@/lib/snapshot'
-import { osloHour, osloParts } from '@/lib/time'
+import { osloHour, osloMonthStart, osloParts } from '@/lib/time'
 import type { Weather } from '@/lib/weather'
 import { Bubble, type BubbleTone } from './Bubble'
 import { CheerMenu } from './CheerMenu'
 import { HangingPlant, Lights, PixelWindow } from './Decor'
 import { FactPoster } from './FactPoster'
+import type { MonthLoader } from './MonthBoardView'
+import { MonthPanel } from './MonthPanel'
+import { MonthPodium } from './MonthPodium'
 import { OfficeDog } from './OfficeDog'
 import { OfficePlant } from './OfficePlant'
 import { FLOOR_PROPS, FLOOR_TILES, WALL_TILES, WINDOW_VIEWS } from './scene-art'
@@ -46,6 +50,8 @@ interface OfficeRoomProps {
   trophy?: Trophy | null
   /** The weather at the office, shown in the windows. */
   weather?: Weather
+  /** Månedens ståere: where the podium's panel gets its months. Without it (the login backdrop) the podium is only a picture. */
+  loadMonth?: MonthLoader
   /** Dev preview only: pretend it is this month (1–12) for the seasonal art. */
   month?: number
 }
@@ -56,9 +62,11 @@ interface OfficeRoomProps {
  * somewhere else hang on the wall as video screens. Both layouts are rendered and CSS shows one,
  * so the row geometry is handed over as custom properties.
  */
-export function OfficeRoom({ employees, leaderId, now, meId = null, cheers = [], onCheer, onSitDown, onStartFor, month, weather, trophy }: OfficeRoomProps) {
+export function OfficeRoom({ employees, leaderId, now, meId = null, cheers = [], onCheer, onSitDown, onStartFor, month, weather, trophy, loadMonth }: OfficeRoomProps) {
+  const { t } = useTranslation()
   const [openId, setOpenId] = useState<string | null>(null)
   const [factOpen, setFactOpen] = useState(false)
+  const [monthOpen, setMonthOpen] = useState(false)
   const remotePeople = employees.filter(e => e.remoteFrom)
   const bySeat = new Map<number, LiveEmployee>()
   for (const e of employees) if (e.seat !== null && !e.remoteFrom) bySeat.set(e.seat, e)
@@ -69,6 +77,9 @@ export function OfficeRoom({ employees, leaderId, now, meId = null, cheers = [],
   const floorTile = forMonth(FLOOR_TILES, sceneMonth)?.art
   const fresh = activeCheers(cheers, now)
   const weekTotal = employees.reduce((sum, e) => sum + e.weekSeconds, 0)
+  // Top three this month. MonthPodium is memoised, so hand it the same array until a figure changes.
+  const [gold, silver, bronze] = podiumTop(employees).map(e => e.figure)
+  const podium = useMemo(() => [gold ?? null, silver ?? null, bronze ?? null], [gold, silver, bronze])
   // The wall-screen strip is a stacking context too, so it has to rise for its own menu to clear the poster.
   const openIsRemote = openId !== null && remotePeople.some(e => e.id === openId)
 
@@ -79,6 +90,23 @@ export function OfficeRoom({ employees, leaderId, now, meId = null, cheers = [],
   const mobileStyles = rowStyles(mobileSeats.length, 'mobile')
   const desktop = roomMetrics(desktopStyles, 'desktop', remotePeople.length)
   const mobile = roomMetrics(mobileStyles, 'mobile', remotePeople.length)
+
+  // Close the month panel on a click outside it and the podium, or on Escape.
+  useEffect(() => {
+    if (!monthOpen) return
+    const onPointer = (ev: PointerEvent) => {
+      if (!(ev.target instanceof Element) || !ev.target.closest('[data-month]')) setMonthOpen(false)
+    }
+    const onKey = (ev: KeyboardEvent) => {
+      if (ev.key === 'Escape') setMonthOpen(false)
+    }
+    document.addEventListener('pointerdown', onPointer)
+    document.addEventListener('keydown', onKey)
+    return () => {
+      document.removeEventListener('pointerdown', onPointer)
+      document.removeEventListener('keydown', onKey)
+    }
+  }, [monthOpen])
 
   // Close the heiarop menu on a click outside any seat, or on Escape.
   useEffect(() => {
@@ -120,6 +148,7 @@ export function OfficeRoom({ employees, leaderId, now, meId = null, cheers = [],
   const toggle = (id: string) => () => {
     setOpenId(openId === id ? null : id)
     setFactOpen(false)
+    setMonthOpen(false)
   }
 
   function rows(seatRows: number[][], rowStyleList: RowStyle[], compact: boolean) {
@@ -222,6 +251,8 @@ export function OfficeRoom({ employees, leaderId, now, meId = null, cheers = [],
           '--floor-h': `${desktop.floor}px`,
           '--room-h-mobile': `${mobile.height}px`,
           '--floor-h-mobile': `${mobile.floor}px`,
+          // How much wall the screens take, so the podium can keep clear of them (OfficeRoom.module.css).
+          '--screens-w': `${remotePeople.length === 0 ? 0 : remotePeople.length * 84 + (remotePeople.length - 1) * 14}px`,
         } as CSSProperties
       }
     >
@@ -236,9 +267,37 @@ export function OfficeRoom({ employees, leaderId, now, meId = null, cheers = [],
         open={factOpen}
         onOpenChange={next => {
           setFactOpen(next)
-          if (next) setOpenId(null)
+          if (next) {
+            setOpenId(null)
+            setMonthOpen(false)
+          }
         }}
       />
+      <div className={styles.podium} data-screens={Math.min(remotePeople.length, 5)}>
+        {loadMonth ? (
+          <button
+            type="button"
+            className={styles.podiumButton}
+            onClick={() => {
+              setMonthOpen(!monthOpen)
+              setFactOpen(false)
+              setOpenId(null)
+            }}
+            aria-expanded={monthOpen}
+            title={t('month.title')}
+            data-month
+          >
+            <span className={styles.posterLabel}>{t('month.title')}</span>
+            <MonthPodium top={podium} scale={1.5} />
+          </button>
+        ) : (
+          <div className={styles.podiumButton}>
+            <span className={styles.posterLabel}>{t('month.title')}</span>
+            <MonthPodium top={podium} scale={1.5} />
+          </div>
+        )}
+      </div>
+      {monthOpen && loadMonth && <MonthPanel meId={meId} monthStart={osloMonthStart(now)} load={loadMonth} onClose={() => setMonthOpen(false)} />}
       {remotePeople.length > 0 && (
         <div className={styles.screens} style={openIsRemote ? { zIndex: ROOM_LAYERS.openMenu } : undefined}>
           {remotePeople.map(e => (

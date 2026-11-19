@@ -1,0 +1,45 @@
+/* Månedens ståere, one month at a time. Matches the approved sketch (task 6): arrows either side of
+   the month, the podium at 3×, a status line, then everyone with a bar and their hours. */
+.view { display: grid; gap: 12px; color: var(--text); font: 500 14px var(--font-body), system-ui, sans-serif; }
+.header { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.title { flex: 1; margin: 0; text-align: center; font: 800 19px var(--font-display), system-ui, sans-serif; }
+.arrow {
+  width: 36px;
+  height: 36px;
+  flex: none;
+  border: 0;
+  border-radius: 10px;
+  background: var(--panel-hi);
+  color: var(--text);
+  font: 500 18px var(--font-body), system-ui, sans-serif;
+  cursor: pointer;
+}
+.arrow:hover:not(:disabled) { background: #4d4180; }
+.arrow:disabled { opacity: 0.3; cursor: default; }
+.arrow:focus-visible { outline: 2px solid var(--yellow); outline-offset: 2px; }
+.podium { display: grid; justify-items: center; padding: 4px 0; }
+.podium svg { display: block; }
+
+.note,
+.winner,
+.live,
+.progress { margin: 0; font-size: 13px; text-align: center; }
+.note { color: var(--muted); }
+.winner b { color: var(--yellow); }
+.live { display: flex; align-items: center; justify-content: center; gap: 6px; font-size: 12px; font-weight: 700; color: var(--green); }
+.live::before { content: ''; width: 7px; height: 7px; border-radius: 50%; background: var(--green); }
+.progress { color: var(--muted); }
+.progress b { color: var(--text); }
+
+.rows { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; }
+.rows li { display: grid; grid-template-columns: 22px 24px minmax(0, 1fr) auto; align-items: center; gap: 8px; }
+.rank { font-weight: 700; color: var(--muted); font-variant-numeric: tabular-nums; text-align: right; }
+.head { display: block; }
+.name { min-width: 0; display: grid; gap: 3px; }
+.name i { font-style: normal; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.bar { height: 5px; border-radius: 3px; background: var(--panel-hi); overflow: hidden; }
+.bar b { display: block; height: 100%; border-radius: 3px; background: var(--pink); }
+.me .name i { font-weight: 700; color: var(--yellow); }
+.me .bar b { background: var(--yellow); }
+.hours { font-weight: 700; font-variant-numeric: tabular-nums; }
+.foot { margin: 0; font-size: 12px; color: var(--muted); }
