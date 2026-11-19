@@ -2,9 +2,10 @@
 
 import Link from 'next/link'
 import { useState, useTransition } from 'react'
-import { createEmployee } from '@/app/actions/admin'
+import { createEmployee, restoreEmployee } from '@/app/actions/admin'
 import { LanguageToggle } from '@/components/LanguageToggle'
 import { useTranslation } from '@/components/useLang'
+import { PixelHead } from '@/components/PixelPerson'
 import type { Figure } from '@/lib/figure'
 import { FigureBuilder } from './FigureBuilder'
 import { SeatGrid } from './SeatGrid'
@@ -20,12 +21,29 @@ export interface AdminEmployee {
   remoteFrom: string | null
 }
 
-export function AdminPanel({ employees, meId }: { employees: AdminEmployee[]; meId: string }) {
+export interface ArchivedEmployee {
+  id: string
+  name: string
+  figure: Figure
+}
+
+export function AdminPanel({ employees, archived, meId }: { employees: AdminEmployee[]; archived: ArchivedEmployee[]; meId: string }) {
   const [selectedId, setSelectedId] = useState<string | null>(employees[0]?.id ?? null)
   const selected = employees.find(e => e.id === selectedId) ?? employees[0] ?? null
   const [pending, startTransition] = useTransition()
   const [error, setError] = useState<string | null>(null)
   const { lang, t } = useTranslation()
+
+  function restore(id: string) {
+    setError(null)
+    startTransition(async () => {
+      try {
+        await restoreEmployee({ id }, lang)
+      } catch {
+        setError(t('admin.restoreFailed'))
+      }
+    })
+  }
 
   function add(formData: FormData) {
     setError(null)
@@ -71,6 +89,24 @@ export function AdminPanel({ employees, meId }: { employees: AdminEmployee[]; me
       <section className={styles.card}>
         <SeatGrid employees={employees} selectedId={selected?.id ?? null} onSelect={setSelectedId} />
       </section>
+
+      {archived.length > 0 && (
+        <section className={`${styles.card} ${styles.archived}`}>
+          <h2 className={styles.gridTitle}>{t('admin.archived')}</h2>
+          <p className={styles.archivedHint}>{t('admin.archivedHint')}</p>
+          <ul className={styles.archivedList}>
+            {archived.map(a => (
+              <li key={a.id} className={styles.archivedRow}>
+                <PixelHead figure={a.figure} size={42} />
+                <span className={styles.archivedName}>{a.name}</span>
+                <button type="button" className={styles.btn} disabled={pending} onClick={() => restore(a.id)}>
+                  {t('admin.restore')}
+                </button>
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
 
       <section className={styles.card}>
         <form action={add} className={styles.addForm}>

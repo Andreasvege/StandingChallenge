@@ -79,11 +79,40 @@ export async function placeEmployee(input: { employeeId: string; seat: number | 
   refresh()
 }
 
+/**
+ * Someone who has ever stood is archived, not deleted: their rounds stay, so finished months never
+ * change. Someone with no rounds at all (a typo, a test) is simply deleted.
+ */
 export async function deleteEmployee(input: { id: string }, lang?: string): Promise<void> {
   const language = toLang(lang)
   const me = await requireAdminAction(language)
   if (input.id === me.id) throw new Error(t(language, 'error.removeSelf'))
-  await db.delete(employees).where(eq(employees.id, input.id)) // their sessions go too (on delete cascade)
+  const [any] = await db.select({ id: standSessions.id }).from(standSessions).where(eq(standSessions.employeeId, input.id)).limit(1)
+  if (!any) {
+    await db.delete(employees).where(eq(employees.id, input.id))
+  } else {
+    const now = Date.now()
+    // Never leave an archived person standing: close an open round at the end of its time at the latest.
+    const [open] = await db
+      .select()
+      .from(standSessions)
+      .where(and(eq(standSessions.employeeId, input.id), isNull(standSessions.endedAt)))
+    if (open) {
+      await db
+        .update(standSessions)
+        .set({ endedAt: new Date(Math.min(now, open.roundEndsAt.getTime())), endReason: 'admin' })
+        .where(and(eq(standSessions.id, open.id), isNull(standSessions.endedAt)))
+    }
+    await db.update(employees).set({ archivedAt: new Date(now), seat: null }).where(eq(employees.id, input.id))
+  }
+  refresh()
+}
+
+/** Brings an archived person back. They have no desk until an admin places them. */
+export async function restoreEmployee(input: { id: string }, lang?: string): Promise<void> {
+  const language = toLang(lang)
+  await requireAdminAction(language)
+  await db.update(employees).set({ archivedAt: null }).where(eq(employees.id, input.id))
   refresh()
 }
 

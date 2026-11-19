@@ -111,6 +111,10 @@
   "admin.email": "E-mail",
   "admin.name": "Name",
   "admin.addColleague": "Add colleague",
+  "admin.archived": "Archived",
+  "admin.restore": "Bring back",
+  "admin.archivedHint": "They have stood before, so their rounds stay in past months.",
+  "admin.restoreFailed": "Could not bring them back.",
 
   "figure.hair.short": "Short",
   "figure.hair.buzz": "Buzz",

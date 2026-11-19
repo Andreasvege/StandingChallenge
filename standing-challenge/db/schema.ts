@@ -15,6 +15,8 @@ export const employees = pgTable('employees', {
   seat: integer('seat').unique(),
   /** Works somewhere else (e.g. Bergen): shown on a video screen on the wall instead of at a desk. */
   remoteFrom: text('remote_from'),
+  /** Set when the person left. Their rounds stay so finished months never change. Null = active. */
+  archivedAt: timestamp('archived_at', { withTimezone: true }),
   createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
 })
 

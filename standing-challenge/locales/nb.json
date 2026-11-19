@@ -111,6 +111,10 @@
   "admin.email": "E-post",
   "admin.name": "Navn",
   "admin.addColleague": "Legg til kollega",
+  "admin.archived": "Arkiverte",
+  "admin.restore": "Hent tilbake",
+  "admin.archivedHint": "Har stått før, så rundene deres blir med i gamle måneder.",
+  "admin.restoreFailed": "Kunne ikke hente tilbake.",
 
   "figure.hair.short": "Kort",
   "figure.hair.buzz": "Buzz",
