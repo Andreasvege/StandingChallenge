@@ -94,7 +94,17 @@ export function MonthBoardView({ meId, initialMonthStart, load = loadMonthBoard 
 
   let body
   if (!board) {
-    body = <p className={styles.note}>{failed === monthStart ? t('month.error') : t('month.loading')}</p>
+    body =
+      failed === monthStart ? (
+        <div className={styles.failed}>
+          <p className={styles.note}>{t('month.error')}</p>
+          <button type="button" className={styles.retry} onClick={() => go(monthStart)}>
+            {t('month.retry')}
+          </button>
+        </div>
+      ) : (
+        <p className={styles.note}>{t('month.loading')}</p>
+      )
   } else {
     const [first] = board.rows
     const max = first?.seconds ?? 0

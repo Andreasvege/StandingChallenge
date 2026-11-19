@@ -550,13 +550,17 @@ button.podiumButton:hover svg { filter: brightness(1.12); }
 .clock,
 .podium { translate: calc(-1 * var(--wall-shift, 0px)) 0; }
 
-/* Where the slide runs out (room widths solved from the formulas above, rounded up): no podium. */
-@container room (max-width: 800px) { .podium[data-screens='0'] { display: none; } }
-@container room (max-width: 1030px) { .podium[data-screens='1'] { display: none; } }
-@container room (max-width: 1365px) { .podium[data-screens='2'] { display: none; } }
-@container room (max-width: 1615px) { .podium[data-screens='3'] { display: none; } }
-@container room (max-width: 1760px) { .podium[data-screens='4'] { display: none; } }
-.podium[data-screens='5'] { display: none; }
+/* Where the slide runs out, the podium is hidden. The widths are `podiumMinRoomWidth(n)` in
+   lib/room-layout.ts (tested against this formula in room-layout.test.ts) — keep them in step. The
+   room carries `data-screens` (6 = six or more), so anything that should appear exactly where the
+   podium doesn't can use the same queries with the inverse rule. */
+@container room (width < 793px) { .room[data-screens='0'] .podium { display: none; } }
+@container room (width < 1021px) { .room[data-screens='1'] .podium { display: none; } }
+@container room (width < 1359px) { .room[data-screens='2'] .podium { display: none; } }
+@container room (width < 1562px) { .room[data-screens='3'] .podium { display: none; } }
+@container room (width < 1750px) { .room[data-screens='4'] .podium { display: none; } }
+@container room (width < 1939px) { .room[data-screens='5'] .podium { display: none; } }
+.room[data-screens='6'] .podium { display: none; }
 
 /* Phones keep their own fixed wall (see the earlier phone blocks) and no podium: re-asserted here,
    since these late rules would otherwise win over the earlier @media blocks. */

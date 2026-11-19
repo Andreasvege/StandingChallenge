@@ -6,7 +6,7 @@ import { useTranslation } from '@/components/useLang'
 import { activeCheers, type Cheer } from '@/lib/cheers'
 import { formatDuration } from '@/lib/format'
 import { podiumTop } from '@/lib/leaderboard'
-import { DESKTOP_MAX_PER_ROW, MOBILE_MAX_PER_ROW, ROOM_LAYERS, balancedRows, roomMetrics, rowStyles, rowZIndex, type RowStyle } from '@/lib/room-layout'
+import { DESKTOP_MAX_PER_ROW, MOBILE_MAX_PER_ROW, ROOM_LAYERS, balancedRows, roomMetrics, rowStyles, rowZIndex, screensWidth, type RowStyle } from '@/lib/room-layout'
 import { fallingLeaves, forMonth, gustLeaves, tileStyle } from '@/lib/scene'
 import { SKIES, skyForWindow, skyPhase, weatherSky } from '@/lib/sky'
 import type { Trophy } from '@/lib/trophy'
@@ -244,6 +244,8 @@ export function OfficeRoom({ employees, leaderId, now, meId = null, cheers = [],
   return (
     <div
       className={styles.room}
+      // Which podium threshold applies (OfficeRoom.module.css, podiumMinRoomWidth); 6 means six or more.
+      data-screens={Math.min(remotePeople.length, 6)}
       style={
         {
           ...tileStyle(wallTile),
@@ -252,7 +254,7 @@ export function OfficeRoom({ employees, leaderId, now, meId = null, cheers = [],
           '--room-h-mobile': `${mobile.height}px`,
           '--floor-h-mobile': `${mobile.floor}px`,
           // How much wall the screens take, so the podium can keep clear of them (OfficeRoom.module.css).
-          '--screens-w': `${remotePeople.length === 0 ? 0 : remotePeople.length * 84 + (remotePeople.length - 1) * 14}px`,
+          '--screens-w': `${screensWidth(remotePeople.length)}px`,
         } as CSSProperties
       }
     >
@@ -273,7 +275,7 @@ export function OfficeRoom({ employees, leaderId, now, meId = null, cheers = [],
           }
         }}
       />
-      <div className={styles.podium} data-screens={Math.min(remotePeople.length, 5)}>
+      <div className={styles.podium}>
         {loadMonth ? (
           <button
             type="button"

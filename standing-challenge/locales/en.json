@@ -47,7 +47,8 @@
   "month.next": "Next month",
   "month.empty": "Nobody stood this month.",
   "month.loading": "Loading …",
-  "month.error": "Couldn't load the month. Try again.",
+  "month.error": "Couldn't load the month.",
+  "month.retry": "Try again",
   "month.close": "Close",
 
   "dialog.stillStanding": "Are you still standing?",

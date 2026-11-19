@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { DESKTOP_MAX_PER_ROW, MOBILE_MAX_PER_ROW, ROOM_LAYERS, balancedRows, roomMetrics, rowStyles, rowZIndex, seatRowName } from './room-layout'
+import { DESKTOP_MAX_PER_ROW, MOBILE_MAX_PER_ROW, ROOM_LAYERS, balancedRows, roomMetrics, rowStyles, podiumFits, podiumMinRoomWidth, rowZIndex, seatRowName } from './room-layout'
 
 const sizes = (rows: number[][]) => rows.map(r => r.length)
 
@@ -97,5 +97,41 @@ describe('rowZIndex', () => {
       expect(rowZIndex(depth, true)).toBeGreaterThan(ROOM_LAYERS.poster)
       expect(rowZIndex(depth, true)).toBeGreaterThan(ROOM_LAYERS.screens)
     }
+  })
+})
+
+// The wall shift in OfficeRoom.module.css, written out again here independently of the implementation.
+function shiftFits(w: number, screens: number): boolean {
+  const nudge = Math.min(Math.max((w - 760) / 10, 0), 20)
+  const screensW = screens === 0 ? 0 : screens * 84 + (screens - 1) * 14
+  const podiumRight = 0.58 * w + nudge + Math.min(320, 0.23 * w) + 40 + 102
+  const limit = w - Math.max(0.02 * w + 64, 30 + screensW + 32)
+  const need = Math.max(0, podiumRight - limit)
+  const cap = 0.1 * w + nudge - 8
+  return need <= cap
+}
+
+describe('podiumMinRoomWidth', () => {
+  it('matches the solved widths for 0–5 wall screens', () => {
+    expect([0, 1, 2, 3, 4, 5].map(podiumMinRoomWidth)).toEqual([793, 1021, 1359, 1562, 1750, 1939])
+  })
+  for (let n = 0; n <= 5; n++) {
+    it(`is the first whole px where the shift makes room, with ${n} screens`, () => {
+      const min = podiumMinRoomWidth(n)
+      expect(shiftFits(min, n)).toBe(true)
+      expect(shiftFits(min - 1, n)).toBe(false)
+      for (let w = min; w <= 3000; w += 7) expect(shiftFits(w, n)).toBe(true)
+      for (let w = 400; w < min; w += 7) expect(podiumFits(w, n)).toBe(false)
+      expect(podiumFits(min, n)).toBe(true)
+    })
+  }
+})
+
+describe('the podium thresholds in OfficeRoom.module.css', () => {
+  it('are podiumMinRoomWidth(n) for every count the room can carry', async () => {
+    const { readFileSync } = await import('node:fs')
+    const css = readFileSync(new URL('../components/office/OfficeRoom.module.css', import.meta.url), 'utf8')
+    const found = [...css.matchAll(/@container room \(width < (\d+)px\) \{ \.room\[data-screens='(\d)'\] \.podium/g)].map(m => [Number(m[2]), Number(m[1])])
+    expect(found).toEqual([0, 1, 2, 3, 4, 5].map(n => [n, podiumMinRoomWidth(n)]))
   })
 })

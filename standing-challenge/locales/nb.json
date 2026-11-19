@@ -47,7 +47,8 @@
   "month.next": "Neste måned",
   "month.empty": "Ingen sto denne måneden.",
   "month.loading": "Henter …",
-  "month.error": "Fikk ikke hentet måneden. Prøv igjen.",
+  "month.error": "Fikk ikke hentet måneden.",
+  "month.retry": "Prøv igjen",
   "month.close": "Lukk",
 
   "dialog.stillStanding": "Står du fortsatt?",

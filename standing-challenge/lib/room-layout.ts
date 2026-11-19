@@ -80,8 +80,6 @@ export const ROOM_LAYERS = {
   screens: 25,
   /** The fun-facts noticeboard and the panel it opens. */
   poster: 26,
-  /** Månedens ståere on the wall. */
-  podium: 26,
   /** The row or wall-screen strip holding the open menu, or the month panel — above every wall prop. */
   openMenu: 40,
 } as const
@@ -123,4 +121,37 @@ export function seatRowName(seat: number, rows: number[][], lang: Lang = DEFAULT
   if (i === rows.length - 1) return t(lang, 'seat.row.back')
   if (rows.length === 3) return t(lang, 'seat.row.middle')
   return t(lang, 'seat.row.nth', { number: i + 1 })
+}
+
+// Månedens ståere on the wall. These mirror the wall-shift block at the end of OfficeRoom.module.css:
+// change one, change the other (and the `@container room` thresholds there, which come from here).
+const SCREEN_W = 84
+const SCREEN_GAP = 14
+const PODIUM_GAP = 40
+const PODIUM_WALL_W = 102
+const LEFT_WINDOW_MIN = 8
+
+/** Width of the wall-screen strip, as OfficeRoom sets it in `--screens-w`. */
+export function screensWidth(screens: number): number {
+  return screens <= 0 ? 0 : screens * SCREEN_W + (screens - 1) * SCREEN_GAP
+}
+
+/**
+ * Whether the podium fits in a room `roomWidth` px wide: the wall slides left far enough to clear
+ * the hanging plant and the wall screens, without the left window coming closer than 8px to the wall.
+ */
+export function podiumFits(roomWidth: number, screens: number): boolean {
+  const w = roomWidth
+  const nudge = Math.min(Math.max((w - 760) / 10, 0), 20)
+  const podiumRight = 0.58 * w + nudge + Math.min(320, 0.23 * w) + PODIUM_GAP + PODIUM_WALL_W
+  const limit = w - Math.max(0.02 * w + 48 + 16, 30 + screensWidth(screens) + 32)
+  const need = Math.max(0, podiumRight - limit)
+  return need <= 0.1 * w + nudge - LEFT_WINDOW_MIN
+}
+
+/** The narrowest whole-px room that has space for the podium; below it the podium is hidden. */
+export function podiumMinRoomWidth(screens: number): number {
+  let w = 0
+  while (!podiumFits(w, screens) && w < 10_000) w++
+  return w
 }
