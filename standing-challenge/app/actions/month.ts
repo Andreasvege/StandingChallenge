@@ -20,7 +20,7 @@ export async function loadMonthBoard(input: { monthStart: number }): Promise<Mon
   const now = Date.now()
   const [{ first }] = await db.select({ first: min(standSessions.startedAt) }).from(standSessions)
   const firstMonthStart = first ? osloMonthStart(first.getTime()) : osloMonthStart(now)
-  const monthStart = clampMonth(input.monthStart, firstMonthStart, now)
+  const monthStart = clampMonth(osloMonthStart(input.monthStart), firstMonthStart, now)
 
   // Rounds touching [previous month, end of the month shown): the previous month feeds «Mest framgang».
   const [people, sessions] = await Promise.all([

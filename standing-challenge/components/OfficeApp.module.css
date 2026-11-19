@@ -45,14 +45,14 @@
 .empty { margin: 0; color: var(--muted); font-size: 14px; }
 /* Phones only: the list is cut to five rows (plus my own) until «Vis alle». */
 .pastMonths { margin-top: 10px; padding: 8px 14px; font-size: 14px; font-weight: 600; color: var(--text); background: #262040; border: 0; border-radius: 999px; }
-.monthDialog { width: min(440px, 100%); max-height: calc(100dvh - 32px); overflow-y: auto; overflow-x: hidden; display: flex; flex-direction: column; gap: 12px; }
+.monthDialog { width: min(440px, 100%); max-height: calc(100dvh - 32px); overflow-y: auto; overflow-x: hidden; color-scheme: dark; scrollbar-color: #4a3f7a transparent; display: flex; flex-direction: column; gap: 12px; }
 .showAll { display: none; margin-top: 8px; padding: 4px 0; font-size: 13px; color: var(--muted); background: none; border: 0; text-decoration: underline; text-underline-offset: 3px; }
 
 /* «Står du fortsatt?» */
 .backdrop { position: fixed; inset: 0; z-index: 50; display: grid; place-items: center; padding: 16px; background: #120d22b3; }
 .dialog { width: min(380px, 100%); text-align: center; background: var(--bg); border-radius: 20px; padding: 24px; box-shadow: 0 0 0 4px var(--outline), 0 20px 60px #0008; }
 .dialog h2 { margin: 8px 0 4px; font-family: var(--font-display), system-ui, sans-serif; font-size: 28px; font-weight: 800; }
-.dialog p { margin: 4px 0; color: var(--muted); }
+.dialog > p { margin: 4px 0; color: var(--muted); }
 .figure { display: flex; justify-content: center; }
 .countdown { font-variant-numeric: tabular-nums; }
 .timeField { display: flex; flex-direction: column; align-items: center; gap: 6px; margin-top: 14px; font-size: 14px; color: var(--muted); }

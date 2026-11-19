@@ -34,6 +34,8 @@ export function rankBy(employees: Rankable[], key: RankKey, meId: string | null,
  * Månedens ståere on the wall: the top `n` this month, most seconds first. An exact tie goes to the
  * lower employee id — the order `rankBetween` (lib/trophy.ts) uses — so the wall, the month panel and
  * the vandrepokal never crown different people.
+ *
+ * Exception: the snapshot floors `monthSeconds`, so a sub-second near-tie can order differently from `rankBetween`, which ranks unfloored seconds.
  */
 export function podiumTop<T extends Pick<Rankable, 'id' | 'monthSeconds'>>(employees: readonly T[], n = 3): T[] {
   return employees

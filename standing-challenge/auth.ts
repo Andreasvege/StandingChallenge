@@ -32,9 +32,9 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       // `hd` only hints Google's account picker; this check is what actually enforces the domain.
       const email = account?.provider === 'google' ? (profile?.email_verified === true ? profile.email : null) : user.email
       if (!email || !isAllowedEmail(email)) return false
-      // Archived people have left: no new sessions (-> /login?error=AccessDenied).
+      // Archived people have left: no new sessions. Returning a string makes Auth.js redirect there.
       const [row] = await db.select({ archivedAt: employees.archivedAt }).from(employees).where(eq(employees.email, normalizeEmail(email)))
-      return !row?.archivedAt
+      return row?.archivedAt ? '/login?error=Archived' : true
     },
   },
 })
