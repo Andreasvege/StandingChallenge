@@ -25,3 +25,15 @@ export function rankBy(employees: Rankable[], key: RankKey, meId: string | null,
   if (me && me.rank > top) rows.push(me)
   return rows
 }
+
+/**
+ * Månedens ståere on the wall: the top `n` this month, most seconds first. An exact tie goes to the
+ * lower employee id — the order `rankBetween` (lib/trophy.ts) uses — so the wall, the month panel and
+ * the vandrepokal never crown different people.
+ */
+export function podiumTop<T extends Pick<Rankable, 'id' | 'monthSeconds'>>(employees: readonly T[], n = 3): T[] {
+  return employees
+    .filter(e => e.monthSeconds > 0)
+    .sort((a, b) => b.monthSeconds - a.monthSeconds || (a.id < b.id ? -1 : a.id > b.id ? 1 : 0))
+    .slice(0, n)
+}

@@ -3,9 +3,10 @@
 
 import type { Cheer } from './cheers'
 import type { Figure } from './figure'
+import { clampMonth, monthBoard, type MonthBoard } from './month-board'
 import type { RoundMinutes } from './sessions'
 import { buildSnapshot, liveEmployee, type EmployeeRow, type LiveEmployee, type OfficeSnapshot, type SessionRow } from './snapshot'
-import { osloDayStart, osloParts, osloPrevMonthStart } from './time'
+import { osloDayStart, osloMonthStart, osloParts, osloPrevMonthStart } from './time'
 import type { Trophy } from './trophy'
 
 export interface DemoPerson {
@@ -103,4 +104,46 @@ export function demoRoom(hour?: number, withCheer = false): { employees: LiveEmp
   // Mina won last month in the demo, so the trophy shows on a desk other than the crowned leader's.
   const trophy: Trophy = { employeeId: 'mina@thebrave.no', month: osloParts(osloPrevMonthStart(now)).month }
   return { employees: snap.employees.map(e => liveEmployee(e, now, now, snap.graceMs)), leaderId: snap.leaderId, now, cheers, trophy }
+}
+
+/** How many months back the demo month board goes (the current one included). */
+const DEMO_MONTHS = 3
+
+/**
+ * A month board for /dev/room's month panel, built with the real `monthBoard` from made-up rounds:
+ * the current month matches the wall (everyone's `monthSeconds`), earlier months are a deterministic
+ * spread by seat, with a few people sitting a month out. No database, no login.
+ */
+export function demoMonthBoard(
+  people: readonly { id: string; name: string; figure: Figure; seat: number | null; monthSeconds: number }[],
+  now: number,
+  requested: number,
+): MonthBoard & { firstMonthStart: number } {
+  const current = osloMonthStart(now)
+  let firstMonthStart = current
+  for (let i = 1; i < DEMO_MONTHS; i++) firstMonthStart = osloPrevMonthStart(firstMonthStart)
+  const monthStart = clampMonth(requested, firstMonthStart, now)
+
+  const sessions: SessionRow[] = []
+  let start = firstMonthStart
+  for (let m = 0; m < DEMO_MONTHS; m++) {
+    for (const p of people) {
+      const seat = p.seat ?? 0
+      const seconds = start === current ? p.monthSeconds : (seat * 5 + m * 3) % 7 === 0 ? 0 : (2 + ((seat * 11 + m * 17) % 40)) * 3600
+      if (seconds <= 0) continue
+      // One long round per month; only the total matters. This month's ends now, earlier ones start on the 2nd.
+      const startedAt = start === current ? now - seconds * 1000 : start + 30 * 3_600_000
+      const end = startedAt + seconds * 1000
+      sessions.push({ id: `demo-${m}-${p.id}`, employeeId: p.id, startedAt, roundMinutes: 30, roundEndsAt: end, endedAt: end, endReason: 'completed' })
+    }
+    start = osloMonthStart(start + 40 * 24 * 3_600_000)
+  }
+  const board = monthBoard(
+    people.map(p => ({ id: p.id, name: p.name, figure: p.figure, archived: false })),
+    sessions,
+    now,
+    monthStart,
+    firstMonthStart,
+  )
+  return { ...board, firstMonthStart }
 }

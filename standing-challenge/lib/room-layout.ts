@@ -80,7 +80,9 @@ export const ROOM_LAYERS = {
   screens: 25,
   /** The fun-facts noticeboard and the panel it opens. */
   poster: 26,
-  /** The row or wall-screen strip holding the open menu — above every wall prop. */
+  /** Månedens ståere on the wall. */
+  podium: 26,
+  /** The row or wall-screen strip holding the open menu, or the month panel — above every wall prop. */
   openMenu: 40,
 } as const
 

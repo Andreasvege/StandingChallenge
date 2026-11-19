@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest'
 import { DEFAULT_FIGURE } from './figure'
-import { rankBy, type Rankable } from './leaderboard'
+import { podiumTop, rankBy, type Rankable } from './leaderboard'
 
 const p = (id: string, name: string, todaySeconds: number, weekSeconds = todaySeconds, monthSeconds = weekSeconds): Rankable =>
   ({ id, name, figure: DEFAULT_FIGURE, todaySeconds, weekSeconds, monthSeconds })
@@ -39,5 +39,20 @@ describe('rankBy', () => {
   })
   it('leaves out people with no time', () => {
     expect(rankBy(people, 'todaySeconds', '8', 10).some(r => r.name === 'Mina')).toBe(false)
+  })
+})
+
+describe('podiumTop', () => {
+  it('takes the top three by month, leaving out people with no time', () => {
+    const month = [p('1', 'Even', 0, 0, 100), p('2', 'Vilde', 0, 0, 900), p('3', 'Emma', 0, 0, 0), p('4', 'Aslak', 0, 0, 500), p('5', 'Mina', 0, 0, 50)]
+    expect(podiumTop(month).map(r => r.name)).toEqual(['Vilde', 'Aslak', 'Even'])
+  })
+  it('breaks an exact tie by employee id, like rankBetween, not by name', () => {
+    const month = [p('b', 'Anna', 0, 0, 700), p('a', 'Zed', 0, 0, 700)]
+    expect(podiumTop(month).map(r => r.name)).toEqual(['Zed', 'Anna'])
+  })
+  it('returns fewer than three when fewer have stood', () => {
+    expect(podiumTop([p('1', 'Even', 0, 0, 10), p('2', 'Vilde', 0, 0, 0)])).toHaveLength(1)
+    expect(podiumTop([])).toEqual([])
   })
 })
