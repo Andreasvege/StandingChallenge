@@ -41,6 +41,7 @@ export function Leaderboard({ employees, meId, now, podiumShown = true, loadMont
     return () => document.removeEventListener('keydown', onKey)
   }, [pastOpen])
   return (
+    <>
     <section className={styles.board}>
       {(podiumShown ? BOARDS : [...BOARDS, MONTH_BOARD]).map(({ key, title }) => {
         // Everyone who has stood — there is room for all 16 on a desktop, and CSS collapses the list on phones.
@@ -77,16 +78,17 @@ export function Leaderboard({ employees, meId, now, podiumShown = true, loadMont
           </div>
         )
       })}
-      {pastOpen && loadMonth && (
-        <div className={styles.backdrop} onClick={ev => ev.target === ev.currentTarget && setPastOpen(false)}>
-          <div className={`${styles.dialog} ${styles.monthDialog}`} role="dialog" aria-modal="true" aria-label={t('month.title')}>
-            <MonthBoardView meId={meId} initialMonthStart={osloMonthStart(now)} load={loadMonth} />
-            <button type="button" className={styles.pill} onClick={() => setPastOpen(false)}>
-              {t('month.close')}
-            </button>
-          </div>
-        </div>
-      )}
     </section>
+    {pastOpen && loadMonth && (
+      <div className={styles.backdrop} onClick={ev => ev.target === ev.currentTarget && setPastOpen(false)}>
+        <div className={`${styles.dialog} ${styles.monthDialog}`} role="dialog" aria-modal="true" aria-label={t('month.title')}>
+          <MonthBoardView meId={meId} initialMonthStart={osloMonthStart(now)} load={loadMonth} />
+          <button type="button" className={styles.pill} onClick={() => setPastOpen(false)}>
+            {t('month.close')}
+          </button>
+        </div>
+      </div>
+    )}
+    </>
   )
 }

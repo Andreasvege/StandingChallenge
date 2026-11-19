@@ -31,10 +31,8 @@
 .progress { color: var(--muted); }
 .progress b { color: var(--text); }
 
-/* Prefixed with .view so the leaderboard's `.board ol` / `.board li` (flex cards) can't win when this
-   view sits inside the phone dialog: same specificity would let whichever sheet loads last decide. */
-.view .rows { text-align: left; list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; }
-.view .rows li { padding: 0; background: none; border-radius: 0; display: grid; grid-template-columns: 22px 24px minmax(0, 1fr) auto; align-items: center; gap: 8px; }
+.rows { text-align: left; list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; }
+.rows li { display: grid; grid-template-columns: 22px 24px minmax(0, 1fr) auto; align-items: center; gap: 8px; }
 .rank { font-weight: 700; color: var(--muted); font-variant-numeric: tabular-nums; text-align: right; }
 .head { display: block; }
 .name { min-width: 0; display: grid; gap: 3px; }
