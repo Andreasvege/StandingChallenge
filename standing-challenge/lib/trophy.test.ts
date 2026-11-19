@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import type { SessionRow } from './snapshot'
 import { osloMonthStart, osloPrevMonthStart } from './time'
-import { lastMonthTrophy } from './trophy'
+import { lastMonthTrophy, rankBetween } from './trophy'
 
 const t = (iso: string) => new Date(iso).getTime()
 function closed(id: string, employeeId: string, start: string, end: string): SessionRow {
@@ -39,5 +39,17 @@ describe('lastMonthTrophy', () => {
 
   it('is nobody when nobody stood', () => {
     expect(lastMonthTrophy([], now)).toBeNull()
+  })
+})
+
+describe('rankBetween', () => {
+  it('breaks an exact tie by employee id, whatever the session order', () => {
+    const from = t('2026-09-01T00:00:00Z')
+    const to = t('2026-10-01T00:00:00Z')
+    const now = t('2026-10-21T09:00:00Z')
+    const a = closed('1', 'b', '2026-09-10T08:00:00Z', '2026-09-10T09:00:00Z')
+    const b = closed('2', 'a', '2026-09-11T08:00:00Z', '2026-09-11T09:00:00Z')
+    expect(rankBetween([a, b], now, from, to).map((r) => r.employeeId)).toEqual(['a', 'b'])
+    expect(rankBetween([b, a], now, from, to).map((r) => r.employeeId)).toEqual(['a', 'b'])
   })
 })

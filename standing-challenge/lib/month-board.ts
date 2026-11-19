@@ -14,7 +14,7 @@ export interface MonthBoard {
   monthStart: number
   /** The month is over. */
   done: boolean
-  /** Most seconds first; ties by name. */
+  /** Most seconds first; exact ties in `rankBetween`'s order (employee id), the same as the trophy. */
   rows: MonthRow[]
   totalSeconds: number
   /** «Mest framgang»: largest gain in seconds over one's own previous month, or null. */
@@ -30,9 +30,8 @@ export function nextMonthStart(monthStart: number): number {
 /** Keeps `monthStart` between the first month with rounds and the current one. */
 export function clampMonth(monthStart: number, firstMonthStart: number, now: number): number {
   const current = osloMonthStart(now)
-  if (monthStart < firstMonthStart) return firstMonthStart
   if (monthStart > current) return current
-  return monthStart
+  return Math.max(monthStart, Math.min(firstMonthStart, current))
 }
 
 export function monthBoard(people: BoardPerson[], sessions: SessionRow[], now: number, monthStart: number, firstMonthStart: number): MonthBoard {
@@ -43,7 +42,6 @@ export function monthBoard(people: BoardPerson[], sessions: SessionRow[], now: n
       const p = byId.get(employeeId)
       return p && (done || !p.archived) ? [{ id: p.id, name: p.name, figure: p.figure, seconds }] : []
     })
-    .sort((a, b) => b.seconds - a.seconds || a.name.localeCompare(b.name, 'nb'))
     .map((r, i) => ({ ...r, rank: i + 1 }))
 
   let progress: Progress | null = null

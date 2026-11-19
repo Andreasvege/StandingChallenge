@@ -21,12 +21,12 @@ export function lastMonthTrophy(sessions: readonly SessionRow[], now: number): T
   return best ? { employeeId: best.employeeId, month: osloParts(from).month } : null
 }
 
-/** Everyone who stood in [from, to), most seconds first. Ties keep `sessions` order. */
+/** Everyone who stood in [from, to), most seconds first; an exact tie goes to the lower employee id, so every caller crowns the same person. */
 export function rankBetween(sessions: readonly SessionRow[], now: number, from: number, to: number): { employeeId: string; seconds: number }[] {
   const totals = new Map<string, number>()
   for (const s of sessions) {
     const seconds = creditedSecondsBetween(s, now, from, to)
     if (seconds > 0) totals.set(s.employeeId, (totals.get(s.employeeId) ?? 0) + seconds)
   }
-  return [...totals].map(([employeeId, seconds]) => ({ employeeId, seconds })).sort((a, b) => b.seconds - a.seconds)
+  return [...totals].map(([employeeId, seconds]) => ({ employeeId, seconds })).sort((a, b) => b.seconds - a.seconds || (a.employeeId < b.employeeId ? -1 : a.employeeId > b.employeeId ? 1 : 0))
 }

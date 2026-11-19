@@ -21,7 +21,7 @@ function round(employeeId: string, start: number, hours: number): SessionRow {
 const people = [person('even', 'Even'), person('anja', 'Anja'), person('bo', 'Bo'), person('george', 'George')]
 
 describe('monthBoard', () => {
-  it('ranks a finished month by seconds, ties by name', () => {
+  it('ranks a finished month by seconds, exact ties by employee id', () => {
     const s = [round('even', at(2026, 10, 5, 8), 3), round('bo', at(2026, 10, 6, 8), 1), round('anja', at(2026, 10, 7, 8), 1)]
     const b = monthBoard(people, s, now, OCT, SEP)
     expect(b.rows.map((r) => r.name)).toEqual(['Even', 'Anja', 'Bo'])
@@ -65,8 +65,27 @@ describe('monthBoard', () => {
   })
 
   it('progress ties go to the higher-ranked person', () => {
-    const s = [round('anja', at(2026, 10, 5, 8), 1), round('bo', at(2026, 10, 5, 8), 1), round('anja', at(2026, 11, 3, 8), 3), round('bo', at(2026, 11, 3, 8), 4)]
-    expect(monthBoard(people, s, now, NOV, OCT).progress?.name).toBe('Bo')
+    // Both gain 2 h; Bo ranks first (4 h vs 3 h) although Anja is first by name.
+    const bo = [round('anja', at(2026, 10, 5, 8), 1), round('bo', at(2026, 10, 5, 8), 2), round('anja', at(2026, 11, 3, 8), 3), round('bo', at(2026, 11, 3, 8), 4)]
+    expect(monthBoard(people, bo, now, NOV, OCT).progress?.name).toBe('Bo')
+    // And the other way round, so it is rank and not name or order that decides.
+    const anja = [round('anja', at(2026, 10, 5, 8), 2), round('bo', at(2026, 10, 5, 8), 1), round('anja', at(2026, 11, 3, 8), 4), round('bo', at(2026, 11, 3, 8), 3)]
+    expect(monthBoard(people, anja, now, NOV, OCT).progress?.name).toBe('Anja')
+  })
+
+  it('an exact tie follows rankBetween (employee id), so the board and the trophy agree', () => {
+    const ppl = [person('z1', 'Anja'), person('a1', 'Bo')]
+    const s = [round('z1', at(2026, 10, 5, 8), 1), round('a1', at(2026, 10, 6, 8), 1)]
+    expect(monthBoard(ppl, s, now, OCT, SEP).rows.map((r) => r.name)).toEqual(['Bo', 'Anja'])
+  })
+
+  it('a month where only one or two people stood', () => {
+    const one = monthBoard(people, [round('even', at(2026, 10, 5, 8), 2)], now, OCT, OCT)
+    expect(one.rows).toHaveLength(1)
+    expect(one.progress).toBeNull()
+    const two = monthBoard(people, [round('even', at(2026, 10, 5, 8), 2), round('anja', at(2026, 10, 6, 8), 1), round('anja', at(2026, 9, 6, 8), 1)], now, OCT, SEP)
+    expect(two.rows).toHaveLength(2)
+    expect(two.progress?.name).toBe('Even') // Anja stood the same hour in September
   })
 
   it('empty month', () => {
@@ -85,5 +104,7 @@ describe('month bounds', () => {
     expect(clampMonth(SEP, OCT, now)).toBe(OCT)
     expect(clampMonth(at(2027, 2, 1, 0), OCT, now)).toBe(osloMonthStart(now))
     expect(clampMonth(OCT, SEP, now)).toBe(OCT)
+    // a first month after the current one: the current month still wins
+    expect(clampMonth(SEP, at(2027, 1, 1, 0), now)).toBe(osloMonthStart(now))
   })
 })
