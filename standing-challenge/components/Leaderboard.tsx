@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { formatDuration } from '@/lib/format'
 import type { MessageKey } from '@/lib/i18n'
 import { rankBy, type RankKey } from '@/lib/leaderboard'
@@ -32,6 +32,14 @@ export function Leaderboard({ employees, meId, now, podiumShown = true, loadMont
   const [expanded, setExpanded] = useState(false)
   const [pastOpen, setPastOpen] = useState(false)
   const { lang, t } = useTranslation()
+  useEffect(() => {
+    if (!pastOpen) return
+    const onKey = (ev: KeyboardEvent) => {
+      if (ev.key === 'Escape') setPastOpen(false)
+    }
+    document.addEventListener('keydown', onKey)
+    return () => document.removeEventListener('keydown', onKey)
+  }, [pastOpen])
   return (
     <section className={styles.board}>
       {(podiumShown ? BOARDS : [...BOARDS, MONTH_BOARD]).map(({ key, title }) => {
@@ -70,7 +78,7 @@ export function Leaderboard({ employees, meId, now, podiumShown = true, loadMont
         )
       })}
       {pastOpen && loadMonth && (
-        <div className={styles.backdrop}>
+        <div className={styles.backdrop} onClick={ev => ev.target === ev.currentTarget && setPastOpen(false)}>
           <div className={`${styles.dialog} ${styles.monthDialog}`} role="dialog" aria-modal="true" aria-label={t('month.title')}>
             <MonthBoardView meId={meId} initialMonthStart={osloMonthStart(now)} load={loadMonth} />
             <button type="button" className={styles.pill} onClick={() => setPastOpen(false)}>
