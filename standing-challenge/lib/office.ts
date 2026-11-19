@@ -56,13 +56,13 @@ async function loadTrophy(now: number): Promise<Trophy | null> {
 export async function loadOfficeSnapshot(now = Date.now()): Promise<OfficeSnapshot> {
   const grace = currentGraceMs()
   await closeExpiredSessions(now, grace)
-  const weekStart = new Date(osloWeekStart(now))
+  const sinceStart = new Date(Math.min(osloWeekStart(now), osloMonthStart(now)))
   const [employeeRows, sessionRows, cheerRows, weather, trophy] = await Promise.all([
     db.select().from(employees).where(isNull(employees.archivedAt)),
     db
       .select()
       .from(standSessions)
-      .where(or(isNull(standSessions.endedAt), gte(standSessions.endedAt, weekStart))),
+      .where(or(isNull(standSessions.endedAt), gte(standSessions.endedAt, sinceStart))),
     db
       .select()
       .from(cheers)

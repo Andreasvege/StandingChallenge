@@ -84,7 +84,10 @@ export function demoSnapshot(now: number, grace = 5 * MIN): OfficeSnapshot {
     endedAt: s.endedAt,
     endReason: s.endedAt === null ? null : 'completed',
   }))
-  return buildSnapshot(employees, sessions, now, grace)
+  const snap = buildSnapshot(employees, sessions, now, grace)
+  // Plausible month totals: today's time plus a deterministic 3-27 hours earlier in the month, spread by seat.
+  const employeesWithMonth = snap.employees.map(e => ({ ...e, monthSeconds: e.monthSeconds + (3 + ((e.seat ?? 0) * 7) % 25) * 3600 }))
+  return { ...snap, employees: employeesWithMonth }
 }
 
 /**

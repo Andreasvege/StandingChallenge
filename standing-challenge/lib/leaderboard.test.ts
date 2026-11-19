@@ -2,8 +2,8 @@ import { describe, it, expect } from 'vitest'
 import { DEFAULT_FIGURE } from './figure'
 import { rankBy, type Rankable } from './leaderboard'
 
-const p = (id: string, name: string, todaySeconds: number, weekSeconds = todaySeconds): Rankable =>
-  ({ id, name, figure: DEFAULT_FIGURE, todaySeconds, weekSeconds })
+const p = (id: string, name: string, todaySeconds: number, weekSeconds = todaySeconds, monthSeconds = weekSeconds): Rankable =>
+  ({ id, name, figure: DEFAULT_FIGURE, todaySeconds, weekSeconds, monthSeconds })
 
 const people = [
   p('1', 'Even', 7000, 20000), p('2', 'Vilde', 5000, 30000), p('3', 'Sander', 5000), p('4', 'Emma', 3000),
@@ -16,6 +16,10 @@ describe('rankBy', () => {
   })
   it('ranks by week when asked', () => {
     expect(rankBy(people, 'weekSeconds', null)[0]).toMatchObject({ name: 'Vilde', seconds: 30000, rank: 1 })
+  })
+  it('works on monthSeconds', () => {
+    const month = [p('1', 'Even', 100, 200, 9000), p('2', 'Vilde', 100, 900, 5000), p('3', 'Emma', 0, 0, 0)]
+    expect(rankBy(month, 'monthSeconds', null).map(r => r.name)).toEqual(['Even', 'Vilde'])
   })
   it('appends me with my real rank when I am outside the top 5', () => {
     const rows = rankBy(people, 'todaySeconds', '7')

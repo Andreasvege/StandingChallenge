@@ -2,8 +2,8 @@
 
 import type { OfficeEmployee } from './snapshot'
 
-export type RankKey = 'todaySeconds' | 'weekSeconds'
-export type Rankable = Pick<OfficeEmployee, 'id' | 'name' | 'figure' | 'todaySeconds' | 'weekSeconds'>
+export type RankKey = 'todaySeconds' | 'weekSeconds' | 'monthSeconds'
+export type Rankable = Pick<OfficeEmployee, 'id' | 'name' | 'figure' | 'todaySeconds' | 'weekSeconds' | 'monthSeconds'>
 
 export interface RankRow {
   id: string

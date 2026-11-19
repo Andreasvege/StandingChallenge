@@ -77,11 +77,27 @@ describe('buildSnapshot', () => {
   })
 })
 
+describe('monthSeconds', () => {
+  it('counts from the Oslo month start', () => {
+    const now = t('2026-11-05T10:00:00Z')
+    const sessions = [
+      sess('1', 'a', '2026-11-01T08:00:00Z', 30, null, '2026-11-01T08:30:00Z'), // counts: 30 min
+      sess('2', 'a', '2026-10-31T22:30:00Z', 60, null, '2026-10-31T23:30:00Z'), // 23:30 Oslo? ends 00:30 Oslo on the 1st: only the 1st part counts
+      sess('3', 'b', '2026-10-31T21:00:00Z', 30, null, '2026-10-31T21:30:00Z'), // 22:00 Oslo on the 31st: does not count
+    ]
+    const snap = buildSnapshot([emp('a', 'Anna', 0), emp('b', 'Bjørn', 1)], sessions, now, GRACE)
+    const byId = Object.fromEntries(snap.employees.map(e => [e.id, e]))
+    // Oslo is UTC+1 on 1 Nov (DST ended 25 Oct): session 2 runs 23:30 -> 00:30 Oslo, so 30 min land in November.
+    expect(byId.a.monthSeconds).toBe(30 * 60 + 30 * 60)
+    expect(byId.b.monthSeconds).toBe(0)
+  })
+})
+
 describe('liveEmployee', () => {
   const base: OfficeEmployee = {
     id: 'a', name: 'Anna', figure: DEFAULT_FIGURE, seat: 0, remoteFrom: null,
     session: { startedAt: NOW - 10 * MIN, roundEndsAt: NOW + 20 * MIN, roundMinutes: 30 },
-    todaySeconds: 600, weekSeconds: 900,
+    todaySeconds: 600, weekSeconds: 900, monthSeconds: 1200,
   }
   it('ticks totals and elapsed time forward while standing', () => {
     const live = liveEmployee(base, NOW, NOW + MIN, GRACE)
@@ -89,6 +105,7 @@ describe('liveEmployee', () => {
     expect(live.elapsedSeconds).toBe(660)
     expect(live.todaySeconds).toBe(660)
     expect(live.weekSeconds).toBe(960)
+    expect(live.monthSeconds).toBe(1260)
   })
   it('freezes at the round end while awaiting an answer', () => {
     const live = liveEmployee(base, NOW, NOW + 20 * MIN + 10_000, GRACE)

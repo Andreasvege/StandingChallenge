@@ -4,7 +4,7 @@
 import type { Cheer } from './cheers'
 import type { Figure } from './figure'
 import { creditedSecondsBetween, phaseAt, type StandSession } from './sessions'
-import { osloDayStart, osloNextDayStart, osloWeekStart } from './time'
+import { osloDayStart, osloMonthStart, osloNextDayStart, osloWeekStart } from './time'
 import type { Trophy } from './trophy'
 import type { Weather } from './weather'
 
@@ -41,6 +41,8 @@ export interface OfficeEmployee {
   session: OpenSession | null
   todaySeconds: number
   weekSeconds: number
+  /** Seconds stood since the 1st of the month, Oslo time (drives the wall podium). */
+  monthSeconds: number
 }
 
 export interface OfficeSnapshot {
@@ -68,6 +70,7 @@ export function buildSnapshot(
   const dayStart = osloDayStart(now)
   const dayEnd = osloNextDayStart(now)
   const weekStart = osloWeekStart(now)
+  const monthStart = osloMonthStart(now)
 
   const byEmployee = new Map<string, SessionRow[]>()
   for (const s of sessions) {
@@ -79,10 +82,12 @@ export function buildSnapshot(
   const list: OfficeEmployee[] = employees.map(e => {
     let today = 0
     let week = 0
+    let month = 0
     let open: OpenSession | null = null
     for (const s of byEmployee.get(e.id) ?? []) {
       today += creditedSecondsBetween(s, now, dayStart, dayEnd)
       week += creditedSecondsBetween(s, now, weekStart, dayEnd)
+      month += creditedSecondsBetween(s, now, monthStart, dayEnd)
       const phase = phaseAt(s, now, grace)
       if (phase === 'standing' || phase === 'awaiting') {
         open = { startedAt: s.startedAt, roundEndsAt: s.roundEndsAt, roundMinutes: s.roundMinutes, startedById: s.startedBy ?? null }
@@ -97,6 +102,7 @@ export function buildSnapshot(
       session: open,
       todaySeconds: Math.floor(today),
       weekSeconds: Math.floor(week),
+      monthSeconds: Math.floor(month),
     }
   })
 
@@ -144,5 +150,6 @@ export function liveEmployee(e: OfficeEmployee, snapshotNow: number, now: number
     elapsedSeconds: Math.floor(Math.max(0, creditedUntil - startedAt) / 1000),
     todaySeconds: Math.floor(e.todaySeconds + gained),
     weekSeconds: Math.floor(e.weekSeconds + gained),
+    monthSeconds: Math.floor(e.monthSeconds + gained),
   }
 }
